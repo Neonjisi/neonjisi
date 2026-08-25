@@ -1,0 +1,37 @@
+# 참조용으로 클론한 외부 저장소 (106MB)
+everything-claude-code/
+
+# 개인 메모 — 필요 시 추적 대상에 추가
+idation.rtf
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+
+# 환경변수
+.env
+.env.*
+!.env.example
+
+# 로그
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# 테스트 / 커버리지
+coverage/
+
+# OS / 에디터
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Claude Code 로컬 설정
+.claude/settings.local.json
