@@ -1,37 +1,48 @@
-# 참조용으로 클론한 외부 저장소 (106MB)
-everything-claude-code/
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# 개인 메모 — 필요 시 추적 대상에 추가
-idation.rtf
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
 
-# Node / Next.js
-node_modules/
-.next/
-out/
-build/
-dist/
-*.tsbuildinfo
-next-env.d.ts
+# testing
+/coverage
 
-# 환경변수
-.env
-.env.*
-!.env.example
+# next.js
+/.next/
+/out/
 
-# 로그
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# 테스트 / 커버리지
-coverage/
+# env files (can opt-in for committing if needed)
+.env*
 
-# OS / 에디터
-.DS_Store
-Thumbs.db
-.idea/
-.vscode/
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# --- 프로젝트 전용 ---
+# 개인 메모 — 필요 시 추적 대상에 추가
+idation.rtf
 
 # Claude Code 로컬 설정
 .claude/settings.local.json
