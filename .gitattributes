@@ -1,0 +1,8 @@
+# Pencil 디자인 파일 — 암호화 포맷. 줄바꿈 변환 시 손상됨
+*.pen -text -diff
+
+# 폰트 — 바이너리
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
