@@ -77,7 +77,7 @@ Prisma (신규), `@supabase/supabase-js` + `@supabase/ssr` (신규), Zod (신규
 specs/001-taste-profile/
 ├── plan.md              # 이 파일
 ├── research.md          # Phase 0 산출물
-├── data-model.md        # Phase 1 산출물 — M1 부분만. 전체는 docs/specs/ 원문
+├── data-model.md        # Phase 1 산출물 — M1 부분만. 전체는 docs/ 원문
 ├── quickstart.md        # Phase 1 산출물
 ├── contracts/           # Phase 1 산출물
 │   └── server-actions.md

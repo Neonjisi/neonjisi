@@ -10,7 +10,7 @@ Sync Impact Report
   - Governance
 - Removed sections: 없음
 - Source documents: .claude/prds/neonjisi.prd.md (rev.3),
-  docs/specs/2026-08-26-domain-model.md, CLAUDE.md
+  docs/domain-model.md, CLAUDE.md
 - Deferred TODOs: 없음
 -->
 

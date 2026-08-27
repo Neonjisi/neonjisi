@@ -8,7 +8,7 @@
 
 **Input**: 마일스톤 1 — 사용자가 자신의 맞춤 취향을 기록하고 다시 볼 수 있다. PRD Delivery Milestones의 1번. 마일스톤 2~4는 이 데이터를 쓰는 층이므로 반드시 선행한다.
 
-**근거 문서**: `.claude/prds/neonjisi.prd.md` (rev.3) · `docs/specs/2026-08-26-domain-model.md` §3 · `.specify/memory/constitution.md`
+**근거 문서**: `.claude/prds/neonjisi.prd.md` (rev.3) · `docs/domain-model.md` §3 · `.specify/memory/constitution.md`
 
 ## Clarifications
 
