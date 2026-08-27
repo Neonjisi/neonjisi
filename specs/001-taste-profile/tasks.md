@@ -32,13 +32,13 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 
 **Purpose**: 테스트 수단 확보와 환경 준비. **T001~T003이 끝나기 전에는 어떤 기능 코드도 쓰지 않는다** — plan.md Complexity Tracking에서 constitution 원칙 II 게이트를 통과시킨 조건이다.
 
-- [ ] T001 Vitest + React Testing Library 설치, `vitest.config.ts` 작성, `package.json`에 `test` 스크립트 추가
-- [ ] T002 Playwright 설치, `playwright.config.ts` 작성, `package.json`에 `test:e2e` 스크립트 추가
-- [ ] T003 러너가 실제로 실패를 보고하는지 확인 — `tests/unit/smoke.test.ts`와 `tests/e2e/smoke.spec.ts`에 의도적으로 실패하는 테스트를 넣고 `npm run test`·`npm run test:e2e`가 붉게 뜨는 것을 본 뒤 삭제한다. 초록만 보고 넘어가면 러너가 테스트를 아예 수집하지 못하는 상태를 놓친다
-- [ ] T004 [P] `.gitignore`의 `.env*` 아래에 `!.env.example` 예외 추가 — 현재 패턴이 팀 공유용 예시 파일까지 무시한다
-- [ ] T005 [P] `.env.example` 작성 — `DATABASE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (값 없이 키만)
-- [ ] T006 `.env.local`에 Supabase 프로젝트 실제 값 기입. **커밋하지 않는다**
-- [ ] T007 [P] 런타임 의존성 설치 — `prisma`, `@prisma/client`, `@supabase/supabase-js`, `@supabase/ssr`, `zod`
+- [X] T001 Vitest + React Testing Library 설치, `vitest.config.ts` 작성, `package.json`에 `test` 스크립트 추가
+- [X] T002 Playwright 설치, `playwright.config.ts` 작성, `package.json`에 `test:e2e` 스크립트 추가
+- [X] T003 러너가 실제로 실패를 보고하는지 확인 — `tests/unit/smoke.test.ts`와 `tests/e2e/smoke.spec.ts`에 의도적으로 실패하는 테스트를 넣고 `npm run test`·`npm run test:e2e`가 붉게 뜨는 것을 본 뒤 삭제한다. 초록만 보고 넘어가면 러너가 테스트를 아예 수집하지 못하는 상태를 놓친다
+- [X] T004 [P] `.gitignore`의 `.env*` 아래에 `!.env.example` 예외 추가 — 현재 패턴이 팀 공유용 예시 파일까지 무시한다
+- [X] T005 [P] `.env.example` 작성 — `DATABASE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (값 없이 키만)
+- [ ] T006 `.env.local`에 Supabase 프로젝트 실제 값 기입. **커밋하지 않는다** — ⚠️ **팀원이 각자 자기 컴퓨터에서 수행한다.** `cp .env.example .env.local` 후 Supabase 대시보드에서 값을 채운다 (team-assignment.md 2장)
+- [X] T007 [P] 런타임 의존성 설치 — `prisma`, `@prisma/client`, `@supabase/supabase-js`, `@supabase/ssr`, `zod`
 
 **Checkpoint**: `npm run test`와 `npm run test:e2e`가 동작하고, `.env.local`로 Supabase에 연결 가능하다.
 
