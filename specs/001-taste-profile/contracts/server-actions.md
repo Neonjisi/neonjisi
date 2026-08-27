@@ -70,7 +70,7 @@ React `cache()`로 메모이즈한다 — 한 렌더 패스에서 여러 컴포�
 
 ### `getTasteProfile(): Promise<TasteProfileView>`
 
-본인 프로필과 취향 서술을 반환한다. 인가를 통과한 결과만 나오므로 호출부에 소유자 검사가 없다.
+본인 프로필과 취향 서술을 반환한다. 인가를 통과한 결과만 나오므로 호출부에 소유자 검사가 없다. `getTasteItemsByKind()`와 같은 파일(`lib/dal/taste.ts`)에 함께 구현한다 — tasks.md T031.
 
 ### `getTasteItemsByKind(): Promise<Record<TasteKind, TasteItemView[]>>`
 
@@ -153,13 +153,14 @@ FR-007. 빈 문자열은 `NULL`로 정규화한다 — FR-015의 작성률 집�
 
 ## 클라이언트 경계
 
-`'use client'`를 붙이는 것은 아래 셋뿐이다(constitution 원칙 III).
+`'use client'`를 붙이는 것은 아래 넷뿐이다(constitution 원칙 III).
 
 | 컴포넌트 | 이유 |
 |---|---|
 | `taste-item-form.tsx` | 입력 상태와 `useActionState` |
 | `category-picker.tsx` | 선택 상태와 검색 필터 |
 | `description-editor.tsx` | 입력 상태와 저장 상태 표시 |
+| `delete-confirm-dialog.tsx` | 삭제 확인 상태. 목록 전체를 클라이언트로 내리지 않기 위해 분리 |
 
 목록 렌더(`taste-item-list.tsx`)는 Server Component다. 데이터를 클라이언트로 보내고 거기서
 거르는 구조는 constitution 데이터 보호 조항과 충돌한다.

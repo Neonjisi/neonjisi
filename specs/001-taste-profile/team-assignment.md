@@ -104,7 +104,7 @@ Phase 7  마무리       J D H S
 | T025 | 통합 테스트 작성 — 저장되면 온보딩 완료로 바뀌는지, 모순·중복·상한이 막히는지 | **먼저** |
 | T027 | `app/taste/actions.ts` — `createTasteItem` 서버 액션 | 그다음 |
 | T026 | `lib/dal/taste.ts` — `getCategories()` | |
-| T031 | `lib/dal/taste.ts` — `getTasteItemsByKind()` (종류별로 묶어서 반환) | |
+| T031 | `lib/dal/taste.ts` — `getTasteItemsByKind()`(종류별로 묶어서 반환) + `getTasteProfile()`(프로필·취향 서술). US3의 T045가 후자를 쓴다 | |
 
 > **T025를 먼저 쓴다.** 구현부터 시작하면 프로젝트 원칙(테스트 우선)이 깨진다.
 >
@@ -253,7 +253,7 @@ Phase 7  마무리       J D H S
 | T044 | `components/taste/description-editor.tsx` (`'use client'`) — 취향 서술 |
 | T045 | `app/taste/page.tsx`에 취향 서술 표시 영역 |
 | T046 | T040·T041 초록으로 |
-| T051 | `taste-item-list.tsx`에 수정·삭제 진입점 + **삭제 확인 UI** |
+| T051 | `taste-item-list.tsx`에 수정·삭제 진입점 + 삭제 확인 다이얼로그를 **`delete-confirm-dialog.tsx`(`'use client'`)로 분리**. 목록 자체는 Server Component로 유지 |
 
 > **T042에서 상세를 필수로 만들면 안 된다.** 대분류는 "잘못된 선물을 거르는" 용도라 필수고,
 > 상세는 "추천 정확도를 올리는" 용도라 선택이다. 강제하면 사용자가 온보딩을 포기한다.
@@ -264,7 +264,7 @@ Phase 7  마무리       J D H S
 |---|---|
 | T054 | 360px에서 전체 화면 다시 확인. 가로 스크롤이 생기면 실패 |
 | T056 | 컴포넌트 크기 점검 — 500줄 넘으면 쪼갬 |
-| T057 | `'use client'` 점검 — 폼·선택기·서술 편집기 3개로 한정되어 있는지 |
+| T057 | `'use client'` 점검 — 폼·선택기·서술 편집기·삭제 확인 **4개**로 한정되어 있는지 |
 
 ---
 

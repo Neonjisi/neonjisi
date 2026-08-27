@@ -109,7 +109,8 @@ components/
 │   ├── taste-item-list.tsx     # 종류별 묶음 렌더 (Server)
 │   ├── taste-item-form.tsx     # 'use client' — 입력 상태
 │   ├── category-picker.tsx     # 'use client' — 대분류 선택
-│   └── description-editor.tsx  # 'use client' — 취향 서술
+│   ├── description-editor.tsx  # 'use client' — 취향 서술
+│   └── delete-confirm-dialog.tsx  # 'use client' — 삭제 확인
 └── ui/                         # 공용 프리미티브
 
 lib/
@@ -160,7 +161,7 @@ tests/
 |---|---|---|
 | **I. 결정에는 근거가 붙는다** | ✅ 유지 | [research.md](./research.md) R1~R7 전부 Decision / Rationale / Alternatives 형식. 미해결 항목 0건 |
 | **II. 테스트 우선** | ⚠️ 조건 유지 | 테스트 3층 구조를 R5에서 확정했고 [quickstart.md](./quickstart.md)에 실행 절차를 넣었다. 러너 도입이 첫 작업이라는 조건은 그대로다 |
-| **III. Server Component가 기본이다** | ✅ 유지 | `'use client'`는 폼·선택기·서술 편집기 **3개로 한정**했다. 목록 렌더는 Server Component다 |
+| **III. Server Component가 기본이다** | ✅ 유지 | `'use client'`는 폼·선택기·서술 편집기·삭제 확인 다이얼로그 **4개로 한정**했다. 목록 렌더는 Server Component다 |
 | **IV. 거래는 스냅샷으로 자립한다** | ➖ 해당 없음 | 변동 없음 |
 | **V. 연기는 후행 비용이 낮은 쪽으로** | ✅ 유지 | [data-model.md](./data-model.md) "M1에서 의도적으로 넣지 않은 것"에 4건과 각각의 후행 비용을 명시했다 |
 

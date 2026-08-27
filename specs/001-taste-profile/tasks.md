@@ -87,10 +87,10 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 - [ ] T028 [P] [US1] `components/taste/category-picker.tsx` (`'use client'`) — 대분류 선택과 검색 필터
 - [ ] T029 [US1] `components/taste/taste-item-form.tsx` (`'use client'`) — `useActionState`로 폼 상태. 저장 실패 시 **입력 내용을 보존한다** (FR-016)
 - [ ] T030 [US1] `app/onboarding/page.tsx` (Server Component) — 최소 1건 안내와 저장 후 `/taste` 이동
-- [ ] T031 [US1] `lib/dal/taste.ts`에 `getTasteItemsByKind()` — 종류별로 묶인 형태로 반환해 화면이 그룹핑 로직을 갖지 않게 한다 (FR-012)
+- [ ] T031 [US1] `lib/dal/taste.ts`에 `getTasteItemsByKind()`와 `getTasteProfile()` — 전자는 종류별로 묶인 형태로 반환해 화면이 그룹핑 로직을 갖지 않게 하고(FR-012), 후자는 프로필과 취향 서술을 반환한다. 두 함수 모두 인가를 통과한 결과만 내보내므로 호출부에 소유자 검사가 없다. `getTasteProfile()`은 US3의 T045(취향 서술 표시)가 사용한다
 - [ ] T032 [US1] `components/taste/taste-item-list.tsx` (**Server Component**) — `이미 있는 것`과 `필요 없는 것`을 다른 묶음으로 렌더 (US1-3)
 - [ ] T033 [US1] `app/taste/page.tsx` — 진입 시 `requireOnboarded()` 호출 (FR-018)
-- [ ] T034 [US1] T023·T024를 초록으로 만들고 폭 360px에서 재확인
+- [ ] T034 [US1] T024·T025를 초록으로 만들고 폭 360px에서 재확인
 
 **Checkpoint**: US1이 독립적으로 동작한다. **여기까지가 MVP다.**
 
@@ -109,9 +109,9 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 
 ### Implementation for User Story 2
 
-- [ ] T037 [US2] `app/taste/page.tsx`에 `원하는 것` 등록 진입점 추가 — T026의 Action을 `kind: 'WANT'`로 재사용한다. 새 Action을 만들지 않는다
+- [ ] T037 [US2] `app/taste/page.tsx`에 `원하는 것` 등록 진입점 추가 — T027의 Action을 `kind: 'WANT'`로 재사용한다. 새 Action을 만들지 않는다
 - [ ] T038 [US2] `components/taste/taste-item-list.tsx`에 `원하는 것` 빈 상태 안내 추가 (US2-2)
-- [ ] T039 [US2] T034·T035를 초록으로 만든다
+- [ ] T039 [US2] T035·T036을 초록으로 만든다
 
 **Checkpoint**: US1 + US2가 함께 동작한다.
 
@@ -134,7 +134,7 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 - [ ] T043 [US3] `app/taste/actions.ts`에 `updateTasteDescription` Server Action — 빈 문자열을 `NULL`로 정규화 (FR-007)
 - [ ] T044 [P] [US3] `components/taste/description-editor.tsx` (`'use client'`) — 입력 상태와 저장 상태 표시
 - [ ] T045 [US3] `app/taste/page.tsx`에 취향 서술 표시 영역 추가
-- [ ] T046 [US3] T039·T040을 초록으로 만든다
+- [ ] T046 [US3] T040·T041을 초록으로 만든다
 
 **Checkpoint**: US1~US3가 함께 동작하고 상세·서술 데이터가 쌓이기 시작한다.
 
@@ -155,8 +155,8 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 
 - [ ] T049 [US4] `app/taste/actions.ts`에 `updateTasteItem` Server Action — 소유자 검사 후 **수정 후 상태 기준으로** 모순·중복을 다시 검사한다. `kind`를 `WANT`로 바꿔 온보딩 조건이 깨지면 `onboardedAt`을 `NULL`로 되돌린다
 - [ ] T050 [US4] `app/taste/actions.ts`에 `deleteTasteItem` Server Action — hard delete. 삭제 후 `HAVE`/`UNWANTED`가 0건이면 `onboardedAt`을 `NULL`로 되돌린다
-- [ ] T051 [US4] `components/taste/taste-item-list.tsx`에 수정·삭제 진입점과 **삭제 확인 UI** 추가. 확인은 클라이언트 책임이며 Action은 확인 없이 호출되면 그대로 지운다
-- [ ] T052 [US4] T046·T047을 초록으로 만든다
+- [ ] T051 [US4] `components/taste/taste-item-list.tsx`에 수정·삭제 진입점 추가 + **삭제 확인 다이얼로그를 `components/taste/delete-confirm-dialog.tsx`(`'use client'`)로 분리**. `taste-item-list.tsx`는 Server Component로 유지한다 — 확인 UI는 클라이언트 상태가 필요하므로 목록 전체를 클라이언트로 내리지 않고 다이얼로그만 떼어낸다. 확인은 클라이언트 책임이며 Action은 확인 없이 호출되면 그대로 지운다
+- [ ] T052 [US4] T047·T048을 초록으로 만든다
 
 **Checkpoint**: US1~US4 전부 동작한다.
 
@@ -168,7 +168,7 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 - [ ] T054 [P] 폭 360px에서 quickstart V1~V4를 다시 밟는다. 가로 스크롤이 생기면 실패 (SC-006)
 - [ ] T055 [P] FR-016 확인 — 저장 중 네트워크를 끊고 실패가 표시되며 **입력 내용이 남는지** (quickstart V5-4)
 - [ ] T056 [P] 컴포넌트 크기 점검 — 500줄 초과가 있으면 하위 컴포넌트로 분해 (constitution 품질 게이트)
-- [ ] T057 [P] `'use client'` 사용처 점검 — 폼·선택기·서술 편집기 3개로 한정되어 있는지. 목록 렌더가 Server Component로 남아 있는지 (constitution 원칙 III)
+- [ ] T057 [P] `'use client'` 사용처 점검 — 폼·선택기·서술 편집기·삭제 확인 다이얼로그 **4개**로 한정되어 있는지. 목록 렌더가 Server Component로 남아 있는지 (constitution 원칙 III)
 - [ ] T058 `npm run lint`와 `npm run build` 통과 — 완료 선언 전 필수 (constitution 품질 게이트)
 - [ ] T059 quickstart.md V1~V7 전체를 순서대로 수동 검증
 - [ ] T060 [P] SC-007 확인 — **구현에 참여하지 않은 외부 5명**(같은 수업 수강생 등)에게 취향 화면을 보여주고 `이미 있는 것`과 `필요 없는 것`을 구분할 수 있는지 묻는다. **4명 이상 성공**이 기준이며 결과를 숫자로 기록한다. 팀원은 평가자가 될 수 없다 — 만든 사람은 자기 화면을 항상 구분한다
