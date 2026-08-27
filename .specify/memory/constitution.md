@@ -1,50 +1,109 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report
+- Version change: (없음) → 1.0.0
+- Bump rationale: 최초 제정(ratification). 기존 버전 없음.
+- Modified principles: 해당 없음 (최초 제정)
+- Added sections:
+  - Core Principles I~V
+  - 데이터 보호
+  - 품질 게이트
+  - Governance
+- Removed sections: 없음
+- Source documents: .claude/prds/neonjisi.prd.md (rev.3),
+  docs/specs/2026-08-26-domain-model.md, CLAUDE.md
+- Deferred TODOs: 없음
+-->
+
+# 넌지시(neonjisi) Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. 결정에는 근거가 붙는다
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+모든 확정 결정은 근거를 함께 기록해야 한다(MUST). 검증되지 않은 전제는 `Assumption`으로
+명시하고 검증 수단을 함께 적는다(MUST). 목표 수치는 근거를 확보하기 전까지 `TBD`로 남기며,
+근거 없는 숫자를 적지 않는다(MUST NOT). 결정을 뒤집을 때는 결론이 아니라 근거부터 다시 본다.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+근거: 이 제품에서 가장 위험한 가정 — "사람들이 자신의 맞춤 취향을 선물에 쓸 만큼 상세하게
+기록할 의향이 있는가" — 은 아직 사용자 인터뷰로 검증되지 않았다. 근거와 결론을 분리해
+기록해야 나중에 어느 쪽이 무너졌는지 식별할 수 있다.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### II. 테스트 우선 (NON-NEGOTIABLE)
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+실패하는 테스트를 먼저 작성하고, 구현하고, 통과시킨다(MUST). Red-Green-Refactor 주기를
+지킨다(MUST). 테스트 없이 병합된 기능은 미완성으로 취급한다.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+근거: CLAUDE.md가 채택한 ECC `/tdd-workflow` 표준이다. 결제·펀딩처럼 금액이 오가는 상태
+전이가 이 제품의 중심이라, 회귀를 사후에 발견하는 비용이 특히 크다.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### III. Server Component가 기본이다
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+Next.js 15 App Router를 쓴다. 상태, 이펙트, 브라우저 API가 실제로 필요할 때에만
+`'use client'`를 붙인다(MUST). 라우트는 `app/` 아래에 둔다(MUST).
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+근거: 취향 조회와 친구 관계 판정은 서버에서 접근 제어를 통과한 뒤에만 결과가 존재해야 한다.
+클라이언트로 데이터를 보내고 거기서 거르는 구조는 원칙 "데이터 보호"와 충돌한다.
+
+### IV. 거래는 스냅샷으로 자립한다
+
+`GiftRequest`와 `Funding`은 생성 시점에 필요한 값 — 상품 정보, 금액, 수령자 표시명,
+배송지 — 을 자기 안에 복사해 보유해야 한다(MUST). 진행 중인 거래를 표시하기 위해
+살아 있는 친구 관계나 현재 카탈로그를 조회해서는 안 된다(MUST NOT).
+
+근거: 두 가지를 동시에 해결한다. 첫째, 상품 가격이나 이름이 바뀌어도 이미 성립한 거래의
+금액이 흔들리지 않아 결제 정합성이 유지된다. 둘째, 친구 관계가 해제되어도 진행 중인 거래가
+자기 데이터만으로 완결되므로, 관계 해제 예외를 처리하는 분기가 조회 API마다 달라붙지 않는다.
+
+### V. 연기는 후행 비용이 낮은 쪽으로
+
+YAGNI를 취향이 아니라 **비용 비대칭**으로 판단한다. 나중에 추가하는 비용이 낮으면
+연기한다(SHOULD) — 새 컬럼 하나, 새 테이블 하나로 끝나는 것(친구 그룹별 공개, 취향 조회
+로그)이 여기 해당한다. 나중에 추가하는 비용이 높으면 지금 넣는다(SHOULD) — 마이그레이션에
+더해 기존 데이터의 기본값 결정과 조회 API 전면 수정이 함께 걸리는 것이 여기 해당한다.
+
+근거: "나중에 하자"와 "지금 하자"를 직관으로 가르면 대체로 틀린다. 판단 기준을 후행 추가
+비용 하나로 고정하면 논쟁이 짧아지고 결과가 재현 가능해진다.
+
+## 데이터 보호
+
+- 취향 데이터 — 알러지(건강), 사이즈(신체), 가격대(소득 추정) — 는 민감정보로 취급한다(MUST).
+- 접근 제어는 단일 규칙으로 한 곳에 모은다(MUST): **활성 친구 관계일 때만 취향을 열람한다.**
+  항목별 예외 분기를 만들지 않는다(MUST NOT). 공개 범위를 세분화해야 할 때가 오면 규칙 자체를
+  교체하되, 호출부마다 조건을 흩뿌리지 않는다.
+- 관계 해제 시 취향 상세는 즉시 차단한다(MUST). 진행 중인 거래에 필요한 값은 원칙 IV의
+  스냅샷으로 해결하며, 해제된 관계를 되짚어 여는 예외 경로를 만들지 않는다(MUST NOT).
+- 카드번호와 CVC를 저장하지 않는다(MUST NOT). PG가 보관하고, 애플리케이션은 빌링키만
+  암호화해 보관한다(MUST).
+- 동의 문구를 수정하면 반드시 `consent_version`을 올린다(MUST). 버전을 올리지 않고 문구만
+  고치면 과거에 무엇에 동의했는지 복원할 수 없다.
+
+## 품질 게이트
+
+- 구현 완료를 선언하기 전에 `npm run build` 또는 `npm run lint`를 통과시킨다(MUST).
+  통과를 확인하지 않은 채 완료를 보고하지 않는다(MUST NOT).
+- 컴포넌트는 200~400줄을 유지한다(SHOULD). 500줄을 넘으면 하위 컴포넌트로 분해한다(MUST).
+- 상태와 객체는 불변으로 다루고 새 복사본을 반환한다(MUST).
+- 컴포넌트와 훅은 `tsconfig`의 `@/*` 절대 경로로 임포트한다(MUST).
+- 에러는 Next.js `error.tsx` 경계로 처리하고, 클라이언트·서버 예외를 함께 다룬다(MUST).
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+이 문서는 다른 관행에 우선한다. 충돌이 발생하면 이 문서를 따르고, 이 문서가 틀렸다면
+관행이 아니라 이 문서를 고친다.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**개정 절차**: 개정은 PR로 제안하며 변경 근거, 영향 범위, 기존 코드의 마이그레이션 계획을
+함께 적어야 한다(MUST). 원칙 I에 따라 근거 없는 개정은 병합하지 않는다.
+
+**버전 정책**: 시맨틱 버저닝을 따른다.
+
+- **MAJOR** — 원칙의 제거 또는 하위 비호환 재정의
+- **MINOR** — 원칙·섹션의 추가 또는 실질적 확장
+- **PATCH** — 문구 정리, 오탈자, 의미를 바꾸지 않는 다듬기
+
+**준수 확인**: 모든 PR 리뷰는 이 문서와의 부합 여부를 확인한다(MUST). 원칙을 벗어나야 하는
+경우 그 복잡도를 PR 본문에 정당화해 기록한다(MUST). 정당화 없는 이탈은 반려 사유다.
+
+**런타임 지침**: 개발 중 세부 규칙은 `CLAUDE.md`를 따른다. `CLAUDE.md`와 이 문서가
+충돌하면 이 문서가 우선하며, 충돌 자체를 개정 대상으로 올린다.
+
+**Version**: 1.0.0 | **Ratified**: 2026-08-27 | **Last Amended**: 2026-08-27
