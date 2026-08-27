@@ -32,6 +32,14 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# 팀 공유용 예시 파일은 커밋한다 (T004). 값은 들어 있지 않다.
+!.env.example
+
+# playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
 
 # vercel
 .vercel
