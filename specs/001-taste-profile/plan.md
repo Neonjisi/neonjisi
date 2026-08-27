@@ -94,6 +94,8 @@ app/
 ├── page.tsx                    # 기존
 ├── auth/
 │   └── callback/route.ts       # Supabase Auth 콜백
+├── login/
+│   └── page.tsx                # FR-019 — 소셜 로그인 1종 진입
 ├── onboarding/
 │   ├── page.tsx                # US1 — 이미 있는 것 / 필요 없는 것 등록
 │   └── error.tsx

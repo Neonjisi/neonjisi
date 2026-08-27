@@ -59,10 +59,11 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 - [ ] T016 `tests/unit/dal-session.test.ts` 작성 후 `lib/dal/session.ts`의 `verifySession()` 구현 — React `cache()`로 메모이즈, `User` 행이 없으면 생성(get-or-create, research R2)
 - [ ] T017 `lib/dal/session.ts`에 `requireOnboarded()` 추가 — 온보딩 미완료 시 `/onboarding`으로 `redirect()`. **FR-018의 권위 있는 판정 지점**
 - [ ] T018 [P] 루트에 `proxy.ts` 작성 — 세션 쿠키 존재 여부만 보고 미인증 요청을 `/login`으로. **DB를 조회하지 않는다** (Next.js 16 문서 지침, research R1)
-- [ ] T019 [P] `tests/unit/validation-taste-item.test.ts` 작성 후 `lib/validation/taste-item.ts` 구현 — Zod 입력 스키마, 모순 검사(FR-010), 중복 검사(FR-011)
+- [ ] T019 [P] `tests/unit/validation-taste-item.test.ts` 작성 후 `lib/validation/taste-item.ts` 구현 — Zod 입력 스키마, 모순 검사(FR-010), 중복 검사(FR-011), **종류별 100건 상한 검사(FR-020)**
 - [ ] T020 [P] `app/auth/callback/route.ts` — Supabase Auth 콜백 Route Handler
-- [ ] T021 [P] `app/onboarding/error.tsx`, `app/taste/error.tsx` 배치 — 예상 못 한 예외 경계
-- [ ] T022 ESLint `no-restricted-imports` 규칙 추가 (`eslint.config.mjs`) — `app/`과 `components/`에서 `@/lib/prisma` 직접 임포트 금지. M1에는 RLS라는 2차 방어선이 없어 DAL이 유일한 접근 제어 지점이므로, 규칙을 문서가 아니라 린터로 강제한다 (research R4)
+- [ ] T021 [P] `app/login/page.tsx` — 소셜 로그인 1종 진입 화면 (FR-019). `proxy.ts`와 DAL이 미인증 사용자를 여기로 보내므로, 이 화면이 없으면 리다이렉트가 404로 끝나고 **US1~US4의 E2E가 한 줄도 실행되지 않는다**
+- [ ] T022 [P] `app/onboarding/error.tsx`, `app/taste/error.tsx` 배치 — 예상 못 한 예외 경계
+- [ ] T023 ESLint `no-restricted-imports` 규칙 추가 (`eslint.config.mjs`) — `app/`과 `components/`에서 `@/lib/prisma` 직접 임포트 금지. M1에는 RLS라는 2차 방어선이 없어 DAL이 유일한 접근 제어 지점이므로, 규칙을 문서가 아니라 린터로 강제한다 (research R4)
 
 **Checkpoint**: 스키마·시드·DAL·검증 로직이 서고 T011이 통과한다. 이제 스토리를 시작할 수 있다.
 
@@ -76,20 +77,20 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 
 ### Tests for User Story 1 ⚠️ 구현보다 먼저
 
-- [ ] T023 [P] [US1] `tests/e2e/onboarding.spec.ts` — spec.md US1 수용 시나리오 1~5를 그대로 옮긴다. 미완료 계정의 `/taste` 직접 접근이 `/onboarding`으로 유도되는지(FR-018) 포함
-- [ ] T024 [P] [US1] `tests/integration/create-taste-item.test.ts` — `HAVE`/`UNWANTED` 저장 시 `onboardedAt`이 설정되는지, 모순·중복이 거부되는지
+- [ ] T024 [P] [US1] `tests/e2e/onboarding.spec.ts` — spec.md US1 수용 시나리오 1~5를 그대로 옮긴다. **로그인부터 시작하며**(FR-019), 미완료 계정의 `/taste` 직접 접근이 `/onboarding`으로 유도되는지(FR-018) 포함
+- [ ] T025 [P] [US1] `tests/integration/create-taste-item.test.ts` — `HAVE`/`UNWANTED` 저장 시 `onboardedAt`이 설정되는지, 모순·중복이 거부되는지, **상한 100건 초과가 거부되는지**(FR-020)
 
 ### Implementation for User Story 1
 
-- [ ] T025 [US1] `lib/dal/taste.ts`에 `getCategories()` — `sortOrder` 순 평면 목록 (FR-005)
-- [ ] T026 [US1] `app/taste/actions.ts`에 `createTasteItem` Server Action — contracts/server-actions.md의 검사 순서(세션 → 스키마 → 대분류 존재 → 모순 → 중복 → 저장)를 따른다. 유니크 위반 예외를 `DUPLICATE_ITEM`으로 변환해 경합을 닫는다. `verifySession()`은 통과하되 `requireOnboarded()`는 부르지 않는다 — 온보딩 화면에서 쓰이는 유일한 Action이다
-- [ ] T027 [P] [US1] `components/taste/category-picker.tsx` (`'use client'`) — 대분류 선택과 검색 필터
-- [ ] T028 [US1] `components/taste/taste-item-form.tsx` (`'use client'`) — `useActionState`로 폼 상태. 저장 실패 시 **입력 내용을 보존한다** (FR-016)
-- [ ] T029 [US1] `app/onboarding/page.tsx` (Server Component) — 최소 1건 안내와 저장 후 `/taste` 이동
-- [ ] T030 [US1] `lib/dal/taste.ts`에 `getTasteItemsByKind()` — 종류별로 묶인 형태로 반환해 화면이 그룹핑 로직을 갖지 않게 한다 (FR-012)
-- [ ] T031 [US1] `components/taste/taste-item-list.tsx` (**Server Component**) — `이미 있는 것`과 `필요 없는 것`을 다른 묶음으로 렌더 (US1-3)
-- [ ] T032 [US1] `app/taste/page.tsx` — 진입 시 `requireOnboarded()` 호출 (FR-018)
-- [ ] T033 [US1] T023·T024를 초록으로 만들고 폭 360px에서 재확인
+- [ ] T026 [US1] `lib/dal/taste.ts`에 `getCategories()` — `sortOrder` 순 평면 목록 (FR-005)
+- [ ] T027 [US1] `app/taste/actions.ts`에 `createTasteItem` Server Action — contracts/server-actions.md의 검사 순서(세션 → 스키마 → 대분류 존재 → 모순 → 중복 → 저장)를 따른다. 유니크 위반 예외를 `DUPLICATE_ITEM`으로 변환해 경합을 닫는다. `verifySession()`은 통과하되 `requireOnboarded()`는 부르지 않는다 — 온보딩 화면에서 쓰이는 유일한 Action이다
+- [ ] T028 [P] [US1] `components/taste/category-picker.tsx` (`'use client'`) — 대분류 선택과 검색 필터
+- [ ] T029 [US1] `components/taste/taste-item-form.tsx` (`'use client'`) — `useActionState`로 폼 상태. 저장 실패 시 **입력 내용을 보존한다** (FR-016)
+- [ ] T030 [US1] `app/onboarding/page.tsx` (Server Component) — 최소 1건 안내와 저장 후 `/taste` 이동
+- [ ] T031 [US1] `lib/dal/taste.ts`에 `getTasteItemsByKind()` — 종류별로 묶인 형태로 반환해 화면이 그룹핑 로직을 갖지 않게 한다 (FR-012)
+- [ ] T032 [US1] `components/taste/taste-item-list.tsx` (**Server Component**) — `이미 있는 것`과 `필요 없는 것`을 다른 묶음으로 렌더 (US1-3)
+- [ ] T033 [US1] `app/taste/page.tsx` — 진입 시 `requireOnboarded()` 호출 (FR-018)
+- [ ] T034 [US1] T023·T024를 초록으로 만들고 폭 360px에서 재확인
 
 **Checkpoint**: US1이 독립적으로 동작한다. **여기까지가 MVP다.**
 
@@ -103,14 +104,14 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 
 ### Tests for User Story 2 ⚠️ 구현보다 먼저
 
-- [ ] T034 [P] [US2] `tests/e2e/want-items.spec.ts` — spec.md US2 수용 시나리오 1~2. `원하는 것`이 0건이어도 온보딩 완료가 유지되는지 포함
-- [ ] T035 [P] [US2] `tests/integration/create-taste-item.test.ts`에 케이스 추가 — `WANT` 저장이 `onboardedAt`에 **영향을 주지 않는지** (FR-008)
+- [ ] T035 [P] [US2] `tests/e2e/want-items.spec.ts` — spec.md US2 수용 시나리오 1~2. `원하는 것`이 0건이어도 온보딩 완료가 유지되는지 포함
+- [ ] T036 [P] [US2] `tests/integration/create-taste-item.test.ts`에 케이스 추가 — `WANT` 저장이 `onboardedAt`에 **영향을 주지 않는지** (FR-008)
 
 ### Implementation for User Story 2
 
-- [ ] T036 [US2] `app/taste/page.tsx`에 `원하는 것` 등록 진입점 추가 — T026의 Action을 `kind: 'WANT'`로 재사용한다. 새 Action을 만들지 않는다
-- [ ] T037 [US2] `components/taste/taste-item-list.tsx`에 `원하는 것` 빈 상태 안내 추가 (US2-2)
-- [ ] T038 [US2] T034·T035를 초록으로 만든다
+- [ ] T037 [US2] `app/taste/page.tsx`에 `원하는 것` 등록 진입점 추가 — T026의 Action을 `kind: 'WANT'`로 재사용한다. 새 Action을 만들지 않는다
+- [ ] T038 [US2] `components/taste/taste-item-list.tsx`에 `원하는 것` 빈 상태 안내 추가 (US2-2)
+- [ ] T039 [US2] T034·T035를 초록으로 만든다
 
 **Checkpoint**: US1 + US2가 함께 동작한다.
 
@@ -124,16 +125,16 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 
 ### Tests for User Story 3 ⚠️ 구현보다 먼저
 
-- [ ] T039 [P] [US3] `tests/e2e/taste-detail.spec.ts` — spec.md US3 수용 시나리오 1~4. 상세를 비운 채 저장해도 정상 저장되는지(FR-006) 포함
-- [ ] T040 [P] [US3] `tests/unit/validation-taste-item.test.ts`에 케이스 추가 — 취향 서술 빈 문자열이 `NULL`로 정규화되는지. FR-015 집계가 빈 문자열을 "작성함"으로 세지 않게 하는 장치다
+- [ ] T040 [P] [US3] `tests/e2e/taste-detail.spec.ts` — spec.md US3 수용 시나리오 1~4. 상세를 비운 채 저장해도 정상 저장되는지(FR-006) 포함
+- [ ] T041 [P] [US3] `tests/unit/validation-taste-item.test.ts`에 케이스 추가 — 취향 서술 빈 문자열이 `NULL`로 정규화되는지. FR-015 집계가 빈 문자열을 "작성함"으로 세지 않게 하는 장치다
 
 ### Implementation for User Story 3
 
-- [ ] T041 [US3] `components/taste/taste-item-form.tsx`에 상세 입력 필드 추가 — **강제하지 않는다** (FR-006)
-- [ ] T042 [US3] `app/taste/actions.ts`에 `updateTasteDescription` Server Action — 빈 문자열을 `NULL`로 정규화 (FR-007)
-- [ ] T043 [P] [US3] `components/taste/description-editor.tsx` (`'use client'`) — 입력 상태와 저장 상태 표시
-- [ ] T044 [US3] `app/taste/page.tsx`에 취향 서술 표시 영역 추가
-- [ ] T045 [US3] T039·T040을 초록으로 만든다
+- [ ] T042 [US3] `components/taste/taste-item-form.tsx`에 상세 입력 필드 추가 — **강제하지 않는다** (FR-006)
+- [ ] T043 [US3] `app/taste/actions.ts`에 `updateTasteDescription` Server Action — 빈 문자열을 `NULL`로 정규화 (FR-007)
+- [ ] T044 [P] [US3] `components/taste/description-editor.tsx` (`'use client'`) — 입력 상태와 저장 상태 표시
+- [ ] T045 [US3] `app/taste/page.tsx`에 취향 서술 표시 영역 추가
+- [ ] T046 [US3] T039·T040을 초록으로 만든다
 
 **Checkpoint**: US1~US3가 함께 동작하고 상세·서술 데이터가 쌓이기 시작한다.
 
@@ -147,15 +148,15 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 
 ### Tests for User Story 4 ⚠️ 구현보다 먼저
 
-- [ ] T046 [P] [US4] `tests/e2e/edit-delete.spec.ts` — spec.md US4 수용 시나리오 1~3. **마지막 `HAVE`/`UNWANTED` 삭제 시 온보딩 미완료 복귀**(US4-3)를 반드시 포함
-- [ ] T047 [P] [US4] `tests/integration/ownership.test.ts` — 타인 소유 항목의 수정·삭제가 `FORBIDDEN`으로 거부되는지 (FR-002)
+- [ ] T047 [P] [US4] `tests/e2e/edit-delete.spec.ts` — spec.md US4 수용 시나리오 1~3. **마지막 `HAVE`/`UNWANTED` 삭제 시 온보딩 미완료 복귀**(US4-3)를 반드시 포함
+- [ ] T048 [P] [US4] `tests/integration/ownership.test.ts` — 타인 소유 항목의 수정·삭제가 `FORBIDDEN`으로 거부되는지 (FR-002)
 
 ### Implementation for User Story 4
 
-- [ ] T048 [US4] `app/taste/actions.ts`에 `updateTasteItem` Server Action — 소유자 검사 후 **수정 후 상태 기준으로** 모순·중복을 다시 검사한다. `kind`를 `WANT`로 바꿔 온보딩 조건이 깨지면 `onboardedAt`을 `NULL`로 되돌린다
-- [ ] T049 [US4] `app/taste/actions.ts`에 `deleteTasteItem` Server Action — hard delete. 삭제 후 `HAVE`/`UNWANTED`가 0건이면 `onboardedAt`을 `NULL`로 되돌린다
-- [ ] T050 [US4] `components/taste/taste-item-list.tsx`에 수정·삭제 진입점과 **삭제 확인 UI** 추가. 확인은 클라이언트 책임이며 Action은 확인 없이 호출되면 그대로 지운다
-- [ ] T051 [US4] T046·T047을 초록으로 만든다
+- [ ] T049 [US4] `app/taste/actions.ts`에 `updateTasteItem` Server Action — 소유자 검사 후 **수정 후 상태 기준으로** 모순·중복을 다시 검사한다. `kind`를 `WANT`로 바꿔 온보딩 조건이 깨지면 `onboardedAt`을 `NULL`로 되돌린다
+- [ ] T050 [US4] `app/taste/actions.ts`에 `deleteTasteItem` Server Action — hard delete. 삭제 후 `HAVE`/`UNWANTED`가 0건이면 `onboardedAt`을 `NULL`로 되돌린다
+- [ ] T051 [US4] `components/taste/taste-item-list.tsx`에 수정·삭제 진입점과 **삭제 확인 UI** 추가. 확인은 클라이언트 책임이며 Action은 확인 없이 호출되면 그대로 지운다
+- [ ] T052 [US4] T046·T047을 초록으로 만든다
 
 **Checkpoint**: US1~US4 전부 동작한다.
 
@@ -163,13 +164,14 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
-- [ ] T052 **FR-015 측정 검증** — research.md R7의 두 쿼리를 Supabase SQL 편집기에서 실행해 상세 작성률·취향 서술 작성률이 값으로 나오는지 확인 (quickstart V6). **이것이 통과해야 마일스톤 1이 끝난 것이다** — PRD Risks R2가 요구하는 "마일스톤 1 직후 즉시 측정"이 여기서 성립한다
-- [ ] T053 [P] 폭 360px에서 quickstart V1~V4를 다시 밟는다. 가로 스크롤이 생기면 실패 (SC-006)
-- [ ] T054 [P] FR-016 확인 — 저장 중 네트워크를 끊고 실패가 표시되며 **입력 내용이 남는지** (quickstart V5-4)
-- [ ] T055 [P] 컴포넌트 크기 점검 — 500줄 초과가 있으면 하위 컴포넌트로 분해 (constitution 품질 게이트)
-- [ ] T056 [P] `'use client'` 사용처 점검 — 폼·선택기·서술 편집기 3개로 한정되어 있는지. 목록 렌더가 Server Component로 남아 있는지 (constitution 원칙 III)
-- [ ] T057 `npm run lint`와 `npm run build` 통과 — 완료 선언 전 필수 (constitution 품질 게이트)
-- [ ] T058 quickstart.md V1~V7 전체를 순서대로 수동 검증
+- [ ] T053 **FR-015 측정 검증** — research.md R7의 두 쿼리를 Supabase SQL 편집기에서 실행해 상세 작성률·취향 서술 작성률이 값으로 나오는지 확인 (quickstart V6). **이것이 통과해야 마일스톤 1이 끝난 것이다** — PRD Risks R2가 요구하는 "마일스톤 1 직후 즉시 측정"이 여기서 성립한다
+- [ ] T054 [P] 폭 360px에서 quickstart V1~V4를 다시 밟는다. 가로 스크롤이 생기면 실패 (SC-006)
+- [ ] T055 [P] FR-016 확인 — 저장 중 네트워크를 끊고 실패가 표시되며 **입력 내용이 남는지** (quickstart V5-4)
+- [ ] T056 [P] 컴포넌트 크기 점검 — 500줄 초과가 있으면 하위 컴포넌트로 분해 (constitution 품질 게이트)
+- [ ] T057 [P] `'use client'` 사용처 점검 — 폼·선택기·서술 편집기 3개로 한정되어 있는지. 목록 렌더가 Server Component로 남아 있는지 (constitution 원칙 III)
+- [ ] T058 `npm run lint`와 `npm run build` 통과 — 완료 선언 전 필수 (constitution 품질 게이트)
+- [ ] T059 quickstart.md V1~V7 전체를 순서대로 수동 검증
+- [ ] T060 [P] SC-007 확인 — 팀원 5명에게 취향 화면을 보여주고 `이미 있는 것`과 `필요 없는 것`을 구분할 수 있는지 묻는다. **4명 이상 성공**이 기준이며 결과를 숫자로 기록한다
 
 ---
 
@@ -192,7 +194,7 @@ Phase 1 (Setup) ──> Phase 2 (Foundational) ──> Phase 3 (US1) ──> Pha
 | 스토리 | 선행 | 비고 |
 |---|---|---|
 | US1 (P1) | Phase 2 | 독립. **MVP** |
-| US2 (P2) | Phase 2 | US1의 `createTasteItem`을 재사용하므로 T026 이후가 효율적이나, 논리적으로는 독립 |
+| US2 (P2) | Phase 2 | US1의 `createTasteItem`을 재사용하므로 T027 이후가 효율적이나, 논리적으로는 독립 |
 | US3 (P3) | Phase 2 | 붙일 항목이 있어야 의미가 있으므로 US1 이후 권장 |
 | US4 (P4) | Phase 2 | 고칠 항목이 있어야 하므로 US1 이후 권장 |
 
@@ -203,9 +205,9 @@ Phase 1 (Setup) ──> Phase 2 (Foundational) ──> Phase 3 (US1) ──> Pha
 ### Parallel Opportunities
 
 - **Phase 1**: T004·T005·T007 동시
-- **Phase 2**: T012·T014·T015·T018·T019·T020·T021 동시 (T008~T011 완료 후)
-- **각 스토리**: 테스트 태스크끼리 동시 (T023+T024, T034+T035, T039+T040, T046+T047)
-- **Phase 7**: T053·T054·T055·T056 동시
+- **Phase 2**: T012·T014·T015·T018·T019·T020·T022 동시 (T008~T011 완료 후)
+- **각 스토리**: 테스트 태스크끼리 동시 (T024+T025, T035+T036, T040+T041, T047+T048)
+- **Phase 7**: T054·T055·T056·T057 동시
 
 ---
 
@@ -213,11 +215,11 @@ Phase 1 (Setup) ──> Phase 2 (Foundational) ──> Phase 3 (US1) ──> Pha
 
 ```
 # US1의 테스트를 함께 작성 (구현 전)
-T023 tests/e2e/onboarding.spec.ts
-T024 tests/integration/create-taste-item.test.ts
+T024 tests/e2e/onboarding.spec.ts
+T025 tests/integration/create-taste-item.test.ts
 
 # 구현 중 병렬 가능한 것
-T027 components/taste/category-picker.tsx
+T028 components/taste/category-picker.tsx
 ```
 
 ---
@@ -247,7 +249,7 @@ Phase 2 완료 후 US1을 한 사람이 끝내면, US2~US4를 세 갈래로 나�
 
 - `[P]`는 다른 파일을 건드리고 미완료 의존이 없을 때만 붙였다
 - **DAL 우회 금지**: `lib/prisma.ts`를 `app/`이나 `components/`에서 직접 임포트하지 않는다.
-  T022의 ESLint 규칙이 이를 강제한다. M1에는 RLS라는 2차 방어선이 없다
+  T023의 ESLint 규칙이 이를 강제한다. M1에는 RLS라는 2차 방어선이 없다
 - **Next.js 16**: `middleware.ts`가 아니라 루트의 `proxy.ts`다
 - 각 스토리 완료 후 커밋한다. Phase 7 전에 `npm run lint`·`npm run build`를 한 번 돌려두면
   마지막에 몰아서 고치는 일을 줄일 수 있다

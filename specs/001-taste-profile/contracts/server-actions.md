@@ -31,6 +31,7 @@ type ActionErrorCode =
   | 'CATEGORY_NOT_FOUND'   // FR-004 — 마스터에 없는 대분류
   | 'DUPLICATE_ITEM'       // FR-011
   | 'CONTRADICTORY_ITEM'   // FR-010
+  | 'ITEM_LIMIT_EXCEEDED'  // FR-020 — 종류별 100건 상한
   | 'ITEM_NOT_FOUND'
   | 'FORBIDDEN'            // FR-002 — 타인 소유 항목
   | 'STORAGE_FAILED'       // FR-016
@@ -93,7 +94,6 @@ input: {
   kind: 'WANT' | 'HAVE' | 'UNWANTED'
   categoryId: string
   detail?: string | null      // FR-006 — 선택
-  memo?: string | null
 }
 ```
 
@@ -104,7 +104,8 @@ input: {
 | 대분류 존재 | 3 | `CATEGORY_NOT_FOUND` | FR-004 |
 | 모순 검사 | 4 | `CONTRADICTORY_ITEM` + `conflictWith` | FR-010 |
 | 중복 검사 | 5 | `DUPLICATE_ITEM` + `conflictWith` | FR-011 |
-| 저장 | 6 | `STORAGE_FAILED` | FR-016 |
+| 상한 검사 | 6 | `ITEM_LIMIT_EXCEEDED` (현재 개수와 상한을 함께 반환) | FR-020 |
+| 저장 | 7 | `STORAGE_FAILED` | FR-016 |
 
 - **온보딩 게이트를 타지 않는다.** 온보딩 화면에서 쓰이는 유일한 Action이기 때문이다.
   대신 `verifySession()`은 반드시 통과한다
@@ -141,6 +142,7 @@ FR-007. 빈 문자열은 `NULL`로 정규화한다 — FR-015의 작성률 집�
 
 | 경로 | 렌더링 | 게이트 | 스토리 |
 |---|---|---|---|
+| `/login` | Server Component | 없음 | FR-019 — 소셜 로그인 1종 |
 | `/onboarding` | Server Component | `verifySession()` | US1 |
 | `/taste` | Server Component | `requireOnboarded()` | US1·US2·US3·US4 |
 | `/auth/callback` | Route Handler | 없음 | Supabase Auth 콜백 |
