@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-28
 
-**Status**: Draft
+**Status**: Planned — [plan.md](./plan.md) 작성 완료 (2026-08-28)
 
 **Input**: User description: "m2 시작하자."
 
@@ -316,12 +316,12 @@ US2가 그 관계의 값을 실현한다. 둘 다 P1인 이유는, US1만 있으
 
 ## 열린 항목 — 구현 전에 닫아야 하는 것
 
-| # | 항목 | 왜 지금 닫아야 하나 |
-|---|---|---|
-| 1 | **미리보기 주소 체계** | 화면 명세는 `/i/{token}`을 쓴다. 로그인 게이트 밖이므로 기존 라우팅 규칙과 어긋나지 않는지 확인 필요 |
+**남은 것 없음.** 전부 닫혔다.
 
-> `/speckit-plan`에서 닫는다.
->
-> **닫힌 항목** — 다가오는 일정 범위(Q1)·링크 사용 상한(Q2)·대표 태그 선정 규칙(Q3)·
-> 알림 전달 방식(Q4, `Notification` 앞당김)은 2026-08-28 clarify 세션에서 결정됐다.
-> Clarifications 참조.
+| # | 항목 | 닫힌 곳 |
+|---|---|---|
+| 1 | 다가오는 일정(`Event`) 범위 | Clarifications Q1 — M2 범위 밖 |
+| 2 | 링크 사용 인원 상한 | Clarifications Q2 — 상한 없음 |
+| 3 | 대표 태그 선정 규칙 | Clarifications Q3 — `원하는 것` 최근 3건 |
+| 4 | 알림 전달 방식 | Clarifications Q4 — `Notification` 을 M2 로 앞당김 |
+| 5 | 미리보기 주소 체계 | [research.md](./research.md) R1 — `/i/[token]`, `proxy.ts` matcher 에 넣지 않아 자동 공개 |
