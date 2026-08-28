@@ -11,8 +11,7 @@ import { verifySession } from '@/lib/dal/session'
  * profileId 는 항상 세션에서 얻은 본인 것만 전달된다.
  */
 
-/** group 은 화면 표시용 묶음 이름표 — 선택 대상이 아니다 (categories.md §3) */
-export type CategoryView = { id: string; name: string; group: string }
+export type CategoryView = { id: string; name: string }
 
 export type TasteItemView = {
   id: string
@@ -30,11 +29,11 @@ export type TasteProfileView = {
   onboardedAt: Date | null
 }
 
-/** FR-005 — sortOrder 순 평면 목록 (T026). 같은 묶음이 자연히 연속된다 */
+/** FR-005 — sortOrder 순 평면 목록 (T026). 순서가 묶음별로 붙어 있어 비슷한 것끼리 뭉쳐 보인다 */
 export const getCategories = cache(async (): Promise<CategoryView[]> => {
   return prisma.category.findMany({
     orderBy: { sortOrder: 'asc' },
-    select: { id: true, name: true, group: true },
+    select: { id: true, name: true },
   })
 })
 
@@ -115,10 +114,7 @@ export async function listTasteItemSnapshots(profileId: string): Promise<TasteIt
 }
 
 export async function findCategoryById(categoryId: string): Promise<CategoryView | null> {
-  return prisma.category.findUnique({
-    where: { id: categoryId },
-    select: { id: true, name: true, group: true },
-  })
+  return prisma.category.findUnique({ where: { id: categoryId }, select: { id: true, name: true } })
 }
 
 /**

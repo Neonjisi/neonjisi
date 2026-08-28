@@ -25,17 +25,6 @@ export function CategoryPicker({ categories, value, onChange, label, error }: Ca
     ? categories.filter((category) => category.name.includes(trimmedQuery))
     : categories;
 
-  // 묶음 머리글용 구획 — sortOrder 순이라 같은 group 이 연속된다 (categories.md §3).
-  // 검색 중에는 머리글을 숨기고 평면 결과로 보여준다.
-  const sections: { group: string; items: CategoryView[] }[] = [];
-  if (!trimmedQuery) {
-    for (const category of categories) {
-      const last = sections[sections.length - 1];
-      if (last?.group === category.group) last.items.push(category);
-      else sections.push({ group: category.group, items: [category] });
-    }
-  }
-
   const handleSelect = (categoryId: string) => {
     onChange(categoryId);
     setIsOpen(false);
@@ -104,18 +93,8 @@ export function CategoryPicker({ categories, value, onChange, label, error }: Ca
           />
         </div>
         <ul className="-mx-1 max-h-[45vh] overflow-y-auto pb-1">
-          {trimmedQuery
-            ? filtered.map(renderRow)
-            : sections.map((section) => (
-                <li key={section.group} role="group" aria-label={section.group}>
-                  {/* 묶음 머리글 — 누를 수 없는 이름표 (FR-005: 선택은 여전히 평면 1단계) */}
-                  <p aria-hidden className="px-3 pb-1 pt-3 text-xs font-semibold text-neutral-400">
-                    {section.group}
-                  </p>
-                  <ul>{section.items.map(renderRow)}</ul>
-                </li>
-              ))}
-          {trimmedQuery && filtered.length === 0 && (
+          {filtered.map(renderRow)}
+          {filtered.length === 0 && (
             <li className="px-3 py-6 text-center text-sm text-neutral-500">
               검색 결과가 없어요
             </li>

@@ -46,8 +46,7 @@ model TasteProfile {
 model Category {
   id        String @id @default(uuid()) @db.Uuid
   name      String @unique // 멱등 시드(upsert)의 키
-  sortOrder Int
-  group     String // 화면 표시용 묶음 이름표 (categories.md §3) — 관계를 만들지 않는다
+  sortOrder Int // 배열 순서 = 화면 순서. 묶음은 DB에 넣지 않는다 (categories.md §3 철회 결정)
 
   items TasteItem[]
 

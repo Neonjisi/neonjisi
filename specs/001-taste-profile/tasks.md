@@ -77,7 +77,7 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 - [X] T009 최초 마이그레이션 생성·적용 — `npx prisma migrate dev --name init`
 - [X] T010 **C2 유니크 제약 raw SQL 마이그레이션** — `npx prisma migrate dev --create-only --name taste_item_unique_nulls_not_distinct` 후 생성된 SQL에 `UNIQUE NULLS NOT DISTINCT ("profileId", "kind", "categoryId", "detail")` 를 직접 넣고 적용. Prisma 스키마 문법으로 표현되지 않는다
 - [X] T011 T010 검증 테스트 `tests/integration/taste-item-unique.test.ts` — `detail`이 `NULL`인 동일 조합을 두 번 삽입해 **DB가 거부하는지** 확인. 이 제약이 빠지면 대분류만 지정한 항목이 무제한 중복되는데 화면상으로는 정상으로 보여 놓치기 쉽다 (quickstart V5-3)
-- [X] T012 [P] `prisma/seed.ts` 작성 — ✅ **S 확정안(categories.md §4) 40개 반영 완료** (`group` 컬럼 포함, 초안 카테고리는 참조 0건 확인 후 교체). Category를 TypeScript 상수 배열로, `upsert`로 멱등하게. 시드 커맨드는 `prisma.config.ts`의 `migrations.seed`
+- [X] T012 [P] `prisma/seed.ts` 작성 — ✅ **S 확정안(categories.md §4) 40개 반영 완료** (초안 카테고리는 참조 0건 확인 후 교체. 묶음은 확정 결정대로 DB에 저장하지 않고 순서에만 반영). Category를 TypeScript 상수 배열로, `upsert`로 멱등하게. 시드 커맨드는 `prisma.config.ts`의 `migrations.seed`
 - [X] T013 `npx prisma db seed` 실행 후 Category 행 수 확인. **시드가 비면 US1이 통째로 막힌다**
 - [X] T014 [P] `lib/supabase/server.ts`, `lib/supabase/client.ts` — `@supabase/ssr` 기반 클라이언트 생성
 - [X] T015 [P] `lib/prisma.ts` — 개발 환경 hot reload에서 커넥션이 새지 않도록 싱글턴으로. ⚠️ Prisma 7은 드라이버 어댑터가 필수라 `@prisma/adapter-pg`를 추가했다

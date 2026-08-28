@@ -78,9 +78,8 @@ FR-012 — 종류별로 묶인 형태로 반환한다. 화면이 그룹핑 로�
 
 ### `getCategories(): Promise<CategoryView[]>`
 
-`sortOrder` 순. FR-005의 평면 목록. `CategoryView`는 화면 표시용 묶음 이름표
-`group`을 포함한다 (categories.md §3) — 선택 대상이 아니며, `sortOrder` 순이면
-같은 묶음이 자연히 연속되므로 화면은 그 경계에 머리글만 얹는다.
+`sortOrder` 순. FR-005의 평면 목록. 순서가 묶음별로 붙어 있어 화면에서 비슷한
+것끼리 자연히 뭉쳐 보인다 — 묶음은 DB에 저장하지 않는다 (categories.md §3).
 
 ---
 
