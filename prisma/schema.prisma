@@ -29,6 +29,14 @@ model User {
   updatedAt   DateTime @updatedAt
 
   tasteProfile TasteProfile?
+
+  // M2 역참조 (data-model.md "M1 스키마에 미치는 영향" — User 컬럼은 바꾸지 않는다).
+  // Friendship 은 User 를 세 번 참조(requester·addressee·removedBy)하므로 관계 이름이 필수다.
+  friendshipsRequested Friendship[]       @relation("FriendshipRequester")
+  friendshipsReceived  Friendship[]       @relation("FriendshipAddressee")
+  friendshipsRemoved   Friendship[]       @relation("FriendshipRemovedBy")
+  inviteLinks          FriendInviteLink[]
+  notifications        Notification[]
 }
 
 model TasteProfile {
@@ -71,4 +79,76 @@ model TasteItem {
   // 그 제약을 지우려 들지 않게 하는 매핑이다 — `db push` 로 새 DB 를 만들면
   // NULLS DISTINCT 로 생기므로, 새 환경은 반드시 `migrate deploy` 로 만든다.
   @@unique([profileId, kind, categoryId, detail], map: "TasteItem_profile_kind_category_detail_key")
+}
+
+// ---------------------------------------------------------------------------
+// M2 — 친구에게 취향이 전달된다 (specs/002-friend-taste-sharing/data-model.md)
+// M1 모델(User·TasteProfile·Category·TasteItem)은 바꾸지 않는다. User 에는 역참조만 더했다.
+// ---------------------------------------------------------------------------
+
+enum FriendshipStatus {
+  ACTIVE
+  REMOVED // 해제는 삭제가 아니라 상태 전이 (R9). 재추가는 새 행이다 — REMOVED→ACTIVE 전이 없음
+}
+
+enum NotificationType {
+  FRIEND_JOINED_VIA_LINK // M2 는 이 하나. 나머지 10종은 M3·M4 에서 추가 (R6)
+}
+
+// 친구 관계 — 한 쌍당 한 행. 양방향으로 복제하지 않는다 (도메인 모델 §4).
+model Friendship {
+  id           String           @id @default(uuid()) @db.Uuid
+  requesterId  String           @db.Uuid // 링크 발급자 — "누가 먼저 요청했나"
+  addresseeId  String           @db.Uuid // 링크를 받은 쪽
+  status       FriendshipStatus @default(ACTIVE)
+  inviteLinkId String?          @db.Uuid // 어느 링크로 맺어졌는지
+  acceptedAt   DateTime         @default(now())
+  removedAt    DateTime? // D3
+  removedBy    String?          @db.Uuid // 어느 쪽이 끊었는지 (FR-027)
+
+  requester  User              @relation("FriendshipRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  addressee  User              @relation("FriendshipAddressee", fields: [addresseeId], references: [id], onDelete: Cascade)
+  remover    User?             @relation("FriendshipRemovedBy", fields: [removedBy], references: [id], onDelete: SetNull)
+  inviteLink FriendInviteLink? @relation(fields: [inviteLinkId], references: [id], onDelete: SetNull)
+
+  // ⚠️ 아래 두 제약은 Prisma 문법으로 표현되지 않아 raw SQL 마이그레이션으로 넣었다 (R4).
+  //   C3 friendship_pair_active — UNIQUE (LEAST(requesterId,addresseeId), GREATEST(...)) WHERE status <> 'REMOVED'
+  //   C4 friendship_not_self    — CHECK (requesterId <> addresseeId)
+  // `db push` 로 만든 DB 에는 둘 다 없다. 새 환경은 반드시 `migrate deploy` 로 만든다.
+  // 걸렸는지는 tests/integration/friendship-constraints.test.ts 가 판정한다.
+
+  // 한 행이 양방향을 담으므로 친구 목록(FR-018)은 양쪽에서 찾는다.
+  @@index([requesterId, status])
+  @@index([addresseeId, status])
+}
+
+// 친구 초대 링크 — 유효성은 지연 평가: isValid := revokedAt IS NULL AND expiresAt > now() (도메인 모델 §8).
+model FriendInviteLink {
+  id        String    @id @default(uuid()) @db.Uuid
+  inviterId String    @db.Uuid
+  token     String    @unique // 32바이트 랜덤 base64url, 43자 (R2)
+  expiresAt DateTime // 발급 + 7일 (FR-003)
+  revokedAt DateTime? // 발급자가 즉시 중지 (FR-005)
+  usedCount Int       @default(0) // 사용 인원수 (FR-006). 상한 없음 (clarify Q2)
+  createdAt DateTime  @default(now())
+
+  inviter     User         @relation(fields: [inviterId], references: [id], onDelete: Cascade)
+  friendships Friendship[]
+
+  @@index([inviterId]) // 발급자의 링크 목록 (SCR-M2-03)
+}
+
+// 알림 — 원래 M3 엔티티였으나 M2 로 앞당겼다 (clarify Q4).
+model Notification {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @db.Uuid // 받는 사람
+  type      NotificationType
+  payload   Json // 관련 엔티티 id + 표시용 값의 스냅샷 (예: friendDisplayName 을 복사해 넣는다)
+  readAt    DateTime? // 미읽음 구분 (FR-030)
+  createdAt DateTime         @default(now()) // 최신순 정렬 (FR-029)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt]) // 목록 조회
+  @@index([userId, readAt]) // 미읽음 개수
 }
