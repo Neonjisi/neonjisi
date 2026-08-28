@@ -73,6 +73,21 @@ export function sheet(page: Page, title: string): Locator {
   return page.getByRole('dialog', { name: title, exact: true })
 }
 
+/** 대분류 이름에 정규식 메타문자가 들어와도 안전하게 */
+function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+/**
+ * 카테고리 선택 트리거(category-picker.tsx) — 접근 가능한 이름이 `<필드 라벨> <현재 값>` 이다.
+ * 네이티브 select 의 읽기 순서를 따르려고 `aria-labelledby` 로 라벨과 값을 함께 묶었기 때문에
+ * 값만으로는 exact 매칭이 안 된다. 이름의 **끝**이 값과 일치하는 버튼으로 잡는다.
+ * (시트 안의 대분류 목록 버튼은 이름이 값 그대로라 여기를 쓰지 않는다)
+ */
+export function categoryTrigger(dialog: Locator, value: string): Locator {
+  return dialog.getByRole('button', { name: new RegExp(`${escapeRegExp(value)}$`) })
+}
+
 export function heading(page: Page, name: string): Locator {
   return page.getByRole('heading', { name, exact: true })
 }
@@ -105,15 +120,13 @@ export async function pickCategory(
   categoryName: string,
   currentLabel = '카테고리 선택',
 ): Promise<void> {
-  // 트리거의 접근 가능한 이름은 "<라벨> <현재 값>" 이다 (category-picker.tsx 의
-  // aria-labelledby — 예: "어떤 종류인가요? 카테고리 선택"). 현재 값만 부분 일치로 찾는다.
-  await dialog.getByRole('button', { name: currentLabel }).click()
+  await categoryTrigger(dialog, currentLabel).click()
   const picker = sheet(page, '카테고리 선택')
   await expect(picker).toBeVisible()
   await picker.getByRole('searchbox', { name: '카테고리 검색' }).fill(categoryName)
   await picker.getByRole('button', { name: categoryName, exact: true }).click()
   await expect(picker).toBeHidden()
-  await expect(dialog.getByRole('button', { name: categoryName })).toBeVisible()
+  await expect(categoryTrigger(dialog, categoryName)).toBeVisible()
 }
 
 function sheetTitleFor(sectionName: SectionName, isEditing: boolean): string {

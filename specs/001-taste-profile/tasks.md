@@ -27,13 +27,14 @@ description: "Task list for 맞춤 취향 프로필 (마일스톤 1)"
 > 🟠 접근성(카테고리 선택기 라벨 연결, 서술 textarea 라벨, 시트/다이얼로그 포커스 이동·Escape·복귀) · 🟡 모순 문구 을/를 조사.
 > E2E 4종 작성 완료(44건). 테스트 **71건** 통과, lint·tsc·build 통과.
 
-**남은 것**: ① 수동 검증 T054·T059·T060 ② 실사용 데이터가 쌓인 뒤 T053 재실행.
+**남은 것**: ① 수동 검증 T059·T060 ② 실사용 데이터가 쌓인 뒤 T053 재실행.
 
 > ✅ **E2E 전 스위트 초록 (2026-08-28)**: 테스트 계정 생성 후 44/44 통과 (chromium 22 + mobile-360 22)
 > → T034·T039·T046·T052 완료. 첫 실행에서 픽스처 버그 1건 수정 — CategoryPicker 트리거의
 > 접근 가능한 이름은 aria-labelledby 라 "<라벨> <현재 값>" 형태인데 `pickCategory` 가
 > 현재 값만 exact 매칭하고 있었다 (taste-ui.ts). 우려했던 US4-3(`router.refresh()` 가 서버
 > `redirect('/onboarding')` 을 따라가는지)은 실계정에서 정상 동작 확인.
+
 리뷰에서 범위 밖으로 남긴 것: 온보딩 완료자의 `/onboarding` 재진입 안내, 일괄 저장 중간 실패 시 저장 건수 안내, `/my` 의 `MOCK_USER` 교체, `requireOnboarded`+`getOrCreateTasteProfile` 이중 조회, Supabase 어드바이저 경고(`public.rls_auto_enable()` 이 anon/authenticated 에서 RPC 실행 가능 — `REVOKE EXECUTE` 권장).
 
 ### 계획에 없던 산출물
@@ -173,7 +174,7 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 - [X] T043 [US3] (선행 구현 — 온보딩 3/3이 필요로 해서 US1과 함께) `app/taste/actions.ts`에 `updateTasteDescription` Server Action — 빈 문자열을 `NULL`로 정규화 (FR-007)
 - [X] T044 [P] [US3] `components/taste/description-editor.tsx` (`'use client'`) — 입력 상태와 저장 상태 표시
 - [X] T045 [US3] `app/taste/page.tsx`에 취향 서술 표시 영역 추가
-- [X] T046 [US3] T040·T041을 초록으로 만든다
+- [X] T046 [US3] T040·T041을 초록으로 만든다 — `mobile-360`·`chromium` 양쪽 22/22 통과. 막고 있던 것은 화면이 아니라 `pickCategory` 픽스처의 낡은 로케이터였다(아래 T054 주석 참조)
 
 **Checkpoint**: US1~US3가 함께 동작하고 상세·서술 데이터가 쌓이기 시작한다.
 
@@ -205,9 +206,9 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 
 - [ ] T053 **FR-015 측정 검증** — research.md R7의 두 쿼리를 Supabase SQL 편집기에서 실행해 상세 작성률·취향 서술 작성률이 값으로 나오는지 확인 (quickstart V6). **이것이 통과해야 마일스톤 1이 끝난 것이다** — PRD Risks R2가 요구하는 "마일스톤 1 직후 즉시 측정"이 여기서 성립한다
   > 📌 2026-08-28 두 쿼리를 공유 DB에서 실행 — 문법·조인 정상, 단 `TasteProfile` 0건이라 두 비율 모두 `NULL`(`NULLIF(COUNT(*),0)`). 실사용 프로필이 1건 이상 쌓인 뒤 다시 실행해 숫자가 나오면 체크한다
-- [ ] T054 [P] 폭 360px에서 quickstart V1~V4를 다시 밟는다. 가로 스크롤이 생기면 실패 (SC-006)
+- [X] T054 [P] 폭 360px에서 quickstart V1~V4를 다시 밟는다. 가로 스크롤이 생기면 실패 (SC-006) — 수동 대신 `npx playwright test --project=mobile-360` 으로 검증했다. 4개 스펙의 SC-006 테스트가 `document.documentElement.scrollWidth <= 360` 을 실측하며(`fixtures/taste-ui.ts` `expectNoHorizontalScroll`), 온보딩 3스텝·취향 화면·추가/편집 시트·서술 시트·삭제 확인 다이얼로그 전부 통과. **가로 스크롤 0건.**
 - [X] T055 [P] FR-016 확인 — 저장 중 네트워크를 끊고 실패가 표시되며 **입력 내용이 남는지** (quickstart V5-4). ✅ Playwright `context.setOffline` 로 검증 (2026-08-28) — 오프라인 저장 시 시트가 유지된 채 "저장하지 못했어요. 잠시 후 다시 시도해주세요." 표시, 카테고리·상세 입력 보존, 온라인 복귀 후 같은 입력으로 재저장 성공까지 확인
-  > 📌 2026-08-28 리뷰에서 "Action 이 throw 하면 error.tsx 로 떨어져 입력 유실" 경로를 발견해 수정(`lib/actions/call-action.ts`, 서버 `guarded`). 자동 테스트(`tests/unit/call-action.test.ts`, `tests/integration/action-unexpected-error.test.ts`)는 통과 — 실제 네트워크 단절 수동 확인만 남음
+  > 📌 2026-08-28 리뷰에서 "Action 이 throw 하면 error.tsx 로 떨어져 입력 유실" 경로를 발견해 수정(`lib/actions/call-action.ts`, 서버 `guarded`). 자동 테스트(`tests/unit/call-action.test.ts`, `tests/integration/action-unexpected-error.test.ts`)는 통과 — 실제 네트워크 단절은 위 T055의 `setOffline` 검증으로 해소
 - [X] T056 [P] 컴포넌트 크기 점검 — 500줄 초과가 있으면 하위 컴포넌트로 분해 (constitution 품질 게이트)
   > 📌 2026-08-28 최대 `taste-item-form.tsx` 397줄, `onboarding-flow.tsx` 315줄 — 500줄 초과 없음. 리뷰 R6(폼 파일에서 버튼 2개 분리)은 선택 사항으로 남김
 - [X] T057 [P] `'use client'` 사용처 점검 — 계획된 4개(폼·선택기·서술 편집기·삭제 확인 다이얼로그) 외에 붙은 것이 있으면 정당한지 확인한다. **`error.tsx`는 Next.js가 클라이언트 컴포넌트를 강제하므로 위반이 아니다.** 목록 렌더가 Server Component로 남아 있는지 확인한다 (constitution 원칙 III)
