@@ -99,7 +99,12 @@ app/
 ├── friends/
 │   ├── page.tsx                    # SCR-M2-01 친구 탭 (Server Component)
 │   ├── error.tsx
-│   ├── actions.ts                  # ★ 한 사람이 소유 — M1 의 taste/actions.ts 와 같은 이유
+│   ├── actions/                    # ★ 파일을 나눠 스토리별 소유가 갈리게 한다
+│   │   ├── shared.ts               #    ActionResult · guarded (기반 단계에서 먼저)
+│   │   ├── accept-invite.ts        #    US1
+│   │   ├── invite-link.ts          #    US3
+│   │   ├── notification.ts         #    US3
+│   │   └── friendship.ts           #    US4
 │   ├── invite/
 │   │   ├── page.tsx                # SCR-M2-02 링크 발급·공유
 │   │   └── manage/page.tsx         # SCR-M2-03 링크 관리
@@ -152,8 +157,10 @@ tests/
 
 새로 생기는 규칙 두 개:
 
-1. **`app/friends/actions.ts`를 한 사람이 소유한다.** M1에서 `app/taste/actions.ts`를
-   한 사람이 쓰기로 해 US3↔US4 충돌을 없앤 것과 같다. M2는 US1·US3·US4가 모두 이 파일을 건드린다.
+1. **Server Action을 `app/friends/actions/` 아래 파일 4개로 나눈다.** M1은 `app/taste/actions.ts`
+   한 파일이라 "한 사람이 소유한다"는 규칙으로 충돌을 막았다. Next.js는 Action을 한 파일에
+   모으라고 요구하지 않으므로, **나누면 그 규칙이 필요 없어진다.** US1·US3·US4가 각자
+   자기 파일만 만진다.
 2. **`app/i/`는 앱 셸 밖이다.** 하단 탭도 로그인 게이트도 없다. 다른 라우트와 레이아웃을
    공유하지 않는다.
 

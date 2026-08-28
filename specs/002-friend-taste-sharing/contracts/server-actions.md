@@ -104,18 +104,22 @@ type NotificationView = {
 
 ---
 
-## 2. Server Actions (`app/friends/actions.ts`)
+## 2. Server Actions — `app/friends/actions/` **4개 파일로 나눈다**
 
-> **이 파일은 한 사람이 소유한다.** M1에서 `app/taste/actions.ts`를 J가 혼자 쓰기로 해
-> US3↔US4 충돌을 없앤 것과 같은 이유다 (team-assignment 4장).
+> **M1과 달라지는 지점이다.** M1은 `app/taste/actions.ts` 한 파일이라 "한 사람이 소유한다"는
+> 규칙으로 충돌을 막았다. Next.js는 Server Action을 한 파일에 모을 것을 요구하지 않는다 —
+> **파일을 나누면 그 규칙 자체가 필요 없어진다.** 스토리별로 소유자가 갈린다.
 
-| Action | 입력 | 성공 | 실패 코드 |
-|---|---|---|---|
-| `revokeInviteLink` | `{ linkId }` | `{ ok: true }` | `NOT_OWNER` · `ALREADY_REVOKED` · `STORAGE_FAILED` |
-| `acceptInvite` | `{ token }` | `{ friendUserId }` | `LINK_INVALID` · `SELF_INVITE` · `ALREADY_FRIENDS` · `STORAGE_FAILED` |
-| `removeFriend` | `{ friendUserId }` | `{ ok: true }` | `NOT_FRIENDS` · `STORAGE_FAILED` |
-| `markNotificationRead` | `{ notificationId }` | `{ ok: true }` | `NOT_OWNER` · `STORAGE_FAILED` |
-| `markAllNotificationsRead` | — | `{ count }` | `STORAGE_FAILED` |
+| 파일 | Action | 입력 | 성공 | 실패 코드 |
+|---|---|---|---|---|
+| `actions/accept-invite.ts` | `acceptInvite` | `{ token }` | `{ friendUserId }` | `LINK_INVALID` · `SELF_INVITE` · `ALREADY_FRIENDS` · `STORAGE_FAILED` |
+| `actions/invite-link.ts` | `revokeInviteLink` | `{ linkId }` | `{ ok: true }` | `NOT_OWNER` · `ALREADY_REVOKED` · `STORAGE_FAILED` |
+| `actions/notification.ts` | `markNotificationRead` | `{ notificationId }` | `{ ok: true }` | `NOT_OWNER` · `STORAGE_FAILED` |
+| `actions/notification.ts` | `markAllNotificationsRead` | — | `{ count }` | `STORAGE_FAILED` |
+| `actions/friendship.ts` | `removeFriend` | `{ friendUserId }` | `{ ok: true }` | `NOT_FRIENDS` · `STORAGE_FAILED` |
+
+각 파일은 최상단에 `'use server'`를 선언한다. `ActionResult` 타입과 `guarded` 래퍼는
+`app/friends/actions/shared.ts`에 두고 넷이 함께 쓴다 — **이 파일만 기반 단계에서 먼저 만든다.**
 
 ### `acceptInvite` — 검사 순서
 
