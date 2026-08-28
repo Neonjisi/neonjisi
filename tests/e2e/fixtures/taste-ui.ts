@@ -105,13 +105,15 @@ export async function pickCategory(
   categoryName: string,
   currentLabel = '카테고리 선택',
 ): Promise<void> {
-  await dialog.getByRole('button', { name: currentLabel, exact: true }).click()
+  // 트리거의 접근 가능한 이름은 "<라벨> <현재 값>" 이다 (category-picker.tsx 의
+  // aria-labelledby — 예: "어떤 종류인가요? 카테고리 선택"). 현재 값만 부분 일치로 찾는다.
+  await dialog.getByRole('button', { name: currentLabel }).click()
   const picker = sheet(page, '카테고리 선택')
   await expect(picker).toBeVisible()
   await picker.getByRole('searchbox', { name: '카테고리 검색' }).fill(categoryName)
   await picker.getByRole('button', { name: categoryName, exact: true }).click()
   await expect(picker).toBeHidden()
-  await expect(dialog.getByRole('button', { name: categoryName, exact: true })).toBeVisible()
+  await expect(dialog.getByRole('button', { name: categoryName })).toBeVisible()
 }
 
 function sheetTitleFor(sectionName: SectionName, isEditing: boolean): string {
