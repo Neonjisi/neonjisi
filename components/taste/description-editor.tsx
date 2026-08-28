@@ -80,6 +80,8 @@ export function DescriptionEditor({ initialDescription }: DescriptionEditorProps
         </h2>
         <TextareaField
           id={textareaId}
+          label="취향 서술"
+          srOnlyLabel
           rows={5}
           placeholder="아침에 혼자 커피 내리는 15분이 좋아요. 산미 있는 원두를 주로 마셔요."
           helper="왜 좋아하는지까지 적으면 선물이 훨씬 정확해집니다."
