@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { DELETE_FAILED_MESSAGE, SAVE_FAILED_MESSAGE } from '@/lib/actions/call-action'
 import { isRedirectError } from '@/lib/actions/redirect-error'
 import { requireOnboarded } from '@/lib/dal/session'
+import { josa } from '@/lib/format/josa'
 import {
   deleteTasteItemRecord,
   findCategoryById,
@@ -122,7 +123,7 @@ export async function createTasteItem(
       const conflictLabel = contradiction.kind === 'WANT' ? '원하는 것' : '관심 없어요'
       return failure({
         code: 'CONTRADICTORY_ITEM',
-        message: `'${category.name}'을(를) ${conflictLabel}에 이미 넣어두셨어요. 한쪽만 남겨주세요.`,
+        message: `'${category.name}'${josa(category.name, '을', '를')} ${conflictLabel}에 이미 넣어두셨어요. 한쪽만 남겨주세요.`,
         conflictWith: toConflictWith(contradiction),
       })
     }
@@ -224,7 +225,7 @@ export async function updateTasteItem(
       const conflictLabel = contradiction.kind === 'WANT' ? '원하는 것' : '관심 없어요'
       return failure({
         code: 'CONTRADICTORY_ITEM',
-        message: `'${contradiction.categoryName}'을(를) ${conflictLabel}에 이미 넣어두셨어요. 한쪽만 남겨주세요.`,
+        message: `'${contradiction.categoryName}'${josa(contradiction.categoryName, '을', '를')} ${conflictLabel}에 이미 넣어두셨어요. 한쪽만 남겨주세요.`,
         conflictWith: toConflictWith(contradiction),
       })
     }

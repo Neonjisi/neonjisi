@@ -12,6 +12,7 @@ import { CategoryPicker } from "@/components/taste/category-picker";
 import { DeleteConfirmDialog } from "@/components/taste/delete-confirm-dialog";
 import { DELETE_FAILED_MESSAGE, callAction } from "@/lib/actions/call-action";
 import type { CategoryView, TasteItemView } from "@/lib/dal/taste";
+import { josa } from "@/lib/format/josa";
 import { findContradiction, type TasteKindInput } from "@/lib/validation/taste-item";
 
 /*
@@ -31,8 +32,8 @@ function ContradictionNotice({ conflict }: { conflict: TasteItemView | null }) {
   const conflictLabel = conflict.kind === "WANT" ? "원하는 것" : "관심 없어요";
   return (
     <p className="rounded-xl bg-warning-50 px-3.5 py-2.5 text-sm text-warning-700" role="alert">
-      &lsquo;{conflict.categoryName}&rsquo;을(를) {conflictLabel}에 이미 넣어두셨어요. 한쪽만
-      남겨주세요.
+      &lsquo;{conflict.categoryName}&rsquo;{josa(conflict.categoryName, "을", "를")} {conflictLabel}에
+      이미 넣어두셨어요. 한쪽만 남겨주세요.
     </p>
   );
 }
