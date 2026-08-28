@@ -13,6 +13,8 @@ import { isRedirectError } from '@/lib/actions/redirect-error'
 
 export const SAVE_FAILED_MESSAGE = '저장하지 못했어요. 잠시 후 다시 시도해주세요.'
 export const DELETE_FAILED_MESSAGE = '삭제하지 못했어요. 잠시 후 다시 시도해주세요.'
+/** M2 · 친구 해제 (app/friends/actions/friendship.ts · remove-friend-dialog.tsx) */
+export const REMOVE_FRIEND_FAILED_MESSAGE = '해제하지 못했어요. 잠시 후 다시 시도해주세요.'
 
 type ActionFailure = Extract<ActionResult<never>, { ok: false }>
 
