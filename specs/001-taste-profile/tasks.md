@@ -167,7 +167,7 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 - [X] T043 [US3] (선행 구현 — 온보딩 3/3이 필요로 해서 US1과 함께) `app/taste/actions.ts`에 `updateTasteDescription` Server Action — 빈 문자열을 `NULL`로 정규화 (FR-007)
 - [X] T044 [P] [US3] `components/taste/description-editor.tsx` (`'use client'`) — 입력 상태와 저장 상태 표시
 - [X] T045 [US3] `app/taste/page.tsx`에 취향 서술 표시 영역 추가
-- [ ] T046 [US3] T040·T041을 초록으로 만든다
+- [X] T046 [US3] T040·T041을 초록으로 만든다 — `mobile-360`·`chromium` 양쪽 22/22 통과. 막고 있던 것은 화면이 아니라 `pickCategory` 픽스처의 낡은 로케이터였다(아래 T054 주석 참조)
 
 **Checkpoint**: US1~US3가 함께 동작하고 상세·서술 데이터가 쌓이기 시작한다.
 
@@ -199,7 +199,7 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 
 - [ ] T053 **FR-015 측정 검증** — research.md R7의 두 쿼리를 Supabase SQL 편집기에서 실행해 상세 작성률·취향 서술 작성률이 값으로 나오는지 확인 (quickstart V6). **이것이 통과해야 마일스톤 1이 끝난 것이다** — PRD Risks R2가 요구하는 "마일스톤 1 직후 즉시 측정"이 여기서 성립한다
   > 📌 2026-08-28 두 쿼리를 공유 DB에서 실행 — 문법·조인 정상, 단 `TasteProfile` 0건이라 두 비율 모두 `NULL`(`NULLIF(COUNT(*),0)`). 실사용 프로필이 1건 이상 쌓인 뒤 다시 실행해 숫자가 나오면 체크한다
-- [ ] T054 [P] 폭 360px에서 quickstart V1~V4를 다시 밟는다. 가로 스크롤이 생기면 실패 (SC-006)
+- [X] T054 [P] 폭 360px에서 quickstart V1~V4를 다시 밟는다. 가로 스크롤이 생기면 실패 (SC-006) — 수동 대신 `npx playwright test --project=mobile-360` 으로 검증했다. 4개 스펙의 SC-006 테스트가 `document.documentElement.scrollWidth <= 360` 을 실측하며(`fixtures/taste-ui.ts` `expectNoHorizontalScroll`), 온보딩 3스텝·취향 화면·추가/편집 시트·서술 시트·삭제 확인 다이얼로그 전부 통과. **가로 스크롤 0건.**
 - [ ] T055 [P] FR-016 확인 — 저장 중 네트워크를 끊고 실패가 표시되며 **입력 내용이 남는지** (quickstart V5-4)
   > 📌 2026-08-28 리뷰에서 "Action 이 throw 하면 error.tsx 로 떨어져 입력 유실" 경로를 발견해 수정(`lib/actions/call-action.ts`, 서버 `guarded`). 자동 테스트(`tests/unit/call-action.test.ts`, `tests/integration/action-unexpected-error.test.ts`)는 통과 — 실제 네트워크 단절 수동 확인만 남음
 - [X] T056 [P] 컴포넌트 크기 점검 — 500줄 초과가 있으면 하위 컴포넌트로 분해 (constitution 품질 게이트)
