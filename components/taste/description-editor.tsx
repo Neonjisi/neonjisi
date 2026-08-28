@@ -6,11 +6,13 @@ import { updateTasteDescription } from "@/app/taste/actions";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { TextareaField } from "@/components/ui/text-field";
+import { callAction } from "@/lib/actions/call-action";
 
 /*
  * 취향 서술 카드 + 편집 시트 (SCR-M1-07 · T044/T045).
  * 저장은 updateTasteDescription 액션 — 빈 문자열은 서버가 NULL 로 정규화한다 (FR-007).
- * 실패는 결과 값으로 받아 시트를 닫지 않고 입력을 보존한다 (FR-016).
+ * 실패는 결과 값으로 받아 시트를 닫지 않고 입력을 보존한다 (FR-016) — 호출 자체가
+ * throw 해도 callAction 이 같은 결과 형태로 바꿔 주므로 error.tsx 로 새지 않는다.
  */
 
 type DescriptionEditorProps = {
@@ -38,7 +40,7 @@ export function DescriptionEditor({ initialDescription }: DescriptionEditorProps
   const handleSave = () => {
     startSaving(async () => {
       setServerError(null);
-      const result = await updateTasteDescription(draft);
+      const result = await callAction(() => updateTasteDescription(draft));
       if (!result.ok) {
         setServerError(result.error.message);
         return;

@@ -10,6 +10,7 @@ import { RadioOption } from "@/components/ui/radio-option";
 import { TextField } from "@/components/ui/text-field";
 import { CategoryPicker } from "@/components/taste/category-picker";
 import { DeleteConfirmDialog } from "@/components/taste/delete-confirm-dialog";
+import { DELETE_FAILED_MESSAGE, callAction } from "@/lib/actions/call-action";
 import type { CategoryView, TasteItemView } from "@/lib/dal/taste";
 import { findContradiction, type TasteKindInput } from "@/lib/validation/taste-item";
 
@@ -17,7 +18,9 @@ import { findContradiction, type TasteKindInput } from "@/lib/validation/taste-i
  * 취향 항목 폼 시트 (SCR-M1-08 · SCR-M1-09 · T029·T051).
  * 등록·수정·삭제가 각각 createTasteItem/updateTasteItem/deleteTasteItem 액션에
  * 연결되어 있다. 실패는 결과 값으로 받아 시트를 닫지 않고 입력을 보존한 채
- * 안내한다 (FR-016). 삭제는 확인 다이얼로그를 거친다 — hard delete 라 복구 불가.
+ * 안내한다 (FR-016) — 호출 자체가 throw 해도(네트워크 단절 등) callAction 이
+ * 같은 결과 형태로 바꿔 주므로 error.tsx 로 새지 않는다.
+ * 삭제는 확인 다이얼로그를 거친다 — hard delete 라 복구 불가.
  *
  * 모순(FR-010)은 저장 시점이 아니라 **카테고리를 고르는 순간** 경고한다 (명세 SCR-M1-08,
  * 리뷰 R2) — 다 적고 나서 막히면 입력을 통째로 버리게 된다. 최종 판정은 서버가 한다.
@@ -81,9 +84,9 @@ export function TasteItemSheet({
     startSaving(async () => {
       setServerError(null);
       const payload = { kind, categoryId, detail: detail.trim() || null };
-      const result = initialItem
-        ? await updateTasteItem(initialItem.id, payload)
-        : await createTasteItem(payload);
+      const result = await callAction(async () =>
+        initialItem ? updateTasteItem(initialItem.id, payload) : createTasteItem(payload),
+      );
       if (!result.ok) {
         setServerError(result.error.message);
         return;
@@ -98,7 +101,7 @@ export function TasteItemSheet({
     setIsConfirmingDelete(false);
     startSaving(async () => {
       setServerError(null);
-      const result = await deleteTasteItem(initialItem.id);
+      const result = await callAction(() => deleteTasteItem(initialItem.id), DELETE_FAILED_MESSAGE);
       if (!result.ok) {
         setServerError(result.error.message);
         return;
@@ -237,9 +240,9 @@ export function WishlistItemSheet({
     startSaving(async () => {
       setServerError(null);
       const payload = { kind: "WANT" as const, categoryId, detail: detail.trim() };
-      const result = initialItem
-        ? await updateTasteItem(initialItem.id, payload)
-        : await createTasteItem(payload);
+      const result = await callAction(async () =>
+        initialItem ? updateTasteItem(initialItem.id, payload) : createTasteItem(payload),
+      );
       if (!result.ok) {
         setServerError(result.error.message);
         return;
@@ -254,7 +257,7 @@ export function WishlistItemSheet({
     setIsConfirmingDelete(false);
     startSaving(async () => {
       setServerError(null);
-      const result = await deleteTasteItem(initialItem.id);
+      const result = await callAction(() => deleteTasteItem(initialItem.id), DELETE_FAILED_MESSAGE);
       if (!result.ok) {
         setServerError(result.error.message);
         return;

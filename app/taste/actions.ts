@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { DELETE_FAILED_MESSAGE, SAVE_FAILED_MESSAGE } from '@/lib/actions/call-action'
 import { isRedirectError } from '@/lib/actions/redirect-error'
 import { requireOnboarded } from '@/lib/dal/session'
 import {
@@ -72,9 +73,6 @@ function toConflictWith(item: TasteItemSnapshot): NonNullable<ActionError['confl
     detail: item.detail,
   }
 }
-
-const SAVE_FAILED_MESSAGE = '저장하지 못했어요. 잠시 후 다시 시도해주세요.'
-const DELETE_FAILED_MESSAGE = '삭제하지 못했어요. 잠시 후 다시 시도해주세요.'
 
 /**
  * 게이트(세션·온보딩) 이후의 본문을 감싸는 방어선 — DAL 조회를 포함해 예상 못 한
