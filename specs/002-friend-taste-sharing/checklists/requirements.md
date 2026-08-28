@@ -31,6 +31,18 @@
 
 ## Notes
 
+### clarify 세션 후 재검증 (2026-08-28)
+
+`/speckit-clarify` 4문답을 반영한 뒤 다시 돌렸다. **일시적으로 2건이 깨졌다가 복구됐다.**
+
+| 항목 | 무슨 일이 있었나 |
+|---|---|
+| All acceptance scenarios are defined | Q4로 알림 FR 7건(FR-028~034)이 새로 들어왔는데 **대응 시나리오가 없었다.** US3에 시나리오 4건(5~8)을 더해 해소 |
+| All functional requirements have clear acceptance criteria | 위와 같은 원인·같은 조치 |
+
+Q4가 범위를 늘리는 답이었기 때문에 생긴 회귀다. **요구사항만 늘리고 시나리오를 안 늘리면
+테스트할 수 없는 FR이 남는다** — clarify가 범위를 키울 때 반드시 같이 확인할 지점이다.
+
 ### 검증 중 고친 것
 
 1차 작성본에서 아래를 수정한 뒤 통과했다.
