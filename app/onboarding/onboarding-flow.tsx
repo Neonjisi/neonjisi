@@ -1,24 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, ChevronLeft, Plus } from "lucide-react";
+import { createTasteItem, updateTasteDescription } from "@/app/taste/actions";
 import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/ui/chip";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { RadioOption } from "@/components/ui/radio-option";
 import { TextField, TextareaField } from "@/components/ui/text-field";
-import type { CategoryMock } from "@/lib/mock/taste-data";
+import type { CategoryView } from "@/lib/dal/taste";
 
 /*
  * 온보딩 플로우 (SCR-M1-01~05 · T030).
  * 인트로 → 1/3 카테고리(필수) → 2/3 구분 → 3/3 서술(skip 가능) → 완료.
- * 저장은 목업 — createTasteItem 서버 액션 연동 시 완료 단계 진입 전에 일괄 저장한다.
+ * 2/3 완료 시 createTasteItem 으로 일괄 저장한다 — 첫 HAVE/UNWANTED 저장이
+ * onboardedAt 을 설정한다 (FR-008). 실패는 결과 값으로 받아 입력을 보존한다 (FR-016).
  */
 
 type OnboardingStep = "intro" | "categories" | "kinds" | "description" | "done";
 
-const INITIAL_VISIBLE_CATEGORIES = 10;
+// 처음에는 중복 수령 빈도가 높은 앞 12개(리빙·뷰티 구간)만 보여준다 (categories.md §3)
+const INITIAL_VISIBLE_CATEGORIES = 12;
 
 const INTRO_STEPS = [
   "이미 있거나 필요 없는 것",
@@ -51,7 +54,7 @@ function StepHeader({ stepNumber, onBack }: StepHeaderProps) {
 }
 
 type OnboardingFlowProps = {
-  categories: CategoryMock[];
+  categories: CategoryView[];
 };
 
 export function OnboardingFlow({ categories }: OnboardingFlowProps) {
@@ -62,6 +65,8 @@ export function OnboardingFlow({ categories }: OnboardingFlowProps) {
   const [detailById, setDetailById] = useState<Record<string, string>>({});
   const [description, setDescription] = useState("");
   const [isShowingAll, setIsShowingAll] = useState(false);
+  const [isSaving, startSaving] = useTransition();
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const toggleCategory = (categoryId: string) => {
     setSelectedIds((prev) =>
@@ -79,7 +84,44 @@ export function OnboardingFlow({ categories }: OnboardingFlowProps) {
       }
       return next;
     });
+    setSaveError(null);
     setStep("kinds");
+  };
+
+  // 2/3 완료 — 선택한 항목을 일괄 저장한다. 이미 있는 항목(DUPLICATE_ITEM)은
+  // 재진입 시나리오이므로 성공으로 취급하고, 그 외 실패는 입력을 보존한 채 알린다.
+  const submitTasteItems = () => {
+    startSaving(async () => {
+      setSaveError(null);
+      for (const category of categories.filter((c) => selectedIds.includes(c.id))) {
+        const detail = (detailById[category.id] ?? "").trim();
+        const result = await createTasteItem({
+          kind: kindById[category.id] ?? "HAVE",
+          categoryId: category.id,
+          detail: detail || null,
+        });
+        if (!result.ok && result.error.code !== "DUPLICATE_ITEM") {
+          setSaveError(`${category.name} — ${result.error.message}`);
+          return;
+        }
+      }
+      setStep("description");
+    });
+  };
+
+  // 3/3 완료 — 서술은 선택이다. skip 해도 온보딩은 이미 완료 상태다 (FR-008).
+  const finishOnboarding = (shouldSaveDescription: boolean) => {
+    startSaving(async () => {
+      setSaveError(null);
+      if (shouldSaveDescription && description.trim()) {
+        const result = await updateTasteDescription(description);
+        if (!result.ok) {
+          setSaveError(result.error.message);
+          return;
+        }
+      }
+      setStep("done");
+    });
   };
 
   const visibleCategories = isShowingAll
@@ -201,9 +243,14 @@ export function OnboardingFlow({ categories }: OnboardingFlowProps) {
             </section>
           ))}
         </div>
-        <div className="mt-auto pt-8">
-          <Button size="lg" onClick={() => setStep("description")}>
-            다음
+        <div className="mt-auto flex flex-col gap-2 pt-8">
+          {saveError && (
+            <p className="text-sm text-error-700" role="alert">
+              {saveError}
+            </p>
+          )}
+          <Button size="lg" disabled={isSaving} onClick={submitTasteItems}>
+            {isSaving ? "저장 중…" : "다음"}
           </Button>
         </div>
       </main>
@@ -230,10 +277,15 @@ export function OnboardingFlow({ categories }: OnboardingFlowProps) {
           />
         </div>
         <div className="mt-auto flex flex-col items-center gap-3">
-          <Button size="lg" onClick={() => setStep("done")}>
-            저장하고 시작하기
+          {saveError && (
+            <p className="text-sm text-error-700" role="alert">
+              {saveError}
+            </p>
+          )}
+          <Button size="lg" disabled={isSaving} onClick={() => finishOnboarding(true)}>
+            {isSaving ? "저장 중…" : "저장하고 시작하기"}
           </Button>
-          <Button variant="tertiary" onClick={() => setStep("done")}>
+          <Button variant="tertiary" disabled={isSaving} onClick={() => finishOnboarding(false)}>
             나중에 할게요
           </Button>
         </div>
@@ -254,7 +306,7 @@ export function OnboardingFlow({ categories }: OnboardingFlowProps) {
         <Button size="lg" onClick={() => router.push("/my")}>
           친구에게 링크 보내기
         </Button>
-        <Button variant="tertiary" onClick={() => router.push("/my")}>
+        <Button variant="tertiary" onClick={() => router.push("/taste")}>
           둘러볼게요
         </Button>
       </div>

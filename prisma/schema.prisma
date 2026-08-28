@@ -46,7 +46,7 @@ model TasteProfile {
 model Category {
   id        String @id @default(uuid()) @db.Uuid
   name      String @unique // 멱등 시드(upsert)의 키
-  sortOrder Int
+  sortOrder Int // 배열 순서 = 화면 순서. 묶음은 DB에 넣지 않는다 (categories.md §3 철회 결정)
 
   items TasteItem[]
 
@@ -66,5 +66,9 @@ model TasteItem {
   category Category     @relation(fields: [categoryId], references: [id], onDelete: Restrict)
 
   @@index([profileId, kind])
-  // (profileId, kind, categoryId, detail) 유니크는 NULLS NOT DISTINCT 라 raw SQL — T010 참조
+  // C2 유니크 (T010). 실제 제약은 NULLS NOT DISTINCT 인데 Prisma 문법으로 표현되지
+  // 않아 raw SQL 마이그레이션(20260828011025)으로 넣었다. 여기 @@unique 는 diff 가
+  // 그 제약을 지우려 들지 않게 하는 매핑이다 — `db push` 로 새 DB 를 만들면
+  // NULLS DISTINCT 로 생기므로, 새 환경은 반드시 `migrate deploy` 로 만든다.
+  @@unique([profileId, kind, categoryId, detail], map: "TasteItem_profile_kind_category_detail_key")
 }

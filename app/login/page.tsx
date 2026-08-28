@@ -1,12 +1,14 @@
-import { LinkButton } from "@/components/ui/button";
 import { TopBar } from "@/components/ui/top-bar";
+import { GoogleLoginButton, LoginErrorNotice } from "./login-buttons";
 
 /**
- * 로그인 · 가입 (SCR-M0-02 · T021).
- * 인증 방식은 미확정(도메인 모델 §13-2) — 버튼은 경로만 정의하고
- * Supabase 인증 연동 시 실제 핸들러로 교체한다.
+ * 로그인 · 가입 (SCR-M0-02 · T021) — 소셜 로그인 1종(Google) 확정 (FR-019).
+ * 신규·기존 계정 모두 같은 버튼을 쓴다 — Supabase 가 가입과 로그인을 구분해 처리한다.
  */
-export default function LoginPage() {
+export default async function LoginPage({ searchParams }: PageProps<"/login">) {
+  const { error } = await searchParams;
+  const errorCode = typeof error === "string" ? error : undefined;
+
   return (
     <>
       <TopBar title="시작하기" backHref="/" />
@@ -18,17 +20,10 @@ export default function LoginPage() {
           </p>
         </div>
         <div className="mt-auto flex flex-col items-center gap-3">
-          <LinkButton href="/signup/profile" size="lg">
-            소셜 계정으로 계속하기
-          </LinkButton>
-          <LinkButton href="/signup/profile" variant="secondary" size="lg">
-            이메일로 계속하기
-          </LinkButton>
-          <LinkButton href="/signup/profile" variant="tertiary" className="mt-1">
-            이미 계정이 있어요
-          </LinkButton>
+          <LoginErrorNotice code={errorCode} />
+          <GoogleLoginButton />
           <p className="pt-2 text-xs text-neutral-500">
-            인증 방식은 확정 후 연결됩니다 · OPEN QUESTION
+            로그인하면 이용약관과 개인정보처리방침에 동의하는 것으로 봅니다.
           </p>
         </div>
       </main>

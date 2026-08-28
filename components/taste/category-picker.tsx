@@ -3,10 +3,10 @@
 import { useId, useState } from "react";
 import { Check, ChevronDown, Search } from "lucide-react";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
-import type { CategoryMock } from "@/lib/mock/taste-data";
+import type { CategoryView } from "@/lib/dal/taste";
 
 type CategoryPickerProps = {
-  categories: CategoryMock[];
+  categories: CategoryView[];
   value: string | null;
   onChange: (categoryId: string) => void;
   label: string;
@@ -20,14 +20,33 @@ export function CategoryPicker({ categories, value, onChange, label, error }: Ca
   const [query, setQuery] = useState("");
 
   const selected = categories.find((category) => category.id === value) ?? null;
-  const filtered = query.trim()
-    ? categories.filter((category) => category.name.includes(query.trim()))
+  const trimmedQuery = query.trim();
+  const filtered = trimmedQuery
+    ? categories.filter((category) => category.name.includes(trimmedQuery))
     : categories;
 
   const handleSelect = (categoryId: string) => {
     onChange(categoryId);
     setIsOpen(false);
     setQuery("");
+  };
+
+  const renderRow = (category: CategoryView) => {
+    const isSelected = category.id === value;
+    return (
+      <li key={category.id}>
+        <button
+          type="button"
+          onClick={() => handleSelect(category.id)}
+          className="flex h-12 w-full items-center justify-between rounded-xl px-3 text-left text-sm text-neutral-900 active:bg-neutral-100"
+        >
+          <span className={isSelected ? "font-semibold text-rose-700" : undefined}>
+            {category.name}
+          </span>
+          {isSelected && <Check size={18} className="text-rose-600" aria-hidden />}
+        </button>
+      </li>
+    );
   };
 
   return (
@@ -74,23 +93,7 @@ export function CategoryPicker({ categories, value, onChange, label, error }: Ca
           />
         </div>
         <ul className="-mx-1 max-h-[45vh] overflow-y-auto pb-1">
-          {filtered.map((category) => {
-            const isSelected = category.id === value;
-            return (
-              <li key={category.id}>
-                <button
-                  type="button"
-                  onClick={() => handleSelect(category.id)}
-                  className="flex h-12 w-full items-center justify-between rounded-xl px-3 text-left text-sm text-neutral-900 active:bg-neutral-100"
-                >
-                  <span className={isSelected ? "font-semibold text-rose-700" : undefined}>
-                    {category.name}
-                  </span>
-                  {isSelected && <Check size={18} className="text-rose-600" aria-hidden />}
-                </button>
-              </li>
-            );
-          })}
+          {filtered.map(renderRow)}
           {filtered.length === 0 && (
             <li className="px-3 py-6 text-center text-sm text-neutral-500">
               검색 결과가 없어요
