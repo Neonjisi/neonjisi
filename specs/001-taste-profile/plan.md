@@ -161,7 +161,7 @@ tests/
 |---|---|---|
 | **I. 결정에는 근거가 붙는다** | ✅ 유지 | [research.md](./research.md) R1~R7 전부 Decision / Rationale / Alternatives 형식. 미해결 항목 0건 |
 | **II. 테스트 우선** | ⚠️ 조건 유지 | 테스트 3층 구조를 R5에서 확정했고 [quickstart.md](./quickstart.md)에 실행 절차를 넣었다. 러너 도입이 첫 작업이라는 조건은 그대로다 |
-| **III. Server Component가 기본이다** | ✅ 유지 | `'use client'`는 폼·선택기·서술 편집기·삭제 확인 다이얼로그 **4개로 한정**했다. 목록 렌더는 Server Component다 |
+| **III. Server Component가 기본이다** | ✅ 유지 | 설계상 `'use client'`는 폼·선택기·서술 편집기·삭제 확인 다이얼로그 **4개**다. 여기에 `error.tsx`가 더해지는데 **Next.js가 클라이언트 컴포넌트를 강제**하므로 예외가 아니라 전제다. 목록 렌더는 Server Component다 |
 | **IV. 거래는 스냅샷으로 자립한다** | ➖ 해당 없음 | 변동 없음 |
 | **V. 연기는 후행 비용이 낮은 쪽으로** | ✅ 유지 | [data-model.md](./data-model.md) "M1에서 의도적으로 넣지 않은 것"에 4건과 각각의 후행 비용을 명시했다 |
 

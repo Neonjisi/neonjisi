@@ -13,6 +13,30 @@ description: "Task list for 맞춤 취향 프로필 (마일스톤 1)"
 
 **Organization**: 사용자 스토리별로 묶어 각 스토리를 독립적으로 구현·검증할 수 있게 한다.
 
+## 현재 상태 (2026-08-28, 병합 후 갱신)
+
+> `aaddf50` 시점 감사("화면은 있으나 데이터 미연결")는 정확했으나, 이후 Phase 3~6 작업으로
+> **해소되었다**: `lib/dal/taste.ts`·`app/taste/actions.ts`가 구현되어 온보딩·내 취향 화면이
+> 실제 DB 에 읽고 쓴다. `lib/mock/taste-data.ts`는 마이 탭 헤더용 `MOCK_USER`만 남았다.
+> 통합·단위 테스트 50건 통과 (T011·T019·T025·T036·T041·T048).
+
+**남은 것**: E2E 4종(T024·T035·T040·T047)과 그 검증 태스크(T034·T039·T046·T052), Phase 7.
+E2E 는 로그인 전략(이메일 테스트 계정) 결정이 선행 조건이다.
+
+### 계획에 없던 산출물
+
+화면 명세서를 따라 만들어졌으나 `tasks.md`에 대응 태스크가 없는 것들이다.
+
+| 파일 | 근거 | 비고 |
+|---|---|---|
+| `app/signup/profile/` | SCR-M0-03 가입 프로필 | `User.display_name` 입력 자리. 우리 태스크가 놓쳤던 갭을 메운다 |
+| `app/my/page.tsx` | SCR-M1-06 마이 탭 | |
+| `app/onboarding/onboarding-flow.tsx` | SCR-M1-01~05 3스텝 온보딩 | |
+| `components/ui/` 8종 | 디자인 시스템 | button · chip · text-field · radio-option · bottom-nav · bottom-sheet · top-bar · progress-bar · error-state |
+| `lib/mock/taste-data.ts` | — | **임시 목업.** DAL 연결 후 제거 대상 |
+
+---
+
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: 병렬 실행 가능 (다른 파일, 미완료 의존 없음)
@@ -169,7 +193,7 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 - [ ] T054 [P] 폭 360px에서 quickstart V1~V4를 다시 밟는다. 가로 스크롤이 생기면 실패 (SC-006)
 - [ ] T055 [P] FR-016 확인 — 저장 중 네트워크를 끊고 실패가 표시되며 **입력 내용이 남는지** (quickstart V5-4)
 - [ ] T056 [P] 컴포넌트 크기 점검 — 500줄 초과가 있으면 하위 컴포넌트로 분해 (constitution 품질 게이트)
-- [ ] T057 [P] `'use client'` 사용처 점검 — 폼·선택기·서술 편집기·삭제 확인 다이얼로그 **4개**로 한정되어 있는지. 목록 렌더가 Server Component로 남아 있는지 (constitution 원칙 III)
+- [ ] T057 [P] `'use client'` 사용처 점검 — 계획된 4개(폼·선택기·서술 편집기·삭제 확인 다이얼로그) 외에 붙은 것이 있으면 정당한지 확인한다. **`error.tsx`는 Next.js가 클라이언트 컴포넌트를 강제하므로 위반이 아니다.** 목록 렌더가 Server Component로 남아 있는지 확인한다 (constitution 원칙 III)
 - [ ] T058 `npm run lint`와 `npm run build` 통과 — 완료 선언 전 필수 (constitution 품질 게이트)
 - [ ] T059 quickstart.md V1~V7 전체를 순서대로 수동 검증
 - [ ] T060 [P] SC-007 확인 — **구현에 참여하지 않은 외부 5명**(같은 수업 수강생 등)에게 취향 화면을 보여주고 `이미 있는 것`과 `필요 없는 것`을 구분할 수 있는지 묻는다. **4명 이상 성공**이 기준이며 결과를 숫자로 기록한다. 팀원은 평가자가 될 수 없다 — 만든 사람은 자기 화면을 항상 구분한다
