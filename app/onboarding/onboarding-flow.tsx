@@ -20,7 +20,8 @@ import type { CategoryView } from "@/lib/dal/taste";
 
 type OnboardingStep = "intro" | "categories" | "kinds" | "description" | "done";
 
-const INITIAL_VISIBLE_CATEGORIES = 10;
+// 처음에는 중복 수령 빈도가 높은 앞 묶음(리빙·뷰티)만 보여준다 (categories.md §3)
+const INITIAL_VISIBLE_GROUPS = 2;
 
 const INTRO_STEPS = [
   "이미 있거나 필요 없는 것",
@@ -123,9 +124,17 @@ export function OnboardingFlow({ categories }: OnboardingFlowProps) {
     });
   };
 
-  const visibleCategories = isShowingAll
-    ? categories
-    : categories.slice(0, INITIAL_VISIBLE_CATEGORIES);
+  // 묶음 구획 — sortOrder 순이라 같은 group 이 연속된다 (categories.md §3)
+  const groupSections: { group: string; items: CategoryView[] }[] = [];
+  for (const category of categories) {
+    const last = groupSections[groupSections.length - 1];
+    if (last?.group === category.group) last.items.push(category);
+    else groupSections.push({ group: category.group, items: [category] });
+  }
+  const visibleSections = isShowingAll
+    ? groupSections
+    : groupSections.slice(0, INITIAL_VISIBLE_GROUPS);
+  const hasHiddenGroups = groupSections.length > INITIAL_VISIBLE_GROUPS;
   const selectedCategories = categories.filter((category) =>
     selectedIds.includes(category.id),
   );
@@ -165,20 +174,28 @@ export function OnboardingFlow({ categories }: OnboardingFlowProps) {
           이미 있거나 필요 없는 것을 골라주세요
         </h1>
         <p className="pt-2 text-sm text-neutral-600">선물이 겹치는 걸 막아줍니다.</p>
-        <div className="flex flex-wrap items-center gap-2 pt-6">
-          {visibleCategories.map((category) => (
-            <Chip
-              key={category.id}
-              label={category.name}
-              isSelected={selectedIds.includes(category.id)}
-              onClick={() => toggleCategory(category.id)}
-            />
+        <div className="flex flex-col gap-4 pt-6">
+          {visibleSections.map((section) => (
+            <div key={section.group}>
+              {/* 묶음 머리글 — 누를 수 없는 이름표. 선택은 여전히 40개 중 하나 (FR-005) */}
+              <p className="pb-2 text-xs font-semibold text-neutral-400">{section.group}</p>
+              <div className="flex flex-wrap gap-2">
+                {section.items.map((category) => (
+                  <Chip
+                    key={category.id}
+                    label={category.name}
+                    isSelected={selectedIds.includes(category.id)}
+                    onClick={() => toggleCategory(category.id)}
+                  />
+                ))}
+              </div>
+            </div>
           ))}
-          {!isShowingAll && categories.length > INITIAL_VISIBLE_CATEGORIES && (
+          {!isShowingAll && hasHiddenGroups && (
             <button
               type="button"
               onClick={() => setIsShowingAll(true)}
-              className="inline-flex h-7 items-center gap-1 rounded-full border border-neutral-200 px-2.5 text-xs font-semibold text-neutral-500 active:bg-neutral-100"
+              className="inline-flex h-7 w-fit items-center gap-1 rounded-full border border-neutral-200 px-2.5 text-xs font-semibold text-neutral-500 active:bg-neutral-100"
             >
               <Plus size={14} aria-hidden />
               더보기

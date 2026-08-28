@@ -39,7 +39,7 @@ describe.skipIf(!hasDatabase)('C2 — TasteItem 유니크 제약 (NULLS NOT DIST
     const profile = await prisma.tasteProfile.create({ data: { userId } })
     profileId = profile.id
     const category = await prisma.category.create({
-      data: { name: `__c2-test-${userId}`, sortOrder: 99999 },
+      data: { name: `__c2-test-${userId}`, sortOrder: 99999, group: '__테스트' },
     })
     categoryId = category.id
   })

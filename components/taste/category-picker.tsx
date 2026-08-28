@@ -20,14 +20,44 @@ export function CategoryPicker({ categories, value, onChange, label, error }: Ca
   const [query, setQuery] = useState("");
 
   const selected = categories.find((category) => category.id === value) ?? null;
-  const filtered = query.trim()
-    ? categories.filter((category) => category.name.includes(query.trim()))
+  const trimmedQuery = query.trim();
+  const filtered = trimmedQuery
+    ? categories.filter((category) => category.name.includes(trimmedQuery))
     : categories;
+
+  // 묶음 머리글용 구획 — sortOrder 순이라 같은 group 이 연속된다 (categories.md §3).
+  // 검색 중에는 머리글을 숨기고 평면 결과로 보여준다.
+  const sections: { group: string; items: CategoryView[] }[] = [];
+  if (!trimmedQuery) {
+    for (const category of categories) {
+      const last = sections[sections.length - 1];
+      if (last?.group === category.group) last.items.push(category);
+      else sections.push({ group: category.group, items: [category] });
+    }
+  }
 
   const handleSelect = (categoryId: string) => {
     onChange(categoryId);
     setIsOpen(false);
     setQuery("");
+  };
+
+  const renderRow = (category: CategoryView) => {
+    const isSelected = category.id === value;
+    return (
+      <li key={category.id}>
+        <button
+          type="button"
+          onClick={() => handleSelect(category.id)}
+          className="flex h-12 w-full items-center justify-between rounded-xl px-3 text-left text-sm text-neutral-900 active:bg-neutral-100"
+        >
+          <span className={isSelected ? "font-semibold text-rose-700" : undefined}>
+            {category.name}
+          </span>
+          {isSelected && <Check size={18} className="text-rose-600" aria-hidden />}
+        </button>
+      </li>
+    );
   };
 
   return (
@@ -74,24 +104,18 @@ export function CategoryPicker({ categories, value, onChange, label, error }: Ca
           />
         </div>
         <ul className="-mx-1 max-h-[45vh] overflow-y-auto pb-1">
-          {filtered.map((category) => {
-            const isSelected = category.id === value;
-            return (
-              <li key={category.id}>
-                <button
-                  type="button"
-                  onClick={() => handleSelect(category.id)}
-                  className="flex h-12 w-full items-center justify-between rounded-xl px-3 text-left text-sm text-neutral-900 active:bg-neutral-100"
-                >
-                  <span className={isSelected ? "font-semibold text-rose-700" : undefined}>
-                    {category.name}
-                  </span>
-                  {isSelected && <Check size={18} className="text-rose-600" aria-hidden />}
-                </button>
-              </li>
-            );
-          })}
-          {filtered.length === 0 && (
+          {trimmedQuery
+            ? filtered.map(renderRow)
+            : sections.map((section) => (
+                <li key={section.group} role="group" aria-label={section.group}>
+                  {/* 묶음 머리글 — 누를 수 없는 이름표 (FR-005: 선택은 여전히 평면 1단계) */}
+                  <p aria-hidden className="px-3 pb-1 pt-3 text-xs font-semibold text-neutral-400">
+                    {section.group}
+                  </p>
+                  <ul>{section.items.map(renderRow)}</ul>
+                </li>
+              ))}
+          {trimmedQuery && filtered.length === 0 && (
             <li className="px-3 py-6 text-center text-sm text-neutral-500">
               검색 결과가 없어요
             </li>

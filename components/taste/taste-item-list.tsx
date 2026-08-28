@@ -21,6 +21,9 @@ type TasteItemListProps = {
 };
 
 export function TasteItemList({ itemsByKind, categories }: TasteItemListProps) {
+  // 모순 즉시 경고(FR-010, 리뷰 R2)용 전체 항목 — 시트가 카테고리 선택 직후 대조한다
+  const existingItems = [...itemsByKind.WANT, ...itemsByKind.HAVE, ...itemsByKind.UNWANTED];
+
   return (
     <div className="flex flex-col gap-6">
       {SECTIONS.map(({ kind, title, emptyMessage }) => {
@@ -34,7 +37,11 @@ export function TasteItemList({ itemsByKind, categories }: TasteItemListProps) {
                   ({sectionItems.length})
                 </span>
               </h2>
-              <AddTasteItemButton kind={kind} categories={categories} />
+              <AddTasteItemButton
+                kind={kind}
+                categories={categories}
+                existingItems={existingItems}
+              />
             </div>
             <div className="rounded-[20px] bg-surface px-3">
               {sectionItems.length === 0 ? (
@@ -45,7 +52,11 @@ export function TasteItemList({ itemsByKind, categories }: TasteItemListProps) {
                 sectionItems.map((item, index) => (
                   <Fragment key={item.id}>
                     {index > 0 && <hr className="border-neutral-100" />}
-                    <TasteItemRowButton item={item} categories={categories} />
+                    <TasteItemRowButton
+                      item={item}
+                      categories={categories}
+                      existingItems={existingItems}
+                    />
                   </Fragment>
                 ))
               )}
