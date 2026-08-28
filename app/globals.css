@@ -1,26 +1,128 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/*
+ * Neonjisi Design Tokens — design/neonjisi-design-ssot.md 기준.
+ * 값의 원본은 design/neonjisi.pen 의 변수 정의(rose direction)다.
+ * 화면 코드에서 임의 HEX를 쓰지 않고 반드시 이 토큰을 거친다.
+ */
+@theme {
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", "Apple SD Gothic Neo", "Malgun Gothic",
+    sans-serif;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  /* Rose · Brand */
+  --color-rose-50: #fff1f5;
+  --color-rose-100: #ffe0ea;
+  --color-rose-200: #fcc4d6;
+  --color-rose-300: #f79cb8;
+  --color-rose-400: #f0729a;
+  --color-rose-500: #e84d78;
+  --color-rose-600: #d13a66;
+  --color-rose-700: #b8325b;
+  --color-rose-800: #932848;
+  --color-rose-900: #6e1e36;
+  --color-rose-950: #4a1424;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Neutral · Warm */
+  --color-neutral-50: #fff7f8;
+  --color-neutral-100: #f5e8ec;
+  --color-neutral-200: #e8ced6;
+  --color-neutral-300: #d9b9c2;
+  --color-neutral-400: #b99da5;
+  --color-neutral-500: #9b8189;
+  --color-neutral-600: #806b72;
+  --color-neutral-700: #5f4f55;
+  --color-neutral-800: #47393e;
+  --color-neutral-900: #35262b;
+  --color-neutral-950: #241a1e;
+
+  /* Apricot · Secondary Accent (200 = Soft Apricot, LOCKED) */
+  --color-apricot-50: #fef7ec;
+  --color-apricot-100: #fdecd3;
+  --color-apricot-200: #fbe2c1;
+  --color-apricot-300: #f6ce96;
+  --color-apricot-400: #edb667;
+  --color-apricot-500: #e09b3d;
+  --color-apricot-600: #c47f26;
+  --color-apricot-700: #9c631c;
+  --color-apricot-800: #744917;
+  --color-apricot-900: #4f320f;
+
+  /* Lavender · Taste Tint */
+  --color-lavender-50: #faf1f9;
+  --color-lavender-100: #f2dff0;
+  --color-lavender-200: #e7c8e4;
+  --color-lavender-500: #b676a8;
+  --color-lavender-700: #9a4d88;
+  --color-lavender-900: #5e2d53;
+
+  /* Mint · Taste Tint */
+  --color-mint-50: #eef9f2;
+  --color-mint-100: #ddf1e6;
+  --color-mint-200: #bbe3cc;
+  --color-mint-500: #4f9b76;
+  --color-mint-700: #3d7b61;
+  --color-mint-900: #234838;
+
+  /* State */
+  --color-success-50: #ddf1e6;
+  --color-success-500: #3d7b61;
+  --color-success-700: #2c5c48;
+  --color-warning-50: #fff3d6;
+  --color-warning-100: #ffe1a3;
+  --color-warning-500: #c98a16;
+  --color-warning-700: #9a6910;
+  --color-error-50: #fde7e7;
+  --color-error-500: #d64545;
+  --color-error-600: #c13333;
+  --color-error-700: #a12626;
+  --color-info-50: #e7eefb;
+  --color-info-500: #4f6dbf;
+  --color-info-700: #3a5093;
+
+  /* Semantic aliases */
+  --color-app: var(--color-neutral-50);
+  --color-surface: #ffffff;
+  --color-surface-soft: var(--color-neutral-100);
+  --color-scrim: #241a1e80;
+
+  /* Shadow — Neo-Brutalism accent는 Primary CTA에만 (SSOT) */
+  --shadow-brutal: 2px 2px 0 0 #35262b24;
+  --shadow-toast: 0 6px 16px 0 #35262b24;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-app);
+  color: var(--color-neutral-900);
+  font-family: var(--font-sans);
+  letter-spacing: -0.02em;
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
