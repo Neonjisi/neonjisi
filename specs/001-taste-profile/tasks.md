@@ -13,24 +13,22 @@ description: "Task list for 맞춤 취향 프로필 (마일스톤 1)"
 
 **Organization**: 사용자 스토리별로 묶어 각 스토리를 독립적으로 구현·검증할 수 있게 한다.
 
-## 현재 상태 (2026-08-28)
+## 현재 상태 (2026-08-28, 병합 후 갱신)
 
-> ⚠️ **이 문서와 실제 코드가 어긋났던 것을 바로잡은 기록이다.**
-> Phase 2 완료 후 팀원이 `aaddf50`에서 M1 화면을 대거 구현했으나 태스크에 표시하지 않았다.
-> 아래는 파일 내용을 직접 확인해 갱신한 결과다.
+> `aaddf50` 시점 감사("화면은 있으나 데이터 미연결")는 정확했으나, 이후 Phase 3~6 작업으로
+> **해소되었다**: `lib/dal/taste.ts`·`app/taste/actions.ts`가 구현되어 온보딩·내 취향 화면이
+> 실제 DB 에 읽고 쓴다. `lib/mock/taste-data.ts`는 마이 탭 헤더용 `MOCK_USER`만 남았다.
+> 통합·단위 테스트 50건 통과 (T011·T019·T025·T036·T041·T048).
+>
+> **2026-08-28 오후 (gnuke-dev)** — 위 구현을 계약·스펙 대비 코드 리뷰(서버/화면 2건)하고 확인된 결함을 고쳤다:
+> 🔴 `syncOnboardedAt` 경합(HAVE 2건 동시 삭제 시 `onboardedAt` 잔존 — `FOR UPDATE` 행 락으로 직렬화, 경합 테스트 추가) ·
+> 🔴 Action 이 throw 하면 `error.tsx` 로 떨어져 입력 유실(FR-016 — 클라이언트 `lib/actions/call-action.ts` + 서버 전체 try/catch → `STORAGE_FAILED`) ·
+> 🟠 `updateTasteDescription` 이 `requireOnboarded()` 미호출(FR-018 우회 — 교체) ·
+> 🟠 접근성(카테고리 선택기 라벨 연결, 서술 textarea 라벨, 시트/다이얼로그 포커스 이동·Escape·복귀) · 🟡 모순 문구 을/를 조사.
+> E2E 4종 작성 완료(44건). 테스트 **71건** 통과, lint·tsc·build 통과.
 
-**핵심: 화면은 만들어졌지만 데이터가 연결되지 않았다.**
-
-| 없는 것 | 막고 있는 태스크 |
-|---|---|
-| `lib/dal/taste.ts` | T026 · T031 |
-| `app/taste/actions.ts` | T027 · T043 · T049 · T050 |
-
-화면 7개가 `lib/mock/taste-data.ts`를 import한다. **DB에 아무것도 저장되지 않는다.**
-US1~US4 테스트도 아직 하나도 없다(T024·T025·T035·T036·T040·T041·T047·T048).
-
-`⚠️ 부분`으로 표시된 태스크는 파일은 있으나 태스크가 요구한 동작이 성립하지 않는 것이다.
-파일이 있다고 체크하지 않았다 — 체크하면 남은 일이 보이지 않는다.
+**남은 것**: ① Supabase 에 이메일 테스트 계정 1개 만들고 `.env.local` 에 `E2E_USER_EMAIL`/`E2E_USER_PASSWORD` 넣은 뒤 E2E 실행 → T034·T039·T046·T052 ② 수동 검증 T054·T055·T059·T060 ③ 실사용 데이터가 쌓인 뒤 T053 재실행.
+리뷰에서 범위 밖으로 남긴 것: 온보딩 완료자의 `/onboarding` 재진입 안내, 일괄 저장 중간 실패 시 저장 건수 안내, `/my` 의 `MOCK_USER` 교체, `requireOnboarded`+`getOrCreateTasteProfile` 이중 조회, Supabase 어드바이저 경고(`public.rls_auto_enable()` 이 anon/authenticated 에서 RPC 실행 가능 — `REVOKE EXECUTE` 권장).
 
 ### 계획에 없던 산출물
 
@@ -86,7 +84,7 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 - [X] T009 최초 마이그레이션 생성·적용 — `npx prisma migrate dev --name init`
 - [X] T010 **C2 유니크 제약 raw SQL 마이그레이션** — `npx prisma migrate dev --create-only --name taste_item_unique_nulls_not_distinct` 후 생성된 SQL에 `UNIQUE NULLS NOT DISTINCT ("profileId", "kind", "categoryId", "detail")` 를 직접 넣고 적용. Prisma 스키마 문법으로 표현되지 않는다
 - [X] T011 T010 검증 테스트 `tests/integration/taste-item-unique.test.ts` — `detail`이 `NULL`인 동일 조합을 두 번 삽입해 **DB가 거부하는지** 확인. 이 제약이 빠지면 대분류만 지정한 항목이 무제한 중복되는데 화면상으로는 정상으로 보여 놓치기 쉽다 (quickstart V5-3)
-- [X] T012 [P] `prisma/seed.ts` 작성 — ⚠️ 카테고리 목록은 S 확정 전 초안 40개. S가 확정하면 배열만 교체 — Category 30~50개를 TypeScript 상수 배열로, `upsert`로 멱등하게. `package.json`에 `prisma.seed` 설정 추가
+- [X] T012 [P] `prisma/seed.ts` 작성 — ✅ **S 확정안(categories.md §4) 40개 반영 완료** (초안 카테고리는 참조 0건 확인 후 교체. 묶음은 확정 결정대로 DB에 저장하지 않고 순서에만 반영). Category를 TypeScript 상수 배열로, `upsert`로 멱등하게. 시드 커맨드는 `prisma.config.ts`의 `migrations.seed`
 - [X] T013 `npx prisma db seed` 실행 후 Category 행 수 확인. **시드가 비면 US1이 통째로 막힌다**
 - [X] T014 [P] `lib/supabase/server.ts`, `lib/supabase/client.ts` — `@supabase/ssr` 기반 클라이언트 생성
 - [X] T015 [P] `lib/prisma.ts` — 개발 환경 hot reload에서 커넥션이 새지 않도록 싱글턴으로. ⚠️ Prisma 7은 드라이버 어댑터가 필수라 `@prisma/adapter-pg`를 추가했다
@@ -111,22 +109,20 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 
 ### Tests for User Story 1 ⚠️ 구현보다 먼저
 
-- [ ] T024 [P] [US1] `tests/e2e/onboarding.spec.ts` — spec.md US1 수용 시나리오 1~5를 그대로 옮긴다. **로그인부터 시작하며**(FR-019), 미완료 계정의 `/taste` 직접 접근이 `/onboarding`으로 유도되는지(FR-018) 포함
-- [ ] T025 [P] [US1] `tests/integration/create-taste-item.test.ts` — `HAVE`/`UNWANTED` 저장 시 `onboardedAt`이 설정되는지, 모순·중복이 거부되는지, **상한 100건 초과가 거부되는지**(FR-020)
+- [X] T024 [P] [US1] `tests/e2e/onboarding.spec.ts` — spec.md US1 수용 시나리오 1~5를 그대로 옮긴다. **로그인부터 시작하며**(FR-019), 미완료 계정의 `/taste` 직접 접근이 `/onboarding`으로 유도되는지(FR-018) 포함
+  > 📌 8건 작성(미인증 리다이렉트 2건은 계정 없이 통과). 로그인은 `tests/e2e/fixtures/auth.ts`가 **이메일 테스트 계정**(`E2E_USER_EMAIL`/`E2E_USER_PASSWORD`, `.env.example` 참조)으로 세션을 만들어 `@supabase/ssr` 쿠키로 주입한다 — Supabase 대시보드에서 Email provider 켜고 Auto Confirm 계정 1개 생성 필요. env 없으면 skip. 화면에 "최소 1건" 안내 문장이 없어 US1-2는 `다음` disabled + "0개 선택됨"으로 검증
+- [X] T025 [P] [US1] `tests/integration/create-taste-item.test.ts` — `HAVE`/`UNWANTED` 저장 시 `onboardedAt`이 설정되는지, 모순·중복이 거부되는지, **상한 100건 초과가 거부되는지**(FR-020)
 
 ### Implementation for User Story 1
 
-- [ ] T026 [US1] `lib/dal/taste.ts`에 `getCategories()` — `sortOrder` 순 평면 목록 (FR-005)
-- [ ] T027 [US1] `app/taste/actions.ts`에 `createTasteItem` Server Action — contracts/server-actions.md의 검사 순서(세션 → 스키마 → 대분류 존재 → 모순 → 중복 → 저장)를 따른다. 유니크 위반 예외를 `DUPLICATE_ITEM`으로 변환해 경합을 닫는다. `verifySession()`은 통과하되 `requireOnboarded()`는 부르지 않는다 — 온보딩 화면에서 쓰이는 유일한 Action이다
+- [X] T026 [US1] `lib/dal/taste.ts`에 `getCategories()` — `sortOrder` 순 평면 목록 (FR-005)
+- [X] T027 [US1] `app/taste/actions.ts`에 `createTasteItem` Server Action — contracts/server-actions.md의 검사 순서(세션 → 스키마 → 대분류 존재 → 모순 → 중복 → 저장)를 따른다. 유니크 위반 예외를 `DUPLICATE_ITEM`으로 변환해 경합을 닫는다. `verifySession()`은 통과하되 `requireOnboarded()`는 부르지 않는다 — 온보딩 화면에서 쓰이는 유일한 Action이다
 - [X] T028 [P] [US1] `components/taste/category-picker.tsx` (`'use client'`) — 대분류 선택과 검색 필터
-- [ ] T029 [US1] `components/taste/taste-item-form.tsx` (`'use client'`) — `useActionState`로 폼 상태. 저장 실패 시 **입력 내용을 보존한다** (FR-016)
-  - **⚠️ 부분** — 컴포넌트는 있으나 `useActionState`가 없다. Server Action(T027) 미구현이라 목업에 묶여 있고, FR-016(저장 실패 시 입력 보존)이 성립하지 않는다
-- [ ] T030 [US1] `app/onboarding/page.tsx` (Server Component) — 최소 1건 안내와 저장 후 `/taste` 이동
-  - **⚠️ 부분** — 화면과 3스텝 플로우(`onboarding-flow.tsx`)는 있으나 `lib/mock/taste-data.ts`를 쓴다. 저장이 DB에 닿지 않는다
-- [ ] T031 [US1] `lib/dal/taste.ts`에 `getTasteItemsByKind()`와 `getTasteProfile()` — 전자는 종류별로 묶인 형태로 반환해 화면이 그룹핑 로직을 갖지 않게 하고(FR-012), 후자는 프로필과 취향 서술을 반환한다. 두 함수 모두 인가를 통과한 결과만 내보내므로 호출부에 소유자 검사가 없다. `getTasteProfile()`은 US3의 T045(취향 서술 표시)가 사용한다
+- [X] T029 [US1] `components/taste/taste-item-form.tsx` (`'use client'`) — `useTransition` + 결과 값 기반으로 폼 상태 관리(useActionState 대신, 시트형 UI라 제어 입력 유지). 저장 실패 시 **입력 내용을 보존한다** (FR-016)
+- [X] T030 [US1] `app/onboarding/page.tsx` (Server Component) — 최소 1건 안내와 저장 후 완료 화면(SCR-M1-05) → `친구에게 링크 보내기`는 `/my`, `둘러볼게요`는 `/taste` (원래 문구 "저장 후 `/taste` 이동"은 화면 명세서와 어긋나 실제 구현에 맞춰 정정)
+- [X] T031 [US1] `lib/dal/taste.ts`에 `getTasteItemsByKind()`와 `getTasteProfile()` — 전자는 종류별로 묶인 형태로 반환해 화면이 그룹핑 로직을 갖지 않게 하고(FR-012), 후자는 프로필과 취향 서술을 반환한다. 두 함수 모두 인가를 통과한 결과만 내보내므로 호출부에 소유자 검사가 없다. `getTasteProfile()`은 US3의 T045(취향 서술 표시)가 사용한다
 - [X] T032 [US1] `components/taste/taste-item-list.tsx` (**Server Component**) — `이미 있는 것`과 `필요 없는 것`을 다른 묶음으로 렌더 (US1-3)
-- [ ] T033 [US1] `app/taste/page.tsx` — 진입 시 `requireOnboarded()` 호출 (FR-018)
-  - **⚠️ 부분** — 화면은 있으나 `requireOnboarded()` 호출이 주석으로만 있고 실제 호출이 없다. FR-018 게이트가 열려 있다
+- [X] T033 [US1] `app/taste/page.tsx` — 진입 시 `requireOnboarded()` 호출 (FR-018)
 - [ ] T034 [US1] T024·T025를 초록으로 만들고 폭 360px에서 재확인
 
 **Checkpoint**: US1이 독립적으로 동작한다. **여기까지가 MVP다.**
@@ -141,13 +137,12 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 
 ### Tests for User Story 2 ⚠️ 구현보다 먼저
 
-- [ ] T035 [P] [US2] `tests/e2e/want-items.spec.ts` — spec.md US2 수용 시나리오 1~2. `원하는 것`이 0건이어도 온보딩 완료가 유지되는지 포함
-- [ ] T036 [P] [US2] `tests/integration/create-taste-item.test.ts`에 케이스 추가 — `WANT` 저장이 `onboardedAt`에 **영향을 주지 않는지** (FR-008)
+- [X] T035 [P] [US2] `tests/e2e/want-items.spec.ts` — spec.md US2 수용 시나리오 1~2. `원하는 것`이 0건이어도 온보딩 완료가 유지되는지 포함 (4건 작성, 테스트 계정 전까지 skip)
+- [X] T036 [P] [US2] `tests/integration/create-taste-item.test.ts`에 케이스 추가 — `WANT` 저장이 `onboardedAt`에 **영향을 주지 않는지** (FR-008)
 
 ### Implementation for User Story 2
 
-- [ ] T037 [US2] `app/taste/page.tsx`에 `원하는 것` 등록 진입점 추가 — T027의 Action을 `kind: 'WANT'`로 재사용한다. 새 Action을 만들지 않는다
-  - **⚠️ 미착수** — 목록에 `원하는 것` 섹션은 있으나 등록 진입점이 없다
+- [X] T037 [US2] `app/taste/page.tsx`에 `원하는 것` 등록 진입점 추가 — T027의 Action을 `kind: 'WANT'`로 재사용한다. 새 Action을 만들지 않는다
 - [X] T038 [US2] `components/taste/taste-item-list.tsx`에 `원하는 것` 빈 상태 안내 추가 (US2-2)
 - [ ] T039 [US2] T035·T036을 초록으로 만든다
 
@@ -163,13 +158,13 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 
 ### Tests for User Story 3 ⚠️ 구현보다 먼저
 
-- [ ] T040 [P] [US3] `tests/e2e/taste-detail.spec.ts` — spec.md US3 수용 시나리오 1~4. 상세를 비운 채 저장해도 정상 저장되는지(FR-006) 포함
-- [ ] T041 [P] [US3] `tests/unit/validation-taste-item.test.ts`에 케이스 추가 — 취향 서술 빈 문자열이 `NULL`로 정규화되는지. FR-015 집계가 빈 문자열을 "작성함"으로 세지 않게 하는 장치다
+- [X] T040 [P] [US3] `tests/e2e/taste-detail.spec.ts` — spec.md US3 수용 시나리오 1~4. 상세를 비운 채 저장해도 정상 저장되는지(FR-006) 포함 (5건 작성, 테스트 계정 전까지 skip)
+- [X] T041 [P] [US3] (선행 구현) `tests/unit/validation-taste-item.test.ts`에 케이스 추가 — 취향 서술 빈 문자열이 `NULL`로 정규화되는지. FR-015 집계가 빈 문자열을 "작성함"으로 세지 않게 하는 장치다
 
 ### Implementation for User Story 3
 
 - [X] T042 [US3] `components/taste/taste-item-form.tsx`에 상세 입력 필드 추가 — **강제하지 않는다** (FR-006)
-- [ ] T043 [US3] `app/taste/actions.ts`에 `updateTasteDescription` Server Action — 빈 문자열을 `NULL`로 정규화 (FR-007)
+- [X] T043 [US3] (선행 구현 — 온보딩 3/3이 필요로 해서 US1과 함께) `app/taste/actions.ts`에 `updateTasteDescription` Server Action — 빈 문자열을 `NULL`로 정규화 (FR-007)
 - [X] T044 [P] [US3] `components/taste/description-editor.tsx` (`'use client'`) — 입력 상태와 저장 상태 표시
 - [X] T045 [US3] `app/taste/page.tsx`에 취향 서술 표시 영역 추가
 - [ ] T046 [US3] T040·T041을 초록으로 만든다
@@ -186,15 +181,14 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 
 ### Tests for User Story 4 ⚠️ 구현보다 먼저
 
-- [ ] T047 [P] [US4] `tests/e2e/edit-delete.spec.ts` — spec.md US4 수용 시나리오 1~3. **마지막 `HAVE`/`UNWANTED` 삭제 시 온보딩 미완료 복귀**(US4-3)를 반드시 포함
-- [ ] T048 [P] [US4] `tests/integration/ownership.test.ts` — 타인 소유 항목의 수정·삭제가 `FORBIDDEN`으로 거부되는지 (FR-002)
+- [X] T047 [P] [US4] `tests/e2e/edit-delete.spec.ts` — spec.md US4 수용 시나리오 1~3. **마지막 `HAVE`/`UNWANTED` 삭제 시 온보딩 미완료 복귀**(US4-3)를 반드시 포함 (4건 작성, 테스트 계정 전까지 skip. US4-3은 `router.refresh()`가 서버 `redirect('/onboarding')`을 따라가는지에 의존 — 실계정으로 첫 실행 시 확인할 것)
+- [X] T048 [P] [US4] `tests/integration/ownership.test.ts` — 타인 소유 항목의 수정·삭제가 `FORBIDDEN`으로 거부되는지 (FR-002)
 
 ### Implementation for User Story 4
 
-- [ ] T049 [US4] `app/taste/actions.ts`에 `updateTasteItem` Server Action — 소유자 검사 후 **수정 후 상태 기준으로** 모순·중복을 다시 검사한다. `kind`를 `WANT`로 바꿔 온보딩 조건이 깨지면 `onboardedAt`을 `NULL`로 되돌린다
-- [ ] T050 [US4] `app/taste/actions.ts`에 `deleteTasteItem` Server Action — hard delete. 삭제 후 `HAVE`/`UNWANTED`가 0건이면 `onboardedAt`을 `NULL`로 되돌린다
-- [ ] T051 [US4] `components/taste/taste-item-list.tsx`에 수정·삭제 진입점 추가 + **삭제 확인 다이얼로그를 `components/taste/delete-confirm-dialog.tsx`(`'use client'`)로 분리**. `taste-item-list.tsx`는 Server Component로 유지한다 — 확인 UI는 클라이언트 상태가 필요하므로 목록 전체를 클라이언트로 내리지 않고 다이얼로그만 떼어낸다. 확인은 클라이언트 책임이며 Action은 확인 없이 호출되면 그대로 지운다
-  - **⚠️ 부분** — `delete-confirm-dialog.tsx`는 분리됐으나 `taste-item-form.tsx`에서만 쓰인다. 목록의 수정·삭제 진입점이 없다
+- [X] T049 [US4] `app/taste/actions.ts`에 `updateTasteItem` Server Action — 소유자 검사 후 **수정 후 상태 기준으로** 모순·중복을 다시 검사한다. `kind`를 `WANT`로 바꿔 온보딩 조건이 깨지면 `onboardedAt`을 `NULL`로 되돌린다
+- [X] T050 [US4] `app/taste/actions.ts`에 `deleteTasteItem` Server Action — hard delete. 삭제 후 `HAVE`/`UNWANTED`가 0건이면 `onboardedAt`을 `NULL`로 되돌린다
+- [X] T051 [US4] `components/taste/taste-item-list.tsx`에 수정·삭제 진입점 추가 + **삭제 확인 다이얼로그를 `components/taste/delete-confirm-dialog.tsx`(`'use client'`)로 분리**. `taste-item-list.tsx`는 Server Component로 유지한다 — 확인 UI는 클라이언트 상태가 필요하므로 목록 전체를 클라이언트로 내리지 않고 다이얼로그만 떼어낸다. 확인은 클라이언트 책임이며 Action은 확인 없이 호출되면 그대로 지운다
 - [ ] T052 [US4] T047·T048을 초록으로 만든다
 
 **Checkpoint**: US1~US4 전부 동작한다.
@@ -204,11 +198,16 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 ## Phase 7: Polish & Cross-Cutting Concerns
 
 - [ ] T053 **FR-015 측정 검증** — research.md R7의 두 쿼리를 Supabase SQL 편집기에서 실행해 상세 작성률·취향 서술 작성률이 값으로 나오는지 확인 (quickstart V6). **이것이 통과해야 마일스톤 1이 끝난 것이다** — PRD Risks R2가 요구하는 "마일스톤 1 직후 즉시 측정"이 여기서 성립한다
+  > 📌 2026-08-28 두 쿼리를 공유 DB에서 실행 — 문법·조인 정상, 단 `TasteProfile` 0건이라 두 비율 모두 `NULL`(`NULLIF(COUNT(*),0)`). 실사용 프로필이 1건 이상 쌓인 뒤 다시 실행해 숫자가 나오면 체크한다
 - [ ] T054 [P] 폭 360px에서 quickstart V1~V4를 다시 밟는다. 가로 스크롤이 생기면 실패 (SC-006)
 - [ ] T055 [P] FR-016 확인 — 저장 중 네트워크를 끊고 실패가 표시되며 **입력 내용이 남는지** (quickstart V5-4)
-- [ ] T056 [P] 컴포넌트 크기 점검 — 500줄 초과가 있으면 하위 컴포넌트로 분해 (constitution 품질 게이트)
-- [ ] T057 [P] `'use client'` 사용처 점검 — 계획된 4개(폼·선택기·서술 편집기·삭제 확인 다이얼로그) 외에 붙은 것이 있으면 정당한지 확인한다. **`error.tsx`는 Next.js가 클라이언트 컴포넌트를 강제하므로 위반이 아니다.** 목록 렌더가 Server Component로 남아 있는지 확인한다 (constitution 원칙 III)
-- [ ] T058 `npm run lint`와 `npm run build` 통과 — 완료 선언 전 필수 (constitution 품질 게이트)
+  > 📌 2026-08-28 리뷰에서 "Action 이 throw 하면 error.tsx 로 떨어져 입력 유실" 경로를 발견해 수정(`lib/actions/call-action.ts`, 서버 `guarded`). 자동 테스트(`tests/unit/call-action.test.ts`, `tests/integration/action-unexpected-error.test.ts`)는 통과 — 실제 네트워크 단절 수동 확인만 남음
+- [X] T056 [P] 컴포넌트 크기 점검 — 500줄 초과가 있으면 하위 컴포넌트로 분해 (constitution 품질 게이트)
+  > 📌 2026-08-28 최대 `taste-item-form.tsx` 397줄, `onboarding-flow.tsx` 315줄 — 500줄 초과 없음. 리뷰 R6(폼 파일에서 버튼 2개 분리)은 선택 사항으로 남김
+- [X] T057 [P] `'use client'` 사용처 점검 — 계획된 4개(폼·선택기·서술 편집기·삭제 확인 다이얼로그) 외에 붙은 것이 있으면 정당한지 확인한다. **`error.tsx`는 Next.js가 클라이언트 컴포넌트를 강제하므로 위반이 아니다.** 목록 렌더가 Server Component로 남아 있는지 확인한다 (constitution 원칙 III)
+  > 📌 2026-08-28 총 9개: 계획된 4개 + `error.tsx` 2개(Next 강제) + `onboarding-flow.tsx`·`signup/profile/profile-form.tsx`(입력 상태 — 리뷰 R7) + `login/login-buttons.tsx`(supabase-js OAuth 호출은 브라우저에서만 가능). 전부 정당. `taste-item-list.tsx`는 Server Component 유지, 클라이언트의 `@/lib/dal/taste` import는 `import type`만
+- [X] T058 `npm run lint`와 `npm run build` 통과 — 완료 선언 전 필수 (constitution 품질 게이트)
+  > 📌 2026-08-28 gnuke-dev 에서 `npm run test` 71/71 · `npm run lint` 0 · `npx tsc --noEmit` 0 · `npm run build` 통과 확인. 주의: `.worktrees/*/.next` 빌드 산출물이 있으면 메인의 lint 가 그것까지 긁는다 — 워크트리에서 빌드했으면 `.next` 를 지울 것
 - [ ] T059 quickstart.md V1~V7 전체를 순서대로 수동 검증
 - [ ] T060 [P] SC-007 확인 — **구현에 참여하지 않은 외부 5명**(같은 수업 수강생 등)에게 취향 화면을 보여주고 `이미 있는 것`과 `필요 없는 것`을 구분할 수 있는지 묻는다. **4명 이상 성공**이 기준이며 결과를 숫자로 기록한다. 팀원은 평가자가 될 수 없다 — 만든 사람은 자기 화면을 항상 구분한다
 

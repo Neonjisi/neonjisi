@@ -14,17 +14,22 @@ function boxStateClasses(hasError: boolean): string {
 type FieldWrapperProps = {
   id: string;
   label?: string;
+  /** 라벨을 시각적으로 숨기고 보조기술에만 노출한다 — 화면에 제목이 따로 있을 때 */
+  srOnlyLabel?: boolean;
   helper?: string;
   error?: string;
   children: React.ReactNode;
 };
 
-function FieldWrapper({ id, label, helper, error, children }: FieldWrapperProps) {
+function FieldWrapper({ id, label, srOnlyLabel, helper, error, children }: FieldWrapperProps) {
   const message = error ?? helper;
   return (
     <div className="flex flex-col gap-1.5">
       {label && (
-        <label htmlFor={id} className="text-xs font-semibold text-neutral-600">
+        <label
+          htmlFor={id}
+          className={srOnlyLabel ? "sr-only" : "text-xs font-semibold text-neutral-600"}
+        >
           {label}
         </label>
       )}
@@ -39,13 +44,22 @@ function FieldWrapper({ id, label, helper, error, children }: FieldWrapperProps)
 type TextFieldProps = InputHTMLAttributes<HTMLInputElement> & {
   id: string;
   label?: string;
+  srOnlyLabel?: boolean;
   helper?: string;
   error?: string;
 };
 
-export function TextField({ id, label, helper, error, className = "", ...rest }: TextFieldProps) {
+export function TextField({
+  id,
+  label,
+  srOnlyLabel,
+  helper,
+  error,
+  className = "",
+  ...rest
+}: TextFieldProps) {
   return (
-    <FieldWrapper id={id} label={label} helper={helper} error={error}>
+    <FieldWrapper id={id} label={label} srOnlyLabel={srOnlyLabel} helper={helper} error={error}>
       <input
         id={id}
         className={`h-12 px-3.5 ${INPUT_BOX_CLASSES} ${boxStateClasses(Boolean(error))} ${className}`}
@@ -59,6 +73,7 @@ export function TextField({ id, label, helper, error, className = "", ...rest }:
 type TextareaFieldProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
   id: string;
   label?: string;
+  srOnlyLabel?: boolean;
   helper?: string;
   error?: string;
 };
@@ -66,6 +81,7 @@ type TextareaFieldProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
 export function TextareaField({
   id,
   label,
+  srOnlyLabel,
   helper,
   error,
   className = "",
@@ -73,7 +89,7 @@ export function TextareaField({
   ...rest
 }: TextareaFieldProps) {
   return (
-    <FieldWrapper id={id} label={label} helper={helper} error={error}>
+    <FieldWrapper id={id} label={label} srOnlyLabel={srOnlyLabel} helper={helper} error={error}>
       <textarea
         id={id}
         rows={rows}

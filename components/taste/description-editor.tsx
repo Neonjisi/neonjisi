@@ -1,14 +1,18 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { updateTasteDescription } from "@/app/taste/actions";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { TextareaField } from "@/components/ui/text-field";
+import { callAction } from "@/lib/actions/call-action";
 
 /*
  * 취향 서술 카드 + 편집 시트 (SCR-M1-07 · T044/T045).
- * 저장은 아직 목업 동작 — updateTasteDescription 액션 연동 시
- * 빈 문자열은 서버에서 NULL로 정규화된다.
+ * 저장은 updateTasteDescription 액션 — 빈 문자열은 서버가 NULL 로 정규화한다 (FR-007).
+ * 실패는 결과 값으로 받아 시트를 닫지 않고 입력을 보존한다 (FR-016) — 호출 자체가
+ * throw 해도 callAction 이 같은 결과 형태로 바꿔 주므로 error.tsx 로 새지 않는다.
  */
 
 type DescriptionEditorProps = {
@@ -16,22 +20,35 @@ type DescriptionEditorProps = {
 };
 
 export function DescriptionEditor({ initialDescription }: DescriptionEditorProps) {
+  const router = useRouter();
   const titleId = useId();
   const textareaId = useId();
   const [description, setDescription] = useState(initialDescription ?? "");
   const [draft, setDraft] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
+  const [isSaving, startSaving] = useTransition();
 
   const hasDescription = description.trim().length > 0;
 
   const openEditor = () => {
     setDraft(description);
+    setServerError(null);
     setIsOpen(true);
   };
 
   const handleSave = () => {
-    setDescription(draft.trim());
-    setIsOpen(false);
+    startSaving(async () => {
+      setServerError(null);
+      const result = await callAction(() => updateTasteDescription(draft));
+      if (!result.ok) {
+        setServerError(result.error.message);
+        return;
+      }
+      setDescription(draft.trim());
+      router.refresh();
+      setIsOpen(false);
+    });
   };
 
   return (
@@ -63,15 +80,22 @@ export function DescriptionEditor({ initialDescription }: DescriptionEditorProps
         </h2>
         <TextareaField
           id={textareaId}
+          label="취향 서술"
+          srOnlyLabel
           rows={5}
           placeholder="아침에 혼자 커피 내리는 15분이 좋아요. 산미 있는 원두를 주로 마셔요."
           helper="왜 좋아하는지까지 적으면 선물이 훨씬 정확해집니다."
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
         />
+        {serverError && (
+          <p className="pt-3 text-sm text-error-700" role="alert">
+            {serverError}
+          </p>
+        )}
         <div className="pt-6">
-          <Button size="lg" onClick={handleSave}>
-            저장
+          <Button size="lg" disabled={isSaving} onClick={handleSave}>
+            {isSaving ? "저장 중…" : "저장"}
           </Button>
         </div>
       </BottomSheet>

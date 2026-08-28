@@ -14,6 +14,7 @@ import {
   findContradiction,
   findDuplicate,
   isKindAtLimit,
+  normalizeDescription,
   tasteItemInputSchema,
   type ExistingTasteItem,
 } from '@/lib/validation/taste-item'
@@ -160,6 +161,19 @@ describe('findDuplicate — FR-011 (C2)', () => {
     expect(
       findDuplicate({ kind: 'HAVE', categoryId: CATEGORY_ID, detail: null }, [existing]),
     ).toBeNull()
+  })
+})
+
+describe('normalizeDescription — FR-007 (T041)', () => {
+  it('앞뒤 공백을 트림한다', () => {
+    expect(normalizeDescription('  산미 있는 원두를 좋아해요.  ')).toBe(
+      '산미 있는 원두를 좋아해요.',
+    )
+  })
+
+  it('빈 문자열을 NULL 로 정규화한다 — FR-015 집계가 빈 문자열을 작성으로 세지 않게', () => {
+    expect(normalizeDescription('')).toBeNull()
+    expect(normalizeDescription('   ')).toBeNull()
   })
 })
 

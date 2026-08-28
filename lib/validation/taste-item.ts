@@ -34,6 +34,22 @@ export const tasteItemInputSchema = z.object({
 
 export type TasteItemInput = z.infer<typeof tasteItemInputSchema>
 
+/**
+ * FR-013 — 부분 수정 입력. 키가 없으면 "변경 없음", detail 에 빈 문자열·null 을
+ * 명시하면 "비움"이다 (생성 스키마와 달리 undefined 를 null 로 바꾸지 않는다).
+ */
+export const tasteItemUpdateSchema = z.object({
+  kind: tasteKindSchema.optional(),
+  categoryId: z.uuid().optional(),
+  detail: z
+    .string()
+    .trim()
+    .max(DETAIL_MAX_LENGTH)
+    .nullish()
+    .transform((value) => (value ? value : null))
+    .optional(),
+})
+
 /** 판정에 필요한 최소 형태 — DAL 조회 결과가 이 모양이면 된다 */
 export type ExistingTasteItem = {
   id: string
@@ -52,10 +68,10 @@ const CONTRADICTION_PAIR: Partial<Record<TasteKindInput, TasteKindInput>> = {
  * 충돌하는 기존 항목을 반환한다 — 스펙이 "어떤 항목과 충돌하는지 알린다"를 요구한다.
  * 상세가 있는 항목은 대상이 아니다 (특정 상품을 원하면서 대분류 전체는 사양할 수 있다).
  */
-export function findContradiction(
+export function findContradiction<T extends ExistingTasteItem>(
   input: Pick<TasteItemInput, 'kind' | 'categoryId' | 'detail'>,
-  existingItems: readonly ExistingTasteItem[],
-): ExistingTasteItem | null {
+  existingItems: readonly T[],
+): T | null {
   const conflictingKind = CONTRADICTION_PAIR[input.kind]
   if (!conflictingKind || input.detail !== null) return null
 
@@ -74,10 +90,10 @@ export function findContradiction(
  * null 은 null 과 같은 값으로 본다 (DB 제약의 NULLS NOT DISTINCT 와 동일 의미).
  * 최종 방어선은 DB 유니크 제약이고, 여기서는 사용자에게 먼저 알리기 위해 검사한다.
  */
-export function findDuplicate(
+export function findDuplicate<T extends ExistingTasteItem>(
   input: Pick<TasteItemInput, 'kind' | 'categoryId' | 'detail'>,
-  existingItems: readonly ExistingTasteItem[],
-): ExistingTasteItem | null {
+  existingItems: readonly T[],
+): T | null {
   return (
     existingItems.find(
       (item) =>
@@ -86,6 +102,18 @@ export function findDuplicate(
         item.detail === input.detail,
     ) ?? null
   )
+}
+
+/** 취향 서술의 방어적 상한 — 스펙에 길이 규정은 없다 */
+export const DESCRIPTION_MAX_LENGTH = 2000
+
+/**
+ * FR-007 — 취향 서술 정규화: 트림 후 빈 문자열은 null (T041).
+ * FR-015 의 작성률 집계가 빈 문자열을 "작성함"으로 세지 않게 한다 (R7).
+ */
+export function normalizeDescription(raw: string): string | null {
+  const trimmed = raw.trim()
+  return trimmed.length > 0 ? trimmed : null
 }
 
 /** FR-020 (C7) — 같은 종류의 항목이 상한(100건)에 도달했는가 */

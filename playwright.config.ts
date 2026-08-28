@@ -7,6 +7,12 @@ import { defineConfig, devices } from '@playwright/test'
 export default defineConfig({
   testDir: './tests/e2e',
   fullyParallel: true,
+  // 인증 E2E 는 테스트 계정 **하나**를 공유하고 매 테스트마다 그 계정의 데이터를 UI 로
+  // 지우고 다시 만든다 (tests/e2e/fixtures/auth.ts · taste-ui.ts). 워커가 둘 이상이면
+  // 서로의 상태를 지우므로 직렬로 돌린다.
+  workers: 1,
+  // dev 서버가 라우트를 처음 컴파일하는 시간 + UI 로 하는 상태 초기화(beforeEach)를 감안한다.
+  timeout: 90_000,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: 'list',

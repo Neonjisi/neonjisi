@@ -54,3 +54,6 @@ idation.rtf
 
 # Claude Code 로컬 설정
 .claude/settings.local.json
+
+# git worktree (세션별 병렬 작업용)
+/.worktrees/
