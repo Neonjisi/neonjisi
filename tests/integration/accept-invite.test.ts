@@ -54,6 +54,8 @@ const { acceptInviteTransaction } = await import('@/lib/dal/accept-invite')
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
+type AcceptResult = Awaited<ReturnType<typeof acceptInvite>>
+
 describe.skipIf(!hasDatabase)('acceptInvite — 성사 트랜잭션 (T018)', () => {
   /** 이 파일이 만든 사용자 전부 — afterAll 에서 관련 행을 순서대로 지운다 */
   const userIds: string[] = []
@@ -182,7 +184,7 @@ describe.skipIf(!hasDatabase)('acceptInvite — 성사 트랜잭션 (T018)', () 
       expect(result.error.code).toBe('LINK_INVALID')
     }
     // 세 경우를 외부에서 구분할 수 없어야 한다 (SC-005) — 문구까지 같다
-    const messages = new Set(results.map((r) => (r.ok ? '' : r.error.message)))
+    const messages = new Set(results.map((r: AcceptResult) => (r.ok ? '' : r.error.message)))
     expect(messages.size).toBe(1)
 
     // 아무것도 생기지 않는다
