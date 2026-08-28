@@ -2,6 +2,7 @@
 
 import { useId } from "react";
 import { Button } from "@/components/ui/button";
+import { useModalFocus } from "@/components/ui/use-modal-focus";
 
 type DeleteConfirmDialogProps = {
   isOpen: boolean;
@@ -11,20 +12,28 @@ type DeleteConfirmDialogProps = {
 };
 
 /** 삭제 확인 다이얼로그 (SCR-C-04 · T051) — hard delete라 되돌릴 수 없음을 고지한다 */
-export function DeleteConfirmDialog({
-  isOpen,
+export function DeleteConfirmDialog({ isOpen, ...rest }: DeleteConfirmDialogProps) {
+  if (!isOpen) return null;
+  return <OpenDeleteConfirmDialog {...rest} />;
+}
+
+/** 열려 있는 동안만 마운트된다 — 포커스 이동·Escape·복귀를 여기서 맡는다 */
+function OpenDeleteConfirmDialog({
   itemLabel,
   onConfirm,
   onCancel,
-}: DeleteConfirmDialogProps) {
+}: Omit<DeleteConfirmDialogProps, "isOpen">) {
   const titleId = useId();
-  if (!isOpen) return null;
+  const { containerRef, onKeyDown } = useModalFocus<HTMLDivElement>(onCancel);
   return (
     <div
+      ref={containerRef}
+      tabIndex={-1}
+      onKeyDown={onKeyDown}
       role="alertdialog"
       aria-modal="true"
       aria-labelledby={titleId}
-      className="fixed inset-0 z-[60] flex items-center justify-center px-8"
+      className="fixed inset-0 z-[60] flex items-center justify-center px-8 outline-none"
     >
       <button
         type="button"

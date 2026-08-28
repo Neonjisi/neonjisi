@@ -132,6 +132,8 @@ export async function insertTasteItem(
       select: { id: true },
     })
     if (input.kind === 'HAVE' || input.kind === 'UNWANTED') {
+      // 동시에 마지막 항목을 지우는 트랜잭션과 판정이 엇갈리지 않게 같은 락을 잡는다
+      await lockProfileRow(tx, profileId)
       await tx.tasteProfile.updateMany({
         where: { id: profileId, onboardedAt: null },
         data: { onboardedAt: new Date() },
@@ -139,6 +141,18 @@ export async function insertTasteItem(
     }
     return { itemId: item.id }
   })
+}
+
+type TransactionClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0]
+
+/**
+ * 프로필 행 잠금 (SELECT … FOR UPDATE) — 온보딩 판정을 트랜잭션 간에 직렬화한다.
+ * 락 없이는 READ COMMITTED 에서 두 트랜잭션이 서로의 삭제·전환을 보지 못해
+ * 둘 다 "아직 1건 남았다"고 판정하고 onboardedAt 이 남는다 (TOCTOU, US4-3 위반).
+ * 뒤에 오는 트랜잭션은 앞선 커밋을 본 뒤 세므로 최종 상태가 항상 맞는다.
+ */
+async function lockProfileRow(tx: TransactionClient, profileId: string): Promise<void> {
+  await tx.$queryRaw`SELECT "id" FROM "TasteProfile" WHERE "id" = ${profileId}::uuid FOR UPDATE`
 }
 
 export type OwnedTasteItem = TasteItemSnapshot & { profileId: string }
@@ -163,11 +177,10 @@ export async function findTasteItemById(itemId: string): Promise<OwnedTasteItem 
 /**
  * 온보딩 파생 상태 재계산 (FR-008, US4-3) — 쓰기 트랜잭션 안에서만 부른다.
  * HAVE/UNWANTED 가 1건 이상이면 onboardedAt 을 설정(없을 때만), 0건이면 NULL 로 되돌린다.
+ * 세기 전에 프로필 행을 잠가 동시 트랜잭션과 판정이 엇갈리지 않게 한다.
  */
-async function syncOnboardedAt(
-  tx: Parameters<Parameters<typeof prisma.$transaction>[0]>[0],
-  profileId: string,
-): Promise<void> {
+async function syncOnboardedAt(tx: TransactionClient, profileId: string): Promise<void> {
+  await lockProfileRow(tx, profileId)
   const count = await tx.tasteItem.count({
     where: { profileId, kind: { in: ['HAVE', 'UNWANTED'] } },
   })

@@ -9,13 +9,15 @@ import { Chip } from "@/components/ui/chip";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { RadioOption } from "@/components/ui/radio-option";
 import { TextField, TextareaField } from "@/components/ui/text-field";
+import { callAction } from "@/lib/actions/call-action";
 import type { CategoryView } from "@/lib/dal/taste";
 
 /*
  * 온보딩 플로우 (SCR-M1-01~05 · T030).
  * 인트로 → 1/3 카테고리(필수) → 2/3 구분 → 3/3 서술(skip 가능) → 완료.
  * 2/3 완료 시 createTasteItem 으로 일괄 저장한다 — 첫 HAVE/UNWANTED 저장이
- * onboardedAt 을 설정한다 (FR-008). 실패는 결과 값으로 받아 입력을 보존한다 (FR-016).
+ * onboardedAt 을 설정한다 (FR-008). 실패는 결과 값으로 받아 입력을 보존한다 (FR-016) —
+ * 호출 자체가 throw 해도 callAction 이 같은 결과 형태로 바꿔 주므로 단계가 날아가지 않는다.
  */
 
 type OnboardingStep = "intro" | "categories" | "kinds" | "description" | "done";
@@ -95,11 +97,13 @@ export function OnboardingFlow({ categories }: OnboardingFlowProps) {
       setSaveError(null);
       for (const category of categories.filter((c) => selectedIds.includes(c.id))) {
         const detail = (detailById[category.id] ?? "").trim();
-        const result = await createTasteItem({
-          kind: kindById[category.id] ?? "HAVE",
-          categoryId: category.id,
-          detail: detail || null,
-        });
+        const result = await callAction(() =>
+          createTasteItem({
+            kind: kindById[category.id] ?? "HAVE",
+            categoryId: category.id,
+            detail: detail || null,
+          }),
+        );
         if (!result.ok && result.error.code !== "DUPLICATE_ITEM") {
           setSaveError(`${category.name} — ${result.error.message}`);
           return;
@@ -114,7 +118,7 @@ export function OnboardingFlow({ categories }: OnboardingFlowProps) {
     startSaving(async () => {
       setSaveError(null);
       if (shouldSaveDescription && description.trim()) {
-        const result = await updateTasteDescription(description);
+        const result = await callAction(() => updateTasteDescription(description));
         if (!result.ok) {
           setSaveError(result.error.message);
           return;
@@ -270,6 +274,8 @@ export function OnboardingFlow({ categories }: OnboardingFlowProps) {
         <div className="pt-5">
           <TextareaField
             id="taste-description"
+            label="취향 서술"
+            srOnlyLabel
             rows={5}
             placeholder="아침에 혼자 커피 내리는 15분이 좋아요. 산미 있는 원두를 주로 마셔요."
             value={description}

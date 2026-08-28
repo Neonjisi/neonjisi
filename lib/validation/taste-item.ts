@@ -50,8 +50,6 @@ export const tasteItemUpdateSchema = z.object({
     .optional(),
 })
 
-export type TasteItemUpdateInput = z.infer<typeof tasteItemUpdateSchema>
-
 /** 판정에 필요한 최소 형태 — DAL 조회 결과가 이 모양이면 된다 */
 export type ExistingTasteItem = {
   id: string
