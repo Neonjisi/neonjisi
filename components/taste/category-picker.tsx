@@ -3,10 +3,10 @@
 import { useId, useState } from "react";
 import { Check, ChevronDown, Search } from "lucide-react";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
-import type { CategoryMock } from "@/lib/mock/taste-data";
+import type { CategoryView } from "@/lib/dal/taste";
 
 type CategoryPickerProps = {
-  categories: CategoryMock[];
+  categories: CategoryView[];
   value: string | null;
   onChange: (categoryId: string) => void;
   label: string;

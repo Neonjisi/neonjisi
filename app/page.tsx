@@ -10,10 +10,7 @@ export default function LandingPage() {
       </div>
       <div className="flex flex-col items-center gap-3">
         <LinkButton href="/login" size="lg">
-          소셜 계정으로 시작하기
-        </LinkButton>
-        <LinkButton href="/login" variant="secondary" size="lg">
-          이메일로 시작하기
+          Google로 시작하기
         </LinkButton>
         <LinkButton href="/login" variant="tertiary" className="mt-1">
           이미 계정이 있어요

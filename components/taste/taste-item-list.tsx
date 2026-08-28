@@ -1,29 +1,30 @@
 import { Fragment } from "react";
 import { AddTasteItemButton, TasteItemRowButton } from "@/components/taste/taste-item-form";
-import type { CategoryMock, TasteItemMock, TasteKind } from "@/lib/mock/taste-data";
+import type { CategoryView, TasteItemsByKind } from "@/lib/dal/taste";
+import type { TasteKindInput } from "@/lib/validation/taste-item";
 
 /*
  * 내 취향 목록 (SCR-M1-07 · T032).
- * 서버 컴포넌트 — 데이터는 서버에서 종류별로 묶어 렌더하고,
+ * 서버 컴포넌트 — 데이터는 DAL 이 종류별로 묶어 내려주고(FR-012),
  * 행 탭·추가 같은 인터랙션만 클라이언트 컴포넌트에 맡긴다.
  */
 
-const SECTIONS: { kind: TasteKind; title: string; emptyMessage?: string }[] = [
+const SECTIONS: { kind: TasteKindInput; title: string; emptyMessage?: string }[] = [
   { kind: "WANT", title: "원하는 것", emptyMessage: "친구가 볼 수 있게 원하는 걸 적어보세요" },
   { kind: "HAVE", title: "이미 있어요" },
   { kind: "UNWANTED", title: "관심 없어요" },
 ];
 
 type TasteItemListProps = {
-  items: TasteItemMock[];
-  categories: CategoryMock[];
+  itemsByKind: TasteItemsByKind;
+  categories: CategoryView[];
 };
 
-export function TasteItemList({ items, categories }: TasteItemListProps) {
+export function TasteItemList({ itemsByKind, categories }: TasteItemListProps) {
   return (
     <div className="flex flex-col gap-6">
       {SECTIONS.map(({ kind, title, emptyMessage }) => {
-        const sectionItems = items.filter((item) => item.kind === kind);
+        const sectionItems = itemsByKind[kind];
         return (
           <section key={kind} aria-label={title}>
             <div className="flex items-center justify-between pb-2">
