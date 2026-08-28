@@ -186,21 +186,32 @@ describe.skipIf(!hasDatabase)('createTasteItem — WANT 는 온보딩과 무관�
   })
 })
 
-describe.skipIf(!hasDatabase)('updateTasteDescription — FR-007 (T043 선행 구현)', () => {
+describe.skipIf(!hasDatabase)('updateTasteDescription — FR-007 · FR-018 게이트 (T043 선행 구현)', () => {
   const userId = randomUUID()
+  const notOnboardedUserId = randomUUID()
 
-  beforeAll(() => {
+  function actAs(id: string) {
     h.getClaims.mockResolvedValue({
-      data: { claims: { sub: userId, email: 'desc-test@example.com' } },
+      data: { claims: { sub: id, email: `desc-${id}@example.com` } },
       error: null,
     })
+  }
+
+  beforeAll(async () => {
+    // 계약: createTasteItem 외 모든 Action 은 진입 즉시 requireOnboarded() 를 지난다 —
+    // 서술 저장 전에 HAVE 1건으로 온보딩을 완료시킨다.
+    actAs(userId)
+    const category = await prisma.category.findFirstOrThrow({ orderBy: { sortOrder: 'asc' } })
+    const created = await createTasteItem({ kind: 'HAVE', categoryId: category.id, detail: null })
+    if (!created.ok) throw new Error('온보딩 셋업 실패')
   })
 
   afterAll(async () => {
-    await prisma.user.deleteMany({ where: { id: userId } })
+    await prisma.user.deleteMany({ where: { id: { in: [userId, notOnboardedUserId] } } })
   })
 
   it('서술을 저장한다', async () => {
+    actAs(userId)
     const result = await updateTasteDescription('산미 있는 원두를 좋아해요.')
     expect(result.ok).toBe(true)
     const profile = await prisma.tasteProfile.findUnique({ where: { userId } })
@@ -208,9 +219,22 @@ describe.skipIf(!hasDatabase)('updateTasteDescription — FR-007 (T043 선행 �
   })
 
   it('빈 문자열은 NULL 로 정규화한다 — FR-015 집계가 빈 문자열을 작성으로 세지 않게 (T041)', async () => {
+    actAs(userId)
     const result = await updateTasteDescription('   ')
     expect(result.ok).toBe(true)
     const profile = await prisma.tasteProfile.findUnique({ where: { userId } })
     expect(profile?.description).toBeNull()
+  })
+
+  it('온보딩 미완료 사용자가 직접 호출하면 저장 없이 /onboarding redirect 예외가 전파된다 (FR-018)', async () => {
+    actAs(notOnboardedUserId)
+
+    await expect(updateTasteDescription('게이트 우회 시도')).rejects.toMatchObject({
+      digest: expect.stringMatching(/^NEXT_REDIRECT;[a-z]+;\/onboarding;/),
+    })
+
+    // requireOnboarded 는 프로필을 만들지 않는다 — 아무것도 저장되지 않았다
+    const profile = await prisma.tasteProfile.findUnique({ where: { userId: notOnboardedUserId } })
+    expect(profile).toBeNull()
   })
 })
