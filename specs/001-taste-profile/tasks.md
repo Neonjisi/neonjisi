@@ -48,22 +48,23 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 
 **Purpose**: 모든 사용자 스토리가 딛고 서는 층. 완료 전에는 어떤 스토리도 시작할 수 없다.
 
-- [ ] T008 `prisma/schema.prisma` 작성 — `TasteKind` enum과 `User`·`TasteProfile`·`Category`·`TasteItem` 4개 모델. data-model.md의 Prisma 스키마 초안을 따른다
-- [ ] T009 최초 마이그레이션 생성·적용 — `npx prisma migrate dev --name init`
-- [ ] T010 **C2 유니크 제약 raw SQL 마이그레이션** — `npx prisma migrate dev --create-only --name taste_item_unique_nulls_not_distinct` 후 생성된 SQL에 `UNIQUE NULLS NOT DISTINCT ("profileId", "kind", "categoryId", "detail")` 를 직접 넣고 적용. Prisma 스키마 문법으로 표현되지 않는다
-- [ ] T011 T010 검증 테스트 `tests/integration/taste-item-unique.test.ts` — `detail`이 `NULL`인 동일 조합을 두 번 삽입해 **DB가 거부하는지** 확인. 이 제약이 빠지면 대분류만 지정한 항목이 무제한 중복되는데 화면상으로는 정상으로 보여 놓치기 쉽다 (quickstart V5-3)
-- [ ] T012 [P] `prisma/seed.ts` 작성 — Category 30~50개를 TypeScript 상수 배열로, `upsert`로 멱등하게. `package.json`에 `prisma.seed` 설정 추가
-- [ ] T013 `npx prisma db seed` 실행 후 Category 행 수 확인. **시드가 비면 US1이 통째로 막힌다**
-- [ ] T014 [P] `lib/supabase/server.ts`, `lib/supabase/client.ts` — `@supabase/ssr` 기반 클라이언트 생성
-- [ ] T015 [P] `lib/prisma.ts` — 개발 환경 hot reload에서 커넥션이 새지 않도록 싱글턴으로
-- [ ] T016 `tests/unit/dal-session.test.ts` 작성 후 `lib/dal/session.ts`의 `verifySession()` 구현 — React `cache()`로 메모이즈, `User` 행이 없으면 생성(get-or-create, research R2)
-- [ ] T017 `lib/dal/session.ts`에 `requireOnboarded()` 추가 — 온보딩 미완료 시 `/onboarding`으로 `redirect()`. **FR-018의 권위 있는 판정 지점**
-- [ ] T018 [P] 루트에 `proxy.ts` 작성 — 세션 쿠키 존재 여부만 보고 미인증 요청을 `/login`으로. **DB를 조회하지 않는다** (Next.js 16 문서 지침, research R1)
-- [ ] T019 [P] `tests/unit/validation-taste-item.test.ts` 작성 후 `lib/validation/taste-item.ts` 구현 — Zod 입력 스키마, 모순 검사(FR-010), 중복 검사(FR-011), **종류별 100건 상한 검사(FR-020)**
-- [ ] T020 [P] `app/auth/callback/route.ts` — Supabase Auth 콜백 Route Handler
-- [ ] T021 [P] `app/login/page.tsx` — 소셜 로그인 1종 진입 화면 (FR-019). `proxy.ts`와 DAL이 미인증 사용자를 여기로 보내므로, 이 화면이 없으면 리다이렉트가 404로 끝나고 **US1~US4의 E2E가 한 줄도 실행되지 않는다**
-- [ ] T022 [P] `app/onboarding/error.tsx`, `app/taste/error.tsx` 배치 — 예상 못 한 예외 경계
-- [ ] T023 ESLint `no-restricted-imports` 규칙 추가 (`eslint.config.mjs`) — `app/`과 `components/`에서 `@/lib/prisma` 직접 임포트 금지. M1에는 RLS라는 2차 방어선이 없어 DAL이 유일한 접근 제어 지점이므로, 규칙을 문서가 아니라 린터로 강제한다 (research R4)
+- [X] T008 `prisma/schema.prisma` 작성 — `TasteKind` enum과 `User`·`TasteProfile`·`Category`·`TasteItem` 4개 모델. data-model.md의 Prisma 스키마 초안을 따른다
+  > 📌 D가 T015~T017 컴파일을 위해 초안을 **문서 그대로** 옮겨 두었다 (`prisma generate`까지 확인). **J가 검토 후 체크할 것.** ⚠️ Prisma 7 변경: datasource `url` 사용 불가 → 마이그레이션(T009~T010) 전에 `prisma.config.ts`에 연결 설정 필요, 팀원은 pull 후 `npx prisma generate` 1회 실행 필요
+- [X] T009 최초 마이그레이션 생성·적용 — `npx prisma migrate dev --name init`
+- [X] T010 **C2 유니크 제약 raw SQL 마이그레이션** — `npx prisma migrate dev --create-only --name taste_item_unique_nulls_not_distinct` 후 생성된 SQL에 `UNIQUE NULLS NOT DISTINCT ("profileId", "kind", "categoryId", "detail")` 를 직접 넣고 적용. Prisma 스키마 문법으로 표현되지 않는다
+- [X] T011 T010 검증 테스트 `tests/integration/taste-item-unique.test.ts` — `detail`이 `NULL`인 동일 조합을 두 번 삽입해 **DB가 거부하는지** 확인. 이 제약이 빠지면 대분류만 지정한 항목이 무제한 중복되는데 화면상으로는 정상으로 보여 놓치기 쉽다 (quickstart V5-3)
+- [X] T012 [P] `prisma/seed.ts` 작성 — ⚠️ 카테고리 목록은 S 확정 전 초안 40개. S가 확정하면 배열만 교체 — Category 30~50개를 TypeScript 상수 배열로, `upsert`로 멱등하게. `package.json`에 `prisma.seed` 설정 추가
+- [X] T013 `npx prisma db seed` 실행 후 Category 행 수 확인. **시드가 비면 US1이 통째로 막힌다**
+- [X] T014 [P] `lib/supabase/server.ts`, `lib/supabase/client.ts` — `@supabase/ssr` 기반 클라이언트 생성
+- [X] T015 [P] `lib/prisma.ts` — 개발 환경 hot reload에서 커넥션이 새지 않도록 싱글턴으로. ⚠️ Prisma 7은 드라이버 어댑터가 필수라 `@prisma/adapter-pg`를 추가했다
+- [X] T016 `tests/unit/dal-session.test.ts` 작성 후 `lib/dal/session.ts`의 `verifySession()` 구현 — React `cache()`로 메모이즈, `User` 행이 없으면 생성(get-or-create, research R2)
+- [X] T017 `lib/dal/session.ts`에 `requireOnboarded()` 추가 — 온보딩 미완료 시 `/onboarding`으로 `redirect()`. **FR-018의 권위 있는 판정 지점**
+- [X] T018 [P] 루트에 `proxy.ts` 작성 — 세션 쿠키 존재 여부만 보고 미인증 요청을 `/login`으로. **DB를 조회하지 않는다** (Next.js 16 문서 지침, research R1)
+- [X] T019 [P] `tests/unit/validation-taste-item.test.ts` 작성 후 `lib/validation/taste-item.ts` 구현 — Zod 입력 스키마, 모순 검사(FR-010), 중복 검사(FR-011), **종류별 100건 상한 검사(FR-020)**
+- [X] T020 [P] `app/auth/callback/route.ts` — Supabase Auth 콜백 Route Handler
+- [X] T021 [P] `app/login/page.tsx` — 소셜 로그인 1종 진입 화면 (FR-019). ⚠️ 화면 완료 — OAuth 실제 연결은 인증 연동 시. `proxy.ts`와 DAL이 미인증 사용자를 여기로 보내므로, 이 화면이 없으면 리다이렉트가 404로 끝나고 **US1~US4의 E2E가 한 줄도 실행되지 않는다**
+- [X] T022 [P] `app/onboarding/error.tsx`, `app/taste/error.tsx` 배치 — 예상 못 한 예외 경계
+- [X] T023 ESLint `no-restricted-imports` 규칙 추가 (`eslint.config.mjs`) — `app/`과 `components/`에서 `@/lib/prisma` 직접 임포트 금지. M1에는 RLS라는 2차 방어선이 없어 DAL이 유일한 접근 제어 지점이므로, 규칙을 문서가 아니라 린터로 강제한다 (research R4)
 
 **Checkpoint**: 스키마·시드·DAL·검증 로직이 서고 T011이 통과한다. 이제 스토리를 시작할 수 있다.
 
