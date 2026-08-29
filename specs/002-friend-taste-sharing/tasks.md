@@ -42,7 +42,7 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 
 **Purpose**: M2 검증에 필요한 두 번째 테스트 계정 준비
 
-- [ ] T001 `.env.example`에 `E2E_USER2_EMAIL`·`E2E_USER2_PASSWORD` 키와 두 번째 계정이 필요한 이유를 주석으로 추가
+- [x] T001 `.env.example`에 `E2E_USER2_EMAIL`·`E2E_USER2_PASSWORD` 키와 두 번째 계정이 필요한 이유를 주석으로 추가
 - [ ] T002 `.env.local`에 두 번째 테스트 계정 값 기입 — ⚠️ **팀원이 각자 자기 컴퓨터에서 수행한다.** Supabase → Authentication → Users → Add user → **Auto Confirm User 체크**. 커밋하지 않는다
 
 **Checkpoint**: 두 계정으로 로그인이 되고 `.env.local`이 커밋 대상이 아니다
@@ -61,13 +61,13 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 - [ ] T006 C3 제약을 SQL로 직접 작성 — `npx prisma migrate dev --create-only --name friendship_pair_active` 후 `prisma/migrations/<ts>_friendship_pair_active/migration.sql` 에 `CREATE UNIQUE INDEX friendship_pair_active ON "Friendship" (LEAST(...), GREATEST(...)) WHERE status <> 'REMOVED'` 를 넣는다
 - [ ] T007 C4 제약을 SQL로 직접 작성 — `prisma/migrations/<ts>_friendship_not_self/migration.sql` 에 `ALTER TABLE "Friendship" ADD CONSTRAINT friendship_not_self CHECK ("requesterId" <> "addresseeId")`
 - [ ] T008 `tests/integration/friendship-constraints.test.ts`(T005)를 초록으로 만든다 — 제약이 실제로 걸렸는지가 여기서 판정된다
-- [ ] T009 [P] 단위 테스트 작성 — `tests/unit/invite-token.test.ts`. 토큰이 URL-safe인지, 매번 다른지, 길이가 일정한지
-- [ ] T010 [P] `lib/invite/token.ts` — 32바이트 랜덤을 base64url로. Node 표준 `crypto`만 쓴다 (research R2)
-- [ ] T011 [P] `lib/dal/session.ts`에 `getOptionalSession()` 추가 — 세션이 없으면 **`null`을 반환하고 redirect 하지 않는다** (research R3)
-- [ ] T012 [P] `proxy.ts`의 matcher에 `/friends/:path*`·`/notifications/:path*` 추가. **`/i/:path*`는 넣지 않는다** — 미리보기는 공개여야 한다 (FR-008)
+- [x] T009 [P] 단위 테스트 작성 — `tests/unit/invite-token.test.ts`. 토큰이 URL-safe인지, 매번 다른지, 길이가 일정한지
+- [x] T010 [P] `lib/invite/token.ts` — 32바이트 랜덤을 base64url로. Node 표준 `crypto`만 쓴다 (research R2)
+- [x] T011 [P] `lib/dal/session.ts`에 `getOptionalSession()` 추가 — 세션이 없으면 **`null`을 반환하고 redirect 하지 않는다** (research R3)
+- [x] T012 [P] `proxy.ts`의 matcher에 `/friends/:path*`·`/notifications/:path*` 추가. **`/i/:path*`는 넣지 않는다** — 미리보기는 공개여야 한다 (FR-008)
 - [ ] T013 [P] `app/friends/error.tsx`와 `app/notifications/error.tsx` 배치 — 예상 못 한 예외 경계
 - [ ] T014 [P] `lib/dal/invite.ts`에 링크 유효성 판정 하나를 만든다 — `isValid(link) := revokedAt === null && expiresAt > now`. FR-004와 FR-007이 **같은 판정식**을 쓰므로 한 곳에 둔다
-- [ ] T015 [P] `app/friends/actions/shared.ts` — `ActionResult` 타입과 `guarded` 래퍼. **Action 파일 4개가 함께 쓰므로 기반 단계에서 먼저 만든다** (M1의 `lib/actions/call-action.ts` 패턴)
+- [x] T015 [P] `app/friends/actions/shared.ts` — `ActionResult` 타입과 `guarded` 래퍼. **Action 파일 4개가 함께 쓰므로 기반 단계에서 먼저 만든다** (M1의 `lib/actions/call-action.ts` 패턴)
 
 > 🚨 **T005~T008을 순서대로, 한 사람이.**
 >
@@ -92,8 +92,8 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 
 > **먼저 쓴다. 실패하는 것을 확인한 뒤 구현한다**
 
-- [ ] T016 [P] [US1] E2E 테스트 — `tests/e2e/friend-invite.spec.ts`. spec.md US1 수용 시나리오 1~7. **로그인부터 시작하고 계정 2개를 쓴다**
-- [ ] T017 [P] [US1] E2E 인증 픽스처 확장 — `tests/e2e/fixtures/auth.ts`에 두 번째 계정 세션 주입 추가. env가 비면 skip 되는 기존 동작을 유지한다
+- [x] T016 [P] [US1] E2E 테스트 — `tests/e2e/friend-invite.spec.ts`. spec.md US1 수용 시나리오 1~7. **로그인부터 시작하고 계정 2개를 쓴다**
+- [x] T017 [P] [US1] E2E 인증 픽스처 확장 — `tests/e2e/fixtures/auth.ts`에 두 번째 계정 세션 주입 추가. env가 비면 skip 되는 기존 동작을 유지한다
 - [ ] T018 [P] [US1] 통합 테스트 — `tests/integration/accept-invite.test.ts`. 성사 시 관계·`usedCount`·알림이 **한 트랜잭션**으로 함께 생기는지, 실패 시 함께 롤백되는지 (research R5)
 - [ ] T019 [P] [US1] 통합 테스트 — `tests/integration/accept-invite-concurrent.test.ts`. 같은 링크를 동시에 여러 명이 써도 `usedCount`가 정확히 누적되고 관계가 중복 생성되지 않는지 (SC-008)
 

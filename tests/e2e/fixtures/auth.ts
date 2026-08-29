@@ -12,7 +12,12 @@
  *      (**Auto Confirm User** 체크 — 미확인 계정은 signInWithPassword 가 거부된다)
  *   3. `.env.local` 에 `E2E_USER_EMAIL` / `E2E_USER_PASSWORD` 를 채운다 (.env.example 참조)
  *
- * env 가 없으면 `authedPage` 를 쓰는 테스트는 실패가 아니라 **skip** 된다.
+ * M2 (T017) — 두 번째 계정. M2 의 모든 시나리오가 "A가 링크를 만들고 B가 받는" 두 주체
+ * 구조라 계정 하나로는 검증이 안 된다 (research R10, FR-016). `.env.local` 에
+ * `E2E_USER2_EMAIL` / `E2E_USER2_PASSWORD` 를 채우면 `friendPage` 가 **별도 브라우저
+ * 컨텍스트**에 B 세션을 주입한다 — A(authedPage)와 쿠키가 섞이지 않는다.
+ *
+ * env 가 없으면 `authedPage`(·`friendPage`) 를 쓰는 테스트는 실패가 아니라 **skip** 된다.
  * 테스트 계정의 취향 데이터는 매 테스트마다 UI 로 지우고 다시 만든다 (taste-ui.ts) —
  * e2e 에서는 `@/lib/prisma` · DAL 을 직접 import 하지 않는다.
  *
@@ -37,6 +42,9 @@ import { createClient, type Session } from '@supabase/supabase-js'
 
 export const E2E_SKIP_REASON =
   'E2E_USER_EMAIL/E2E_USER_PASSWORD 미설정 — 인증이 필요한 E2E 를 건너뛴다 (.env.example 참조)'
+
+export const E2E_USER2_SKIP_REASON =
+  'E2E_USER2_EMAIL/E2E_USER2_PASSWORD 미설정 — 두 계정이 필요한 E2E 를 건너뛴다 (.env.example 참조)'
 
 // ── @supabase/ssr 쿠키 직렬화 (cookies.js · utils/chunker.js) ────────────────────
 
@@ -113,14 +121,35 @@ function requireEnv(name: 'NEXT_PUBLIC_SUPABASE_URL' | 'NEXT_PUBLIC_SUPABASE_ANO
   return value
 }
 
+/** 이메일/비밀번호로 테스트 계정에 로그인해 세션을 받는다 — 두 계정 fixture 가 함께 쓴다 */
+async function signInTestAccount(label: string, email: string, password: string): Promise<Session> {
+  const supabase = createClient(
+    requireEnv('NEXT_PUBLIC_SUPABASE_URL'),
+    requireEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY'),
+    { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } },
+  )
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+  if (error || !data.session) {
+    throw new Error(
+      `${label} 로그인 실패: ${error?.message ?? '세션 없음'} — ` +
+        'Supabase 대시보드에서 Email provider 가 켜져 있고 계정이 confirmed 상태인지 확인 (.env.example 참조)',
+    )
+  }
+  return data.session
+}
+
 type WorkerFixtures = {
   /** 워커당 한 번만 로그인한 세션. env 가 없으면 null (→ authedPage 가 skip) */
   e2eSession: Session | null
+  /** 두 번째 계정(B)의 세션. env 가 없으면 null (→ friendPage 가 skip) */
+  e2eSession2: Session | null
 }
 
 type TestFixtures = {
   /** 테스트 계정으로 로그인된 상태의 page. env 가 없으면 테스트를 skip 한다 */
   authedPage: Page
+  /** B 계정으로 로그인된 **별도 브라우저 컨텍스트**의 page — A(authedPage)와 쿠키가 섞이지 않는다 */
+  friendPage: Page
 }
 
 export const test = base.extend<TestFixtures, WorkerFixtures>({
@@ -134,20 +163,26 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
         await provide(null)
         return
       }
+      await provide(await signInTestAccount('E2E 테스트 계정', email, password))
+    },
+    { scope: 'worker' },
+  ],
 
-      const supabase = createClient(
-        requireEnv('NEXT_PUBLIC_SUPABASE_URL'),
-        requireEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY'),
-        { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } },
-      )
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error || !data.session) {
+  e2eSession2: [
+    async ({}, provide) => {
+      const email = process.env.E2E_USER2_EMAIL
+      const password = process.env.E2E_USER2_PASSWORD
+      if (!email || !password) {
+        await provide(null)
+        return
+      }
+      // 같은 계정이면 두 주체 시나리오가 성립하지 않는다 — 자기 자신과는 친구가 될 수 없다 (FR-016)
+      if (email === process.env.E2E_USER_EMAIL) {
         throw new Error(
-          `E2E 테스트 계정 로그인 실패: ${error?.message ?? '세션 없음'} — ` +
-            'Supabase 대시보드에서 Email provider 가 켜져 있고 계정이 confirmed 상태인지 확인 (.env.example 참조)',
+          'E2E_USER2_EMAIL 이 E2E_USER_EMAIL 과 같다 — 서로 다른 계정 둘이 필요하다 (.env.example 참조)',
         )
       }
-      await provide(data.session)
+      await provide(await signInTestAccount('두 번째 E2E 테스트 계정(E2E_USER2)', email, password))
     },
     { scope: 'worker' },
   ],
@@ -165,6 +200,25 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
       ),
     )
     await provide(page)
+  },
+
+  friendPage: async ({ browser, contextOptions, baseURL, e2eSession2 }, provide) => {
+    if (!e2eSession2) {
+      test.skip(true, E2E_USER2_SKIP_REASON)
+      return
+    }
+    // 프로젝트 설정(뷰포트 등)을 그대로 이어받은 **별도 컨텍스트** — mobile-360 에서도 같은 화면 폭
+    const context = await browser.newContext(contextOptions)
+    await context.addCookies(
+      toSupabaseAuthCookies(
+        e2eSession2,
+        requireEnv('NEXT_PUBLIC_SUPABASE_URL'),
+        baseURL ?? 'http://localhost:3000',
+      ),
+    )
+    const page = await context.newPage()
+    await provide(page)
+    await context.close()
   },
 })
 
