@@ -6,6 +6,10 @@
  *    부수효과: User 행이 없으면 생성한다 (get-or-create, research R2)
  *  - requireOnboarded(): 온보딩 미완료 → /onboarding redirect.
  *    성공 → { profileId, onboardedAt } (FR-018의 권위 있는 판정 지점)
+ *
+ * M2 (T011) — 계약: specs/002-friend-taste-sharing/contracts/server-actions.md §1
+ *  - getOptionalSession(): 세션 없음 → **null 반환, redirect 하지 않는다** (research R3).
+ *    미리보기 라우트(/i/[token]) 전용 — verifySession() 과의 차이는 redirect 뿐이다.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -49,7 +53,7 @@ vi.mock('react', async (importOriginal) => ({
   cache: <T,>(fn: T) => fn,
 }))
 
-import { requireOnboarded, verifySession } from '@/lib/dal/session'
+import { getOptionalSession, requireOnboarded, verifySession } from '@/lib/dal/session'
 
 const USER_ID = '0b9f8a1e-1111-4222-8333-444455556666'
 
@@ -132,6 +136,45 @@ describe('verifySession', () => {
     await verifySession()
 
     expect(h.userCreate.mock.calls[0][0].data.displayName).toBe('d@example.com')
+  })
+})
+
+describe('getOptionalSession', () => {
+  it('세션이 없으면 null 을 반환하고 redirect 하지 않는다 — 비가입자 미리보기의 전제 (FR-008)', async () => {
+    givenNoSession()
+
+    await expect(getOptionalSession()).resolves.toBeNull()
+
+    expect(h.redirect).not.toHaveBeenCalled()
+    expect(h.userFindUnique).not.toHaveBeenCalled()
+  })
+
+  it('getClaims 가 오류를 돌려줘도 null 로 취급한다 — 예외도 redirect 도 아니다', async () => {
+    h.getClaims.mockResolvedValue({ data: null, error: new Error('bad token') })
+
+    await expect(getOptionalSession()).resolves.toBeNull()
+
+    expect(h.redirect).not.toHaveBeenCalled()
+  })
+
+  it('세션이 있으면 verifySession 과 같은 userId 를 반환한다', async () => {
+    givenSession()
+    h.userFindUnique.mockResolvedValue({ id: USER_ID })
+
+    await expect(getOptionalSession()).resolves.toEqual({ userId: USER_ID })
+
+    expect(h.redirect).not.toHaveBeenCalled()
+    expect(h.userCreate).not.toHaveBeenCalled()
+  })
+
+  it('세션은 있는데 User 행이 없으면 생성한다 — 링크로 바로 들어온 로그인 사용자의 성사(FK)를 보장', async () => {
+    givenSession()
+    h.userFindUnique.mockResolvedValue(null)
+    h.userCreate.mockResolvedValue({ id: USER_ID })
+
+    await expect(getOptionalSession()).resolves.toEqual({ userId: USER_ID })
+
+    expect(h.userCreate).toHaveBeenCalledTimes(1)
   })
 })
 

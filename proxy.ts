@@ -35,5 +35,15 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   // 인증이 필요한 영역만 매칭한다. /, /login, /auth/callback 은 공개다.
-  matcher: ['/onboarding/:path*', '/taste/:path*', '/my/:path*', '/signup/:path*'],
+  // M2 (T012): /friends·/notifications 추가. **/i/:path* 는 넣지 않는다** —
+  // matcher 는 화이트리스트라 목록에 없으면 자동 공개이고, 미리보기는 비가입자가
+  // 로그인 없이 봐야 한다 (FR-008, M2 research R1). 넣으면 링크가 무용지물이 된다.
+  matcher: [
+    '/onboarding/:path*',
+    '/taste/:path*',
+    '/my/:path*',
+    '/signup/:path*',
+    '/friends/:path*',
+    '/notifications/:path*',
+  ],
 }
