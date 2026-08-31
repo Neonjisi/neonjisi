@@ -26,7 +26,9 @@ const CARD_BRAND = '신한'
 /** 결제수단 하나를 등록한다 (D 의 SCR-M3-06 — 이미 서 있다) */
 async function registerCard(page: Page, cardLast4: string): Promise<void> {
   await page.goto('/payment-methods/new')
-  await page.getByRole('radio', { name: CARD_BRAND }).check()
+  // 라디오 input 은 sr-only 라 라벨 텍스트를 누른다 (M1 fixtures/taste-ui.ts 와 같은 패턴)
+  await page.getByText(CARD_BRAND, { exact: true }).click()
+  await expect(page.getByRole('radio', { name: CARD_BRAND })).toBeChecked()
   await page.getByLabel('카드 뒷자리 4자리').fill(cardLast4)
   await page.getByRole('button', { name: '등록하기' }).click()
   await expect(page).toHaveURL(/\/payment-methods$/)
