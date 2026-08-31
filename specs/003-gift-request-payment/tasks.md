@@ -54,8 +54,8 @@
 
 - [ ] T014 [P] 단위 테스트 먼저 — `tests/unit/gift-state.test.ts`: 허용·금지 전이 전수 (R6 표) + `evaluateExpiry` 판정
 - [ ] T015 [P] `lib/gift/state.ts` — 전이 함수 단일 모듈 + `evaluateExpiry()`(만료 확정 지점에서 `GIFT_EXPIRED` 알림 생성, 같은 트랜잭션 — R3) → T014 초록
-- [ ] T016 통합 테스트 먼저 — `tests/integration/gift-charge.test.ts`: 성공 시 PAID+Payment+양쪽 알림 / 실패 시 PAYMENT_FAILED+giver 알림 / 상한 초과 시 CANCELLED+`GIFT_CANCELLED_BY_PAYMENT`
-- [ ] T017 `lib/gift/charge.ts` — `chargeGiftRequest()` (contracts §2 소유 경계 전부) + `lib/dal/payment.ts` `recordPayment` → T016 초록. **이 시그니처 확정이 M3의 최우선 선행 태스크다**
+- [X] T016 통합 테스트 먼저 — `tests/integration/gift-charge.test.ts`: 성공 시 PAID+Payment+양쪽 알림 / 실패 시 PAYMENT_FAILED+giver 알림 / 상한 초과 시 CANCELLED+`GIFT_CANCELLED_BY_PAYMENT`
+- [X] T017 `lib/gift/charge.ts` — `chargeGiftRequest()` (contracts §2 소유 경계 전부) + `lib/dal/payment.ts` `recordPayment` → T016 초록. **이 시그니처 확정이 M3의 최우선 선행 태스크다**
 
 ### 공용 기반
 
@@ -101,14 +101,14 @@
 
 ### Tests for User Story 2
 
-- [ ] T029 [P] [US2] E2E 먼저 — `tests/e2e/payment-method.spec.ts`: 등록(비저장 고지) / 진행 중 요청 경고 후 삭제 / 만료 표시
+- [X] T029 [P] [US2] E2E 먼저 — `tests/e2e/payment-method.spec.ts`: 등록(비저장 고지) / 진행 중 요청 경고 후 삭제 / 만료 표시
 
 ### Implementation for User Story 2
 
-- [ ] T030 [US2] `lib/dal/payment-method.ts` — `getMyPaymentMethods`·`getActivePaymentMethod`·`countActiveRequestsUsing` (빌링키는 View에 없음)
-- [ ] T031 [US2] `app/payment-methods/actions.ts` — `registerPaymentMethod`(T013 경유 발급 → T011 암호화 저장) · `deletePaymentMethod`(경고 카운트 반환)
-- [ ] T032 [US2] `components/payment/billing-key-form.tsx`(`'use client'`) + `app/payment-methods/new/page.tsx` — SCR-M3-06 (mock 카드 선택 폼 · "카드 정보는 넌지시에 저장되지 않습니다" · **강제 진입 시 복귀 경로**)
-- [ ] T033 [US2] `app/payment-methods/page.tsx` — SCR-M3-07 관리 + 마이 탭 만료 배지 + `components/payment/method-delete-dialog.tsx`
+- [X] T030 [US2] `lib/dal/payment-method.ts` — `getMyPaymentMethods`·`getActivePaymentMethod`·`countActiveRequestsUsing` (빌링키는 View에 없음)
+- [X] T031 [US2] `app/payment-methods/actions.ts` — `registerPaymentMethod`(T013 경유 발급 → T011 암호화 저장) · `deletePaymentMethod`(경고 카운트 반환)
+- [X] T032 [US2] `components/payment/billing-key-form.tsx`(`'use client'`) + `app/payment-methods/new/page.tsx` — SCR-M3-06 (mock 카드 선택 폼 · "카드 정보는 넌지시에 저장되지 않습니다" · **강제 진입 시 복귀 경로**)
+- [X] T033 [US2] `app/payment-methods/page.tsx` — SCR-M3-07 관리 + 마이 탭 만료 배지 + `components/payment/method-delete-dialog.tsx`
 - [ ] T034 [US2] T029 초록
 
 **Checkpoint**: US1·US2 각각 독립 동작 — 빌링키 등록 완료
@@ -173,14 +173,14 @@
 
 ### Tests for User Story 5
 
-- [ ] T052 [P] [US5] 통합 테스트 먼저 — `tests/integration/gift-payment-retry.test.ts`: 실패→재시도→성공 / `GIFT_PAYMENT_MAX_ATTEMPTS` 초과→CANCELLED+**양쪽 알림** / `paymentRetryUntil` 초과 거부
+- [X] T052 [P] [US5] 통합 테스트 먼저 — `tests/integration/gift-payment-retry.test.ts`: 실패→재시도→성공 / `GIFT_PAYMENT_MAX_ATTEMPTS` 초과→CANCELLED+**양쪽 알림** / `paymentRetryUntil` 초과 거부
 
 ### Implementation for User Story 5
 
-- [ ] T053 [US5] `app/gifts/actions/payment.ts` — `retryGiftPayment` (contracts §4: 재시도 가능 검사 → 수단 변경 → `PAYMENT_FAILED → PAYING` 재잠금 → `chargeGiftRequest()`)
+- [X] T053 [US5] `app/gifts/actions/payment.ts` — `retryGiftPayment` (contracts §4: 재시도 가능 검사 → 수단 변경 → `PAYMENT_FAILED → PAYING` 재잠금 → `chargeGiftRequest()`)
 - [ ] T054 [P] [US5] `app/gifts/[id]/result/page.tsx` — SCR-M3-15 결제 결과 3변형 (paid / expired — 수령자 탓하지 않는 문구 / cancelled — "민수님께 별도로 연락해보세요"). **T044 승인 E2E의 종착 화면 — Phase 6과 병행으로 먼저 만들 수 있다** (분담표 D14)
 - [ ] T055 [US5] `app/gifts/[id]/recover/page.tsx` — SCR-M3-16 실패 복구 (시도 횟수·기한 · giver 전용 — 수령자에게 실패 진행 비노출)
-- [ ] T056 [P] [US5] 알림 목록 확장 — gift 6종의 표시 문구·탭 이동 매핑 (`components/notification/` — M2 파일)
+- [X] T056 [P] [US5] 알림 목록 확장 — gift 6종의 표시 문구·탭 이동 매핑 (`components/notification/` — M2 파일)
 - [ ] T057 [US5] T052 초록 + E2E — `tests/e2e/gift-payment-recovery.spec.ts`: `0000` 카드 실패 → 수단 변경 재시도 → 성공
 - [ ] T058 [US5] (P0-1 실연동 확장 시점) `lib/portone/client.ts`에 실연동 구현 추가 — `PORTONE_MODE=real` 스모크. 실키는 `.env.local`에만, E2E는 여전히 mock
 
