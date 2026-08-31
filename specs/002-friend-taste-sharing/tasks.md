@@ -55,12 +55,12 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 
 **⚠️ CRITICAL**: 이 단계가 끝나기 전에는 어떤 스토리도 시작할 수 없다
 
-- [ ] T003 `prisma/schema.prisma`에 모델 3종(`Friendship`·`FriendInviteLink`·`Notification`)과 enum 2종(`FriendshipStatus`·`NotificationType`) 추가. **M1 모델은 건드리지 않는다** — `User`에 역참조 관계만 더한다
-- [ ] T004 `npx prisma migrate dev --name m2_friendship` 실행 → `prisma/migrations/` 에 마이그레이션 생성. **마이그레이션은 한 사람만 만든다**
-- [ ] T005 통합 테스트 작성 — `tests/integration/friendship-constraints.test.ts`. 같은 쌍을 순서 바꿔 두 번 넣으면 거부되는지(C3), 자기 자신과의 관계가 거부되는지(C4), `REMOVED` 행이 재추가를 막지 않는지. **지금은 실패해야 한다**
-- [ ] T006 C3 제약을 SQL로 직접 작성 — `npx prisma migrate dev --create-only --name friendship_pair_active` 후 `prisma/migrations/<ts>_friendship_pair_active/migration.sql` 에 `CREATE UNIQUE INDEX friendship_pair_active ON "Friendship" (LEAST(...), GREATEST(...)) WHERE status <> 'REMOVED'` 를 넣는다
-- [ ] T007 C4 제약을 SQL로 직접 작성 — `prisma/migrations/<ts>_friendship_not_self/migration.sql` 에 `ALTER TABLE "Friendship" ADD CONSTRAINT friendship_not_self CHECK ("requesterId" <> "addresseeId")`
-- [ ] T008 `tests/integration/friendship-constraints.test.ts`(T005)를 초록으로 만든다 — 제약이 실제로 걸렸는지가 여기서 판정된다
+- [X] T003 `prisma/schema.prisma`에 모델 3종(`Friendship`·`FriendInviteLink`·`Notification`)과 enum 2종(`FriendshipStatus`·`NotificationType`) 추가. **M1 모델은 건드리지 않는다** — `User`에 역참조 관계만 더한다
+- [X] T004 `npx prisma migrate dev --name m2_friendship` 실행 → `prisma/migrations/` 에 마이그레이션 생성. **마이그레이션은 한 사람만 만든다**
+- [X] T005 통합 테스트 작성 — `tests/integration/friendship-constraints.test.ts`. 같은 쌍을 순서 바꿔 두 번 넣으면 거부되는지(C3), 자기 자신과의 관계가 거부되는지(C4), `REMOVED` 행이 재추가를 막지 않는지. **지금은 실패해야 한다**
+- [X] T006 C3 제약을 SQL로 직접 작성 — `npx prisma migrate dev --create-only --name friendship_pair_active` 후 `prisma/migrations/<ts>_friendship_pair_active/migration.sql` 에 `CREATE UNIQUE INDEX friendship_pair_active ON "Friendship" (LEAST(...), GREATEST(...)) WHERE status <> 'REMOVED'` 를 넣는다
+- [X] T007 C4 제약을 SQL로 직접 작성 — `prisma/migrations/<ts>_friendship_not_self/migration.sql` 에 `ALTER TABLE "Friendship" ADD CONSTRAINT friendship_not_self CHECK ("requesterId" <> "addresseeId")`
+- [X] T008 `tests/integration/friendship-constraints.test.ts`(T005)를 초록으로 만든다 — 제약이 실제로 걸렸는지가 여기서 판정된다
 - [x] T009 [P] 단위 테스트 작성 — `tests/unit/invite-token.test.ts`. 토큰이 URL-safe인지, 매번 다른지, 길이가 일정한지
 - [x] T010 [P] `lib/invite/token.ts` — 32바이트 랜덤을 base64url로. Node 표준 `crypto`만 쓴다 (research R2)
 - [x] T011 [P] `lib/dal/session.ts`에 `getOptionalSession()` 추가 — 세션이 없으면 **`null`을 반환하고 redirect 하지 않는다** (research R3)
@@ -199,7 +199,7 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 **Purpose**: 마일스톤 완료 판정
 
 - [ ] T055 [P] 폭 360px에서 quickstart V1~V4를 다시 밟는다 — `npx playwright test --project=mobile-360`. **알림 목록을 포함한다** (SC-006)
-- [ ] T056 [P] 제약 확인 — `pg_indexes`에서 `friendship_pair_active`, `pg_constraint`에서 `friendship_not_self`가 조회되는지 (quickstart V5-1). **`db push`로 만든 DB에는 없다**
+- [X] T056 [P] 제약 확인 — `pg_indexes`에서 `friendship_pair_active`, `pg_constraint`에서 `friendship_not_self`가 조회되는지 (quickstart V5-1). **`db push`로 만든 DB에는 없다**
 - [ ] T057 [P] `components/friend/`·`components/notification/`의 `'use client'` 사용처 점검 — 계획한 3개(`invite-link-card.tsx`·`remove-friend-dialog.tsx`·`notification-list.tsx`) 외에 붙은 것이 정당한지. `error.tsx`는 Next.js가 강제하므로 위반이 아니다
 - [ ] T058 [P] `components/friend/`·`components/notification/`·`app/friends/` 컴포넌트 크기 점검 — 500줄 초과가 있으면 하위 컴포넌트로 분해 (constitution 품질 게이트)
 - [ ] T059 `npm run lint`와 `npm run build` 통과 (constitution 품질 게이트)
