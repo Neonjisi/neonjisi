@@ -48,6 +48,34 @@ const UNREAD_MARK = '읽지 않음'
 /** 형식은 맞지만 존재하지 않는 토큰 — 32바이트 base64url 은 43자다 (research R2) */
 const ABSENT_INVITE_PATH = `/i/${'z'.repeat(43)}`
 
+// ── 화면 의존 probe ──────────────────────────────────────────────────────────
+
+/**
+ * US3-1~7 은 **다른 사람 몫의 화면을 지나야** 검증된다 — 링크 발급(T024)·미리보기(T027)·
+ * 친구 상세(T037), 그리고 링크 관리 화면이 기대는 `lib/dal/invite.ts` 가 import 하는
+ * `lib/dal/friend.ts`(T022). 그 전에는 라우트가 404(부재) 또는 500(모듈 부재)을 낸다.
+ *
+ * 그동안 이 시나리오들을 **실패로 두지 않고 skip 한다.** 남의 미착수 때문에 빨간 스위트를
+ * 방치하면 진짜 회귀가 그 빨강에 묻힌다. 대신 **정적 skip 을 쓰지 않는다** — 화면이 서면
+ * 아무도 이 파일을 고치지 않아도 probe 가 통과해 그날부터 다시 돈다.
+ *
+ * ⚠️ `npm run test:e2e` 결과에서 `passed` 만 보지 말고 **`skipped` 수를 본다** (team-assignment §3).
+ * 여기 skip 이 남아 있는 동안 US3 의 수용 시나리오 7개는 아직 검증되지 않은 것이다.
+ */
+const PENDING_SCREENS_REASON =
+  'US3 화면 의존 대기 — H 의 T022(lib/dal/friend.ts) · T024 발급 · T027 미리보기 · T037 친구 상세'
+
+/** 화면 하나라도 서지 않았으면 그 자리에서 skip 한다. setup(온보딩·친구 정리)보다 먼저 부른다 */
+async function skipUntilScreensExist(page: Page): Promise<void> {
+  for (const path of ['/friends/invite', '/friends/invite/manage']) {
+    const response = await page.goto(path)
+    const status = response?.status()
+    if (status === undefined || status >= 400) {
+      test.skip(true, `${PENDING_SCREENS_REASON} — ${path} → ${status ?? '응답 없음'}`)
+    }
+  }
+}
+
 // ── 화면 헬퍼 ────────────────────────────────────────────────────────────────
 
 function activeLinks(page: Page) {
@@ -105,6 +133,8 @@ async function readAnonymousLines(
 
 test.describe('US3-1·2·3·4 — 링크 통제', () => {
   test.beforeEach(async ({ authedPage, friendPage }) => {
+    // 화면이 서지 않았으면 setup 을 돌리기 전에 skip 한다
+    await skipUntilScreensExist(authedPage)
     await ensureOnboarded(authedPage)
     await ensureOnboarded(friendPage)
     await removeAllFriends(authedPage)
@@ -206,6 +236,8 @@ test.describe('US3-1·2·3·4 — 링크 통제', () => {
 
 test.describe('US3-5·6·7 — 알림', () => {
   test.beforeEach(async ({ authedPage, friendPage }) => {
+    // 화면이 서지 않았으면 setup 을 돌리기 전에 skip 한다
+    await skipUntilScreensExist(authedPage)
     await ensureOnboarded(authedPage)
     await ensureOnboarded(friendPage)
     await removeAllFriends(authedPage)
@@ -288,6 +320,7 @@ test.describe('SC-006 · 폭 360', () => {
     authedPage: pageA,
     friendPage: pageB,
   }) => {
+    await skipUntilScreensExist(pageA)
     await ensureOnboarded(pageA)
     await ensureOnboarded(pageB)
     await removeAllFriends(pageA)

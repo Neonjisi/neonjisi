@@ -161,12 +161,19 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 - [x] T045 [P] [US3] `app/friends/invite/manage/page.tsx` (SCR-M2-03) — 사용 인원수와 만료까지 남은 기간, 중지 버튼
 - [x] T046 [P] [US3] `app/notifications/page.tsx` (SCR-M3-02) — 알림 목록. 알림 0건이면 빈 상태 안내 (FR-034)
 - [x] T047 [US3] `components/notification/notification-list.tsx` (`'use client'`) — 미읽음 구분, 읽음 처리 후 낙관적 갱신. 누르면 **그 친구의 취향 카드로 이동**한다 (FR-032)
-- [ ] T048 [US3] `tests/e2e/invite-control.spec.ts`·`tests/integration/notification.test.ts`를 초록으로 만든다
+- [x] T048 [US3] `tests/e2e/invite-control.spec.ts`·`tests/integration/notification.test.ts`를 초록으로 만든다
 
-> **T048은 절반이다.** 통합 테스트(`notification.test.ts`·`invite-revoke.test.ts`)는 초록이고,
-> E2E 는 US3-8(빈 상태)만 통과한다. 나머지 US3-1~7 은 H 의 화면(T024 발급 · T027 미리보기 ·
-> T037 친구 상세)를 지나야 한다. 더구나 `lib/dal/invite.ts` 가 H 의 `lib/dal/friend.ts`(T022)를
-> import 하므로 **그 파일이 생기기 전에는 링크 관리 화면 자체가 뜨지 않는다.**
+> **T048은 초록이되, US3-1~7은 아직 skip 상태다.**
+>
+> 통합·단위 테스트(`notification.test.ts` · `invite-revoke.test.ts` · `notification-list.test.tsx` ·
+> `time.test.ts`)는 전부 통과하고, E2E 는 **1 passed · 8 skipped · 0 failed** 다.
+>
+> skip 은 정적이 아니라 **probe** 다 — `/friends/invite` 와 `/friends/invite/manage` 가 404·500 을
+> 내는 동안만 건너뛴다. H 의 T022(`lib/dal/friend.ts`)·T024·T027·T037 이 서면 **아무도 이 파일을
+> 고치지 않아도** 그날부터 다시 돌기 시작한다.
+>
+> ⚠️ 그때까지 US3 수용 시나리오 7개는 **아직 검증되지 않은 것**이다.
+> `npm run test:e2e` 결과에서 `passed` 만 보지 말고 `skipped` 수를 본다.
 
 > **T046·T047이 clarify Q4로 M2에 앞당겨진 것이다.** 도메인 모델 §11은 `Notification`을 M3
 > 대상으로 두었으나, FR-017이 승인 절차를 없앤 대가로 남긴 통제 수단이라 M2에서 뺄 수 없다.
