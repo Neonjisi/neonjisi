@@ -21,6 +21,10 @@ const locked = await tx.funding.updateMany({
 if (locked.count === 0) return  // 다른 조회가 이미 정산 중 — 중단
 ```
 
+⚠️ 위 스케치의 `deadline: { lt: now }` 는 **마감 경로 전용**이다. 조기 성사(참여 확정)
+트리거는 마감 전에 들어오므로 잠금은 `status: 'OPEN'` 만 보고, 성사 판정(`paidTotal ≥
+goalAmount`)이 SUCCEEDED 를 결정한다. 비-OPEN 재진입 처리 포함 — contracts §2 참조.
+
 잠금 이후 settle이 소유하는 것 — `FAILED`/`CANCELLED`: 전 `PAID` 건 환불 실행 +
 `FUNDING_FAILED_REFUNDED` 알림. `SUCCEEDED`: 부족분 있으면 주최자 차액 결제(R5) →
 `SETTLED` 확정 + `FUNDING_SUCCEEDED`·`FUNDING_ORGANIZER_TOPUP` 알림.

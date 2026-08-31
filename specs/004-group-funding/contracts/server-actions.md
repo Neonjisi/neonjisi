@@ -23,6 +23,13 @@ export async function capTotal(tx, fundingId): Promise<number>    // RESERVED+PA
  * 트리거: 마감 지난 OPEN 펀딩을 지나는 첫 조회(DAL 경유) / 조기 성사(참여 확정) /
  *        주최자 취소 / topup 재시도.
  * 잠금: OPEN→SUCCEEDED|FAILED (또는 OPEN→CANCELLED) 조건부 UPDATE. 0행이면 중단 — 멱등.
+ *       ⚠️ 잠금 조건은 status 만 본다 — deadline 술어를 넣지 않는다. 조기 성사(참여 확정)
+ *       트리거는 **마감 전**에 들어오며, paidTotal ≥ goalAmount 면 마감 무관 SUCCEEDED 다.
+ *       잠금 순서는 항상 Funding 먼저 — Contribution 을 먼저 잠그면 참여 확정 경로
+ *       (Funding FOR UPDATE 선점)와 역순 교착이 성립한다.
+ * 재진입: 비-OPEN(FAILED·CANCELLED·SUCCEEDED) 상태로 재호출되면 잠금은 0행이지만 그냥
+ *       끝내지 않는다 — **환불 미처리 PAID**(마감·취소를 가로질러 확정된 대사 복원 건;
+ *       contribute 가 settledMeanwhile 로 재호출한다)를 찾아 환불/정산에 편입한 뒤 종료.
  * 소유: 판정 → 환불 실행(refund, 전 PAID 건) → 차액 결제(chargeBillingKey) → SETTLED 확정
  *       → 알림 3종(FUNDING_SUCCEEDED · FUNDING_FAILED_REFUNDED · FUNDING_ORGANIZER_TOPUP).
  * topup 실패: SUCCEEDED 유지 + topupAttemptCount·retryUntil 기록. 상한 초과 시
@@ -31,7 +38,7 @@ export async function capTotal(tx, fundingId): Promise<number>    // RESERVED+PA
 export async function settleFunding(fundingId: string): Promise<
   | { outcome: 'SETTLED' } | { outcome: 'FAILED' } | { outcome: 'CANCELLED' }
   | { outcome: 'TOPUP_FAILED'; attemptCount: number; retryUntil: Date }
-  | { outcome: 'STILL_OPEN' }    // 마감 전 — 아무것도 하지 않음
+  | { outcome: 'STILL_OPEN' }    // 마감 전이고 paidTotal < goalAmount — 아무것도 하지 않음
 >
 ```
 
