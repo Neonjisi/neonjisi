@@ -16,8 +16,8 @@ import { isRedirectError } from "@/lib/actions/redirect-error";
  * 클라이언트 컴포넌트는 이 파일 하나다 (contracts §4 예산). 친구 상세 화면(Server Component)은
  * TopBar 의 action 자리에 <RemoveFriendMenu> 만 얹는다 — 목록·카드 렌더는 서버에 남긴다.
  *
- * 문구 규칙 (research R9 · spec 가정): **"진행 중인 선물·펀딩은 그대로 진행됩니다"를 넣지 않는다.**
- * M2 에는 거래가 없어 거짓말이 된다. 무엇이 닫히는지만 고지한다 (FR-024).
+ * 문구 규칙: M2 에서는 거래가 없어 "진행 중인 선물은 그대로 진행됩니다"가 거짓말이라 뺐다.
+ * M3 에서 GiftRequest 가 생기며 참이 되어 추가했다 (M3 T050 · D3 "진행 중 거래 예외").
  */
 
 type RemoveFriendMenuProps = {
@@ -163,6 +163,7 @@ function OpenRemoveFriendDialog({
         <ul id={descriptionId} className="list-disc pl-5 pt-2 text-sm text-neutral-600">
           <li>서로의 취향을 볼 수 없게 됩니다</li>
           <li>양쪽 친구 목록에서 서로 사라집니다</li>
+          <li>진행 중인 선물은 그대로 진행됩니다</li>
         </ul>
         {errorMessage && (
           <p role="alert" className="pt-3 text-sm text-error-600">
