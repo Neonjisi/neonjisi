@@ -219,7 +219,7 @@ describe.skipIf(skipReason !== '')('lib/dal/funding — getFunding·getMyFunding
       expect(view!.contributions.every((c) => c.amount !== null)).toBe(true)
     })
 
-    it('contributor: 자기 금액만, 남의 금액은 null — myContribution 은 RESERVED 우선', async () => {
+    it('contributor: 자기 금액만, 남의 금액은 null — myContribution 은 PAID 우선', async () => {
       const view = await asUser(contributorA, () => getFunding!(fundingId))
       expect(view!.role).toBe('contributor')
 
@@ -232,8 +232,28 @@ describe.skipIf(skipReason !== '')('lib/dal/funding — getFunding·getMyFunding
       const mineSum = mineVisible.reduce((s, c) => s + (c.amount ?? 0), 0)
       expect(mineSum).toBe(40_000) // 30000 + 10000
 
-      // RESERVED(10000) 이 PAID(30000) 보다 우선한다 — 진행 중인 참여를 먼저 알려준다
-      expect(view!.myContribution).toEqual({ amount: 10_000, status: 'RESERVED' })
+      // PAID(30000) 이 RESERVED(10000) 보다 우선한다 — 이미 확정된 결제를 진행 중 예약이
+      // 가리면 안 된다(리뷰 지적: PAID+RESERVED 공존 시 RESERVED 만 보이던 회귀).
+      // 진행 중인 예약 자체는 위 contributions[] 의 본인 행(10000)으로 이미 보인다.
+      expect(view!.myContribution).toEqual({ amount: 30_000, status: 'PAID' })
+    })
+
+    it('myContribution — PAID+RESERVED 공존 시 PAID 가 대표값이다 (확정액을 숨기지 않는다)', async () => {
+      const soloFundingId = await createFunding({
+        organizerId: organizer,
+        receiverId: receiver,
+        deadline: future(7 * DAY),
+        goalAmount: 100_000,
+        minAmount: 50_000,
+      })
+      const soloContributor = await createUser('myContribution전용참여자')
+      // 이미 확정된 30000 결제 + 별도로 새로 건 10000 예약(아직 처리 중) — 별도 참여 건(FR-011)
+      await createContribution(soloFundingId, soloContributor, 30_000, 'PAID', future(10 * MIN))
+      await createContribution(soloFundingId, soloContributor, 10_000, 'RESERVED', future(10 * MIN))
+
+      const view = await asUser(soloContributor, () => getFunding!(soloFundingId))
+
+      expect(view!.myContribution).toEqual({ amount: 30_000, status: 'PAID' })
     })
 
     it('friend(활성 친구): 이름만 — 금액 전부 null, myContribution 도 null', async () => {
@@ -375,6 +395,72 @@ describe.skipIf(skipReason !== '')('lib/dal/funding — getFunding·getMyFunding
       expect(result.organized).toEqual([])
       expect(result.contributed).toEqual([])
     })
+
+    it('R1 — 마감 지난 OPEN 은 정산 트리거를 지나 최신 상태로 보인다 (organized·contributed 둘 다)', async () => {
+      const me = await createUser('내역R1본인')
+      const otherOrganizer = await createUser('내역R1타인')
+
+      const overdueOrganized = await createFunding({
+        organizerId: me,
+        receiverId: receiver,
+        deadline: past(1 * MIN), // 마감 지남
+      })
+      const overdueContributed = await createFunding({
+        organizerId: otherOrganizer,
+        receiverId: receiver,
+        deadline: past(1 * MIN), // 마감 지남
+      })
+      await createContribution(overdueContributed, me, 20_000, 'PAID', future(10 * MIN))
+
+      h.settleFunding.mockImplementation(async (id: string) => {
+        await prisma.funding.update({ where: { id }, data: { status: 'FAILED', failedAt: new Date() } })
+        return { outcome: 'FAILED' }
+      })
+
+      const result = await asUser(me, () => getMyFundings!())
+
+      expect(h.settleFunding).toHaveBeenCalledWith(overdueOrganized)
+      expect(h.settleFunding).toHaveBeenCalledWith(overdueContributed)
+      // 목록이 트리거 이전 상태(OPEN)가 아니라 settle 뒤 최신 상태를 보여준다 — 재조회 확인
+      expect(result.organized.find((f) => f.id === overdueOrganized)?.status).toBe('FAILED')
+      expect(result.contributed.find((f) => f.id === overdueContributed)?.status).toBe('FAILED')
+    })
+
+    it('R2 — 만료된 RESERVED 는 목록 조회로 해제되고 잔여가 풀린다 (organized·contributed 둘 다)', async () => {
+      const me = await createUser('내역R2본인')
+      const otherOrganizer = await createUser('내역R2타인')
+
+      const organizedFunding = await createFunding({
+        organizerId: me,
+        receiverId: receiver,
+        deadline: future(7 * DAY),
+        goalAmount: 100_000,
+      })
+      await createContribution(organizedFunding, contributorA, 30_000, 'RESERVED', past(1 * MIN)) // 만료
+
+      const contributedFunding = await createFunding({
+        organizerId: otherOrganizer,
+        receiverId: receiver,
+        deadline: future(7 * DAY),
+        goalAmount: 100_000,
+      })
+      await createContribution(contributedFunding, me, 10_000, 'PAID', future(10 * MIN))
+      await createContribution(contributedFunding, me, 15_000, 'RESERVED', past(1 * MIN)) // 만료
+
+      const result = await asUser(me, () => getMyFundings!())
+
+      const organizedCard = result.organized.find((f) => f.id === organizedFunding)
+      expect(organizedCard?.remaining).toBe(100_000) // 30000 RESERVED 가 풀려 전액 남았다
+
+      const contributedCard = result.contributed.find((f) => f.id === contributedFunding)
+      expect(contributedCard?.paidTotal).toBe(10_000)
+      expect(contributedCard?.remaining).toBe(100_000 - 10_000) // 15000 RESERVED 는 풀렸다
+
+      const remainingRows = await prisma.fundingContribution.count({
+        where: { fundingId: { in: [organizedFunding, contributedFunding] }, status: 'RESERVED' },
+      })
+      expect(remainingRows).toBe(0) // 행 자체가 삭제됐다 (R2)
+    })
   })
 
   describe('getHomeFundings — 주최·수령·참여 중인 OPEN, 마감 임박순 (FR-023)', () => {
@@ -429,6 +515,27 @@ describe.skipIf(skipReason !== '')('lib/dal/funding — getFunding·getMyFunding
       // 마감 임박순: iReceive(1일) < iContribute(2일) < iOrganize(3일)
       const relevant = ids.filter((id) => [iOrganize, iReceive, iContribute].includes(id))
       expect(relevant).toEqual([iReceive, iContribute, iOrganize])
+    })
+
+    it('R2 — 만료된 RESERVED 는 홈 목록 조회로도 해제되고 잔여가 풀린다', async () => {
+      const me = await createUser('홈R2본인')
+
+      const fundingId = await createFunding({
+        organizerId: me,
+        receiverId: receiver,
+        deadline: future(7 * DAY), // OPEN 유지 — 이 케이스는 R2 만 확인한다
+        goalAmount: 100_000,
+      })
+      await createContribution(fundingId, contributorA, 25_000, 'RESERVED', past(1 * MIN)) // 만료
+
+      const views = await asUser(me, () => getHomeFundings!())
+
+      const card = views.find((v) => v.id === fundingId)
+      expect(card).not.toBeUndefined()
+      expect(card!.remaining).toBe(100_000) // 25000 RESERVED 가 풀려 전액 남았다
+
+      const remainingRows = await prisma.fundingContribution.count({ where: { fundingId, status: 'RESERVED' } })
+      expect(remainingRows).toBe(0) // 행 자체가 삭제됐다 (R2)
     })
   })
 })

@@ -127,15 +127,26 @@ function maskContributions(
   }))
 }
 
-/** RESERVED > PAID > REFUNDED 우선순위로 표 밖 우선순위를 고른다 — 이유는 함수 위 주석 참고 */
-const CONTRIBUTION_STATUS_PRIORITY: readonly ContributionStatus[] = ['RESERVED', 'PAID', 'REFUNDED']
+/** PAID > RESERVED > REFUNDED 우선순위로 표 밖 우선순위를 고른다 — 이유는 함수 위 주석 참고 */
+const CONTRIBUTION_STATUS_PRIORITY: readonly ContributionStatus[] = ['PAID', 'RESERVED', 'REFUNDED']
 
 /**
  * 여러 참여 건(FR-011 — 추가 참여 허용, unique 없음)을 화면 요약 한 줄로 접는다. 계약 타입
- * (`myContribution`)이 단일 값이라, RESERVED(처리 중) > PAID(확정) > REFUNDED(환불 종료)
- * 우선순위로 대표 상태를 고르고 그 상태의 행만 합산한다. 실제로는 마감 전엔 RESERVED·PAID
- * 혼재만 가능하고, 정산 후엔 한 상태로 수렴한다(성사=PAID 유지, 미달/취소=REFUNDED 일괄) —
- * settleFunding() 이 PAID 건을 전부 함께 처리하므로 상태가 섞인 채 남지 않는다.
+ * (`myContribution`)이 단일 값이라 대표 상태를 골라야 한다 — **PAID(확정) 를 최우선**으로 둔다.
+ *
+ * 이전 버전은 RESERVED 를 최우선으로 뒀었다("처리 중"을 먼저 알린다는 취지) — 하지만 이미
+ * 확정된 결제(PAID)가 있는데 그 뒤 별도로 새 참여를 RESERVED 로 걸었다면, RESERVED 우선은
+ * "이미 낸 돈"을 감추고 "아직 결제 안 된 예약액"을 대표값으로 내보내는 것이었다(리뷰 지적:
+ * PAID 30,000 + RESERVED 10,000 인데 10,000 만 보이는 사례). contracts §6 이 화면 보정을
+ * 금지하므로(R6) DAL 이 최종 답이어야 한다 — 확정액을 먼저 보여주는 쪽이 안전하다.
+ *
+ * 진행 중인 예약 자체는 `contributions[]` 의 본인 행으로 이미 보인다 — 대표값에서 굳이
+ * RESERVED 를 앞세울 필요가 없다.
+ *
+ * 남은 한계(의도적으로 손대지 않음, 리뷰 원장에 유예): 미달/취소 정산으로 PAID→REFUNDED
+ * 가 처리된 순간에도 별도의 미만료 RESERVED 행이 `reservedUntil` 까지 남아 있으면, 대표값은
+ * REFUNDED 보다 그 RESERVED 를 먼저 고른다. 이 창은 짧고(TTL 만큼) `contributions[]` 로도
+ * 확인 가능해 이번 수정 범위 밖으로 남긴다.
  */
 function resolveMyContribution(
   contributions: ReadonlyArray<ContributionRow>,
