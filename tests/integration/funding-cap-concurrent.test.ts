@@ -479,14 +479,15 @@ describe.skipIf(skipReason !== '')('contributeToFunding · cancelReservation —
     expect(funding.settledAt).toBeNull()
   })
 
-  // ── ⑤ 대사(reconcile) — 결제 성공과 예약 만료가 교차할 때 ──────────────────────
+  // ── ⑤ 대사(reconcile) — 결제 성공과 예약 만료·정산이 교차할 때 ────────────────
   it(
     '결제가 나가는 사이 예약이 만료 해제돼도 결제 기록을 잃지 않는다 (대사 — 같은 id 로 PAID 복원)',
     async () => {
       const fundingId = await createFunding({ goalAmount: 100_000 })
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-      // 결제 왕복 '중간'에 만료 해제가 지나간 상황을 그대로 재현한다:
-      // 예약 행을 만료로 만들고 지연 해제를 태워 행을 지운다 (evaluateReservationExpiry 와 동일 경로).
+      // 결제 왕복 '중간'에 만료 해제가 지나간 상황을 **결정론적으로** 주입한다: 실제 경로와
+      // 같은 결과(RESERVED 행 삭제)를 만들되, 시간에 기대지 않는다(TTL 대기 = flaky).
       h.duringCharge.current = async () => {
         await prisma.fundingContribution.deleteMany({ where: { fundingId, status: 'RESERVED' } })
       }
@@ -507,6 +508,112 @@ describe.skipIf(skipReason !== '')('contributeToFunding · cancelReservation —
       expect(payments).toHaveLength(1)
       expect(payments[0].status).toBe('PAID')
       expect(await receivedNotificationCount(fundingId)).toBe(1)
+
+      // 복원 건은 스키마상 다른 PAID 와 구별되지 않는다 — 구조화 로그가 유일한 단서다
+      const restoreLog = errorSpy.mock.calls.find(
+        (call) => typeof call[0] === 'string' && call[0].includes('대사'),
+      )
+      expect(restoreLog?.[1]).toMatchObject({
+        fundingId,
+        contributionId,
+        amount: 40_000,
+        capTotal: 40_000,
+        goalAmount: 100_000,
+        overGoal: false,
+      })
+      errorSpy.mockRestore()
+    },
+  )
+
+  it(
+    '복원으로 잔여가 목표를 넘으면 초과 사실이 구조화 로그에 남는다 (정산의 후속 판단 단서)',
+    async () => {
+      const fundingId = await createFunding({ goalAmount: 100_000 })
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+      // 만료 해제로 풀린 잔여를 그 사이 다른 참여자가 가져간 경우 — 복원하면 목표를 넘는다
+      h.duringCharge.current = async () => {
+        await prisma.fundingContribution.deleteMany({ where: { fundingId, status: 'RESERVED' } })
+        await prisma.fundingContribution.create({
+          data: {
+            fundingId,
+            contributorId: contributorB,
+            amount: 100_000,
+            status: 'PAID',
+            reservedUntil: future(5 * MIN_MS),
+            paidAt: new Date(),
+          },
+        })
+      }
+
+      const result = await as(contributorA, () => contributeToFunding({ fundingId, amount: 40_000 }))
+
+      expect(errorCode(result)).toBeNull()
+      const contributionId = result.ok ? result.data.contributionId : ''
+      const rows = await contributions(fundingId)
+      expect(rows).toHaveLength(2)
+      expect(rows.reduce((s, r) => s + r.amount, 0)).toBe(140_000)
+
+      const restoreLog = errorSpy.mock.calls.find(
+        (call) => typeof call[0] === 'string' && call[0].includes('대사'),
+      )
+      expect(restoreLog?.[1]).toMatchObject({
+        fundingId,
+        contributionId,
+        capTotal: 140_000,
+        goalAmount: 100_000,
+        overGoal: true,
+      })
+      errorSpy.mockRestore()
+    },
+  )
+
+  it(
+    '예약 이후·확정 이전에 정산이 지나가면 기록을 남기고 settle 을 다시 태운다 (고아 PAID 방지)',
+    async () => {
+      const fundingId = await createFunding({ goalAmount: 100_000 })
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+      // 결제 왕복 중에 마감·주최자 취소 정산이 지나간 상황: 다른 조회가 settle 을 태워
+      // FAILED 로 확정하고 그 시점의 PAID 를 전부 환불한 뒤다 — 이 결제는 그 대상에 없었다.
+      h.duringCharge.current = async () => {
+        await prisma.funding.updateMany({
+          where: { id: fundingId, status: 'OPEN' },
+          data: { status: 'FAILED', failedAt: new Date() },
+        })
+      }
+
+      const result = await as(contributorA, () => contributeToFunding({ fundingId, amount: 40_000 }))
+
+      // 기록은 남긴다 — 결제는 이미 일어났다
+      expect(errorCode(result)).toBeNull()
+      const contributionId = result.ok ? result.data.contributionId : ''
+      const rows = await contributions(fundingId)
+      expect(rows).toHaveLength(1)
+      expect(rows[0].status).toBe('PAID')
+
+      const payments = await prisma.payment.findMany({ where: { fundingContributionId: contributionId } })
+      expect(payments).toHaveLength(1)
+
+      // 목표 미달이라 조기 성사는 아니다 — 그래도 정산을 다시 태워야 환불 경로가 생긴다
+      expect(result.ok && result.data.outcome).toBe('PAID')
+      expect(h.settleFunding).toHaveBeenCalledTimes(1)
+      expect(h.settleFunding).toHaveBeenCalledWith(fundingId)
+
+      const settleLog = errorSpy.mock.calls.find(
+        (call) => typeof call[0] === 'string' && call[0].includes('OPEN 이 아니었다'),
+      )
+      expect(settleLog?.[1]).toMatchObject({
+        fundingId,
+        contributionId,
+        amount: 40_000,
+        fundingStatus: 'FAILED',
+      })
+      errorSpy.mockRestore()
+
+      // 정산 상태 자체는 settle 소유다 — 확정이 상태를 되돌리지 않았는지 확인
+      const funding = await prisma.funding.findUniqueOrThrow({ where: { id: fundingId } })
+      expect(funding.status).toBe('FAILED')
     },
   )
 

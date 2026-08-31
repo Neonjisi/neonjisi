@@ -164,7 +164,17 @@ export type FinalizeContributionResult = {
   restored: boolean
   /** 이미 확정된 건이었다 — 결제 기록·알림을 다시 만들지 않았다 */
   alreadyPaid: boolean
+  /**
+   * 확정 시점에 펀딩이 이미 `OPEN` 이 아니었다 — 예약과 결제 사이에 마감·취소 정산이
+   * 지나갔다는 뜻이다. 이 PAID 건은 그 정산의 환불 대상에 없었으므로 **호출자가
+   * `settleFunding()` 을 다시 태워야** 고아 PAID 로 남지 않는다 (환불 실행은 §2 경계 밖).
+   */
+  settledMeanwhile: boolean
+  /** 확정 트랜잭션이 잠근 시점의 상태 — 관측 로그용. 행이 없으면 null */
+  fundingStatus: FundingStatus | null
   paidTotal: number
+  /** 복원(대사)한 경우에만 계산한다 — 초과 여부 판단의 근거. 그 외에는 null */
+  capTotalAfterRestore: number | null
   goalAmount: number
 }
 
@@ -176,11 +186,14 @@ export type FinalizeContributionResult = {
  *     목표 도달을 알아채지 못한다(둘 다 목표 미만을 읽는다) — 조기 성사가 통째로 누락된다.
  *  ② 잠금이 있으면 목표에 닿는 확정은 정확히 하나이므로 `settleFunding()` 도 1회다.
  *
- * 🔑 **대사(reconcile)**: 결제가 나가는 사이 예약이 만료 해제(행 삭제)됐을 수 있다. 이때
- *    `RESERVED → PAID` 조건부 UPDATE 는 0행이다. 여기서 실패로 되돌리면 **돈은 나갔는데
- *    기록이 없다** — M3 `lib/dal/payment.ts` 의 판단("결제는 이미 일어났으므로 기록을 잃는
- *    편이 훨씬 나쁘다")을 그대로 따라 같은 id 로 `PAID` 행을 되살리고 기록을 남긴다.
- *    되살린 사실은 로그로 남긴다 — 잔여가 잠시 목표를 넘을 수 있고, 그 정리는 정산(D) 몫이다.
+ * 🔑 **대사(reconcile)** 두 갈래. 예약과 결제 사이에 다른 흐름이 지나갈 수 있고, 어느 쪽이든
+ *    **결제는 이미 일어났으므로 기록을 잃는 편이 훨씬 나쁘다**(M3 `lib/dal/payment.ts` 의 판단):
+ *    ① **예약이 사라졌다**(만료 해제) → `RESERVED → PAID` 가 0행이다. 같은 id 로 `PAID` 행을
+ *       되살리고 기록을 남긴다. 되살리면 잔여가 목표를 넘을 수 있어, 이때만 `capTotal` 을
+ *       함께 계산해 초과 판단의 근거를 호출자에게 올린다.
+ *    ② **펀딩이 이미 종료됐다**(마감·취소 정산이 지나감) → 기록은 남기되 `settledMeanwhile`
+ *       로 알린다. 이 건은 그 정산의 환불 대상에 없었으므로 호출자가 정산을 다시 태운다.
+ *    잠금 안에서 읽은 상태를 그대로 쓰는 것이 핵심이다 — 밖에서 다시 읽으면 또 경합한다.
  */
 export async function finalizeContributionPaid(input: {
   contributionId: string
@@ -211,10 +224,6 @@ export async function finalizeContributionPaid(input: {
       })
 
       if (existing === null) {
-        console.error(
-          '[dal/funding-contribute] 결제 성공 뒤 예약이 사라져 있었다 — 같은 id 로 PAID 복원(대사)',
-          input.contributionId,
-        )
         await tx.fundingContribution.create({
           data: {
             id: input.contributionId,
@@ -264,7 +273,12 @@ export async function finalizeContributionPaid(input: {
     return {
       restored,
       alreadyPaid,
+      // 잠금 안에서 읽은 상태 그대로 판정한다 (대사 ②)
+      settledMeanwhile: funding !== null && funding.status !== 'OPEN',
+      fundingStatus: funding?.status ?? null,
       paidTotal: await paidTotal(tx, input.fundingId),
+      // 복원한 경우에만 한 번 더 읽는다 — 정상 경로에 왕복을 추가하지 않는다
+      capTotalAfterRestore: restored ? await capTotal(tx, input.fundingId) : null,
       goalAmount: funding?.goalAmount ?? 0,
     }
   }, TX_OPTIONS)

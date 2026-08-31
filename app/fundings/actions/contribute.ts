@@ -158,11 +158,40 @@ export async function contributeToFunding(input: {
       },
     })
 
+    // 대사 ① — 만료 해제된 예약을 결제 성공으로 되살렸다. 복원 건은 스키마상 다른 PAID 와
+    // 구별되지 않으므로, 초과 여부까지 **구조화 로그**로 남기는 것이 유일한 단서다.
+    // 무결성 후속 판단(초과분 처리)은 정산(D T014) 몫이다.
+    if (finalized.restored) {
+      console.error('[fundings/contribute] 대사: 만료 해제된 예약을 결제 성공으로 복원했다', {
+        fundingId,
+        contributionId: reserved.contributionId,
+        amount,
+        capTotal: finalized.capTotalAfterRestore,
+        goalAmount: finalized.goalAmount,
+        overGoal: (finalized.capTotalAfterRestore ?? 0) > finalized.goalAmount,
+      })
+    }
+
+    // 대사 ② — 예약과 결제 사이에 마감·취소 정산이 지나갔다. 이 PAID 건은 그 정산의 환불
+    // 대상에 없었으므로 다시 태우지 않으면 **환불 경로 없는 고아 PAID** 로 남는다.
+    // 환불 실행 자체는 settle 소유다 (contracts §2) — 재호출과 관측까지가 여기 몫이다.
+    if (finalized.settledMeanwhile) {
+      console.error('[fundings/contribute] 확정 시점 펀딩이 이미 OPEN 이 아니었다 — settle 재호출', {
+        fundingId,
+        contributionId: reserved.contributionId,
+        amount,
+        fundingStatus: finalized.fundingStatus,
+        paidTotal: finalized.paidTotal,
+      })
+    }
+
     // 조기 성사 (R1·R2 ③) — 확정 잠금 안에서 읽은 합계라 목표에 닿는 확정은 정확히 하나다.
     // 호출 뒤 상태·환불·정산 알림에 손대지 않는다 (contracts §2).
     // goalAmount 0 은 "확정 시점에 펀딩 행이 없었다"는 뜻이다 — 없는 펀딩을 정산시키지 않는다.
     const goalReached = finalized.goalAmount > 0 && finalized.paidTotal >= finalized.goalAmount
-    if (goalReached) await settleFunding(fundingId)
+
+    // 두 사유가 겹쳐도 호출은 한 번이다 — settle 은 멱등이지만 두 번 부를 이유가 없다
+    if (goalReached || finalized.settledMeanwhile) await settleFunding(fundingId)
 
     return {
       ok: true,
