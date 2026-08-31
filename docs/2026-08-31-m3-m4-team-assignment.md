@@ -1,6 +1,8 @@
 ﻿# 팀 업무 분담 (초안) — 마일스톤 3 · 4
 
-**작성일**: 2026-08-31 · **팀**: 4명 · Status: **DRAFT**
+**작성일**: 2026-08-31 · **팀**: 4명 · Status: **SUPERSEDED (M3)** — M3 분담은
+[specs/003-gift-request-payment/team-assignment.md](../specs/003-gift-request-payment/team-assignment.md)(T번호 확정본)가 기준이다.
+M4 분담은 §7이 기준으로 남으며, `specs/004-*` tasks가 나오면 같은 방식으로 확정한다.
 
 > 근거: `.claude/prds/neonjisi.prd.md`(rev.3) · `docs/domain-model.md` · `docs/2026-08-26-screen-spec.md`(§8·§9) · `docs/product-lens-review-v3.md` · M1·M2 분담표
 > ****이 문서는 스펙 이전의 초안이다.** M2와 같은 순서 — `specs/003-*`에서 specify → clarify → plan → tasks 가 돌고 나면, 이 분담을 tasks.md의 T번호에 매핑해 `team-assignment.md`로 확정한다. 아래 번호(J1·D1·H1…)는 **이 문서 안의 참조용 임시 번호**이며 실행 순서를 담는다.
