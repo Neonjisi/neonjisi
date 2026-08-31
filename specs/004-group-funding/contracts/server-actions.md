@@ -14,7 +14,7 @@ export async function paidTotal(tx, fundingId): Promise<number>   // PAID만 —
 export async function capTotal(tx, fundingId): Promise<number>    // RESERVED+PAID — 잔여 캡
 ```
 
-**다른 파일에서 참여 금액을 직접 합산하지 않는다** — 리뷰 체크 항목.
+**다른 파일에서 참여 금액을 펀딩 단위 총액으로 직접 합산하지 않는다** — 리뷰 체크 항목.
 
 ## 2. `lib/funding/settle.ts` — 정산 소유 경계 (R1·R5·R8) ★ M4 최우선 선행 계약
 
@@ -72,7 +72,7 @@ type FundingDetailView = {
 | 파일 (소유) | Action | 성공 | 실패 코드 |
 |---|---|---|---|
 | `create.ts` (J) | `createFunding` | `{ fundingId }` | `NOT_FRIENDS` · `NO_PAYMENT_METHOD` · `INVALID_AMOUNTS` · `INVALID_DEADLINE` · `CONSENT_REQUIRED` · `STORAGE_FAILED` |
-| `contribute.ts` (J 예약 + D 결제 연결) | `contributeToFunding` | `{ contributionId, outcome }` | `NOT_ALLOWED` · `FUNDING_CLOSED` · `OVER_REMAINING` · `PAYMENT_FAILED` · `STORAGE_FAILED` |
+| `contribute.ts` (J 예약 + D 결제 연결) | `contributeToFunding` | `{ contributionId, outcome }` | `NOT_ALLOWED` · `FUNDING_CLOSED` · `OVER_REMAINING` · `INVALID_AMOUNTS` · `PAYMENT_FAILED` · `STORAGE_FAILED` |
 | `contribute.ts` | `cancelReservation` | `{ ok: true }` | `NOT_OWNER` · `NOT_RESERVED` · `STORAGE_FAILED` |
 | `manage.ts` (D) | `cancelFunding` | `{ outcome }` | `NOT_ORGANIZER` · `NOT_OPEN` · `STORAGE_FAILED` |
 | `manage.ts` (D) | `retryFundingTopup` | `{ outcome }` | `NOT_ORGANIZER` · `NOT_RETRYABLE` · `RETRY_EXPIRED` · `STORAGE_FAILED` |
