@@ -74,6 +74,13 @@ export async function chargeGiftRequest(giftRequestId: string): Promise<
 >
 ```
 
+> **재시도 기한의 지연 평가 (2026-08-31 추가)** — `lib/gift/retry-window.ts`
+> `evaluateRetryExpiry(giftRequestId)`. charge 는 "실패한 시도가 마지막이었을 때"만 취소를
+> 확정하므로, 주는 사람이 **재시도를 안 하면** 요청이 `PAYMENT_FAILED` 로 남고 수령자는
+> FR-032 의 고지를 못 받는다. 만료(R3)와 같은 방식으로 **조회·시도 시점에** 판정한다 —
+> 결과·복구 화면 조회와 `retryGiftPayment` 의 거절 지점이 부른다.
+> **T021(`lib/dal/gift.ts`)이 오면 `evaluateExpiry()` 와 함께 조회 진입점에서 부른다.**
+
 | 호출 지점 | 잠금 (호출자 소유) | 그 뒤 (charge 소유) |
 |---|---|---|
 | `approveGift` | `PENDING → PAYING` + `resolution=APPROVED` | 전부 |
