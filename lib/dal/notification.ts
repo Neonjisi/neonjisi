@@ -1,4 +1,5 @@
 import { cache } from 'react'
+import type { Prisma } from '@prisma/client'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { verifySession } from '@/lib/dal/session'
@@ -121,4 +122,56 @@ export async function markAllOwnNotificationsRead(userId: string): Promise<{ cou
     data: { readAt: new Date() },
   })
   return { count }
+}
+
+// ---------------------------------------------------------------------------
+// M3 — 선물 알림 (T017 · research R7)
+//
+// **생성은 각 트랜잭션 소유자가 트랜잭션 안에서 한다** — 파일은 여기(D 소유)에 두되,
+// 결제 알림은 chargeGiftRequest 의 트랜잭션이, 요청·대안 알림은 각 액션의 트랜잭션이 만든다.
+// 트랜잭션 밖에서 만들면 "상태는 바뀌었는데 알림이 없다"가 생긴다 (M2 R5 와 같은 이유).
+//
+// 목록 표시(문구·이동 매핑)는 T056 에서 잇는다 — 위의 NotificationView 는 아직 M2 한 종류다.
+// ---------------------------------------------------------------------------
+
+/** 선물 알림 6종 (data-model.md "NotificationType — 6종 추가") */
+export type GiftNotificationType =
+  | 'GIFT_REQUEST_RECEIVED'
+  | 'GIFT_COUNTERED'
+  | 'GIFT_PAID'
+  | 'GIFT_PAYMENT_FAILED'
+  | 'GIFT_CANCELLED_BY_PAYMENT'
+  | 'GIFT_EXPIRED'
+
+/**
+ * payload 는 **표시용 값의 스냅샷**이다 (M2 와 같은 원칙) — 목록을 그릴 때 User·Product 를
+ * 다시 읽지 않는다. 관계가 해제돼도, 상품이 내려가도 지난 알림이 그대로 읽힌다.
+ */
+export type GiftNotificationPayload = {
+  giftRequestId: string
+  /** 받는 사람 기준의 상대 표시명 — giver 에게는 수령자, receiver 에게는 주는 사람 */
+  counterpartDisplayName: string
+  productName: string
+  amount: number
+}
+
+export type GiftNotificationEntry = {
+  userId: string
+  type: GiftNotificationType
+  payload: GiftNotificationPayload
+}
+
+/** 여러 건을 한 번에 — 성공 알림은 양쪽에 간다 (FR-029), 취소 고지도 양쪽이다 (FR-032) */
+export async function createGiftNotifications(
+  tx: Prisma.TransactionClient,
+  entries: GiftNotificationEntry[],
+): Promise<void> {
+  if (entries.length === 0) return
+  await tx.notification.createMany({
+    data: entries.map((entry) => ({
+      userId: entry.userId,
+      type: entry.type,
+      payload: entry.payload,
+    })),
+  })
 }

@@ -311,7 +311,10 @@ model GiftRequest {
 model Payment {
   id           String        @id @default(uuid()) @db.Uuid
   provider     String        @default("portone")
-  providerTxId String // mock 은 mock_ 접두
+  // 실패한 시도에는 결제사 거래 번호가 없다 — data-model.md 는 비-null 로 적혀 있으나
+  // FR-033("모든 결제 시도는 ... 기록되어야")과 함께 두려면 nullable 이어야 한다.
+  // ⚠️ J 의 T003 정본에 반영이 필요한 지점 — 인수인계에 적어 둔다.
+  providerTxId String? // mock 은 mock_ 접두
   amount       Int
   status       PaymentStatus
 
