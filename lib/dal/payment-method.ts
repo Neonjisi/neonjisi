@@ -138,3 +138,18 @@ export async function isMyPaymentMethod(
   })
   return found !== null
 }
+
+/**
+ * 재시도 수단 변경(T053)의 검증 — 본인 소유이면서 **ACTIVE** 인지 (contracts §4).
+ * 만료·삭제된 수단으로 바꿔 재시도하면 그 시도는 실패가 예정돼 있다 — 시도 횟수만 축난다.
+ */
+export async function isMyActivePaymentMethod(
+  userId: string,
+  paymentMethodId: string,
+): Promise<boolean> {
+  const found = await prisma.paymentMethod.findFirst({
+    where: { id: paymentMethodId, userId, status: 'ACTIVE' },
+    select: { id: true },
+  })
+  return found !== null
+}

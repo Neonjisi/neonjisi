@@ -205,3 +205,45 @@ export async function finalizeChargeFailure(input: {
     return { statusApplied: true }
   })
 }
+
+/** 재시도 가능 여부를 판정하는 데 필요한 것만 (T053) */
+export type RetryTarget = {
+  giverId: string
+  status: GiftStatusValue
+  paymentAttemptCount: number
+  paymentRetryUntil: Date | null
+  paymentMethodId: string
+}
+
+export async function getRetryTarget(giftRequestId: string): Promise<RetryTarget | null> {
+  return prisma.giftRequest.findUnique({
+    where: { id: giftRequestId },
+    select: {
+      giverId: true,
+      status: true,
+      paymentAttemptCount: true,
+      paymentRetryUntil: true,
+      paymentMethodId: true,
+    },
+  })
+}
+
+/**
+ * 재잠금 `PAYMENT_FAILED → PAYING` (R2). 조건부 UPDATE 라서 더블탭·동시 요청 중
+ * **한 번만** 통과한다 — 0행이면 이미 다른 시도가 진행 중이다.
+ * 결제수단 변경도 이 한 문장 안에서 한다: 먼저 바꾸고 잠그면, 잠금에 실패한 요청의
+ * 수단만 조용히 바뀌어 있다.
+ */
+export async function lockForRetry(
+  giftRequestId: string,
+  paymentMethodId?: string,
+): Promise<{ locked: boolean }> {
+  const { count } = await prisma.giftRequest.updateMany({
+    where: { id: giftRequestId, status: 'PAYMENT_FAILED' },
+    data: {
+      status: 'PAYING',
+      ...(paymentMethodId === undefined ? {} : { paymentMethodId }),
+    },
+  })
+  return { locked: count > 0 }
+}
