@@ -44,11 +44,11 @@
 
 ### 설정·암호화·PortOne
 
-- [ ] T009 [P] `lib/config/gift.ts` — env 설정값 읽기 헬퍼 (기본값 포함: TTL 5m · 24h · 3회 · mode=mock) (R11)
-- [ ] T010 [P] 단위 테스트 먼저 — `tests/unit/billing-key-crypto.test.ts`: 암호화 왕복 · 변조 시 복호화 실패
-- [ ] T011 [P] `lib/crypto/billing-key.ts` — AES-256-GCM `encryptBillingKey`/`decryptBillingKey` (R10) → T010 초록
-- [ ] T012 [P] 단위 테스트 먼저 — `tests/unit/portone-mock.test.ts`: mock 발급/결제 성공/실패(`0000` 규약)/타임아웃 정규화
-- [ ] T013 [P] `lib/portone/client.ts` — `PortOneClient` 인터페이스 + mock 구현 + `PORTONE_MODE` 스위치 (contracts §1) → T012 초록
+- [X] T009 [P] `lib/config/gift.ts` — env 설정값 읽기 헬퍼 (기본값 포함: TTL 5m · 24h · 3회 · mode=mock) (R11)
+- [X] T010 [P] 단위 테스트 먼저 — `tests/unit/billing-key-crypto.test.ts`: 암호화 왕복 · 변조 시 복호화 실패
+- [X] T011 [P] `lib/crypto/billing-key.ts` — AES-256-GCM `encryptBillingKey`/`decryptBillingKey` (R10) → T010 초록
+- [X] T012 [P] 단위 테스트 먼저 — `tests/unit/portone-mock.test.ts`: mock 발급/결제 성공/실패(`0000` 규약)/타임아웃 정규화
+- [X] T013 [P] `lib/portone/client.ts` — `PortOneClient` 인터페이스 + mock 구현 + `PORTONE_MODE` 스위치 (contracts §1) → T012 초록
 
 ### 상태 전이 · charge 경계 ★
 
@@ -59,7 +59,7 @@
 
 ### 공용 기반
 
-- [ ] T018 [P] `app/gifts/actions/shared.ts` — `ActionResult`·`guarded` (M2 `app/friends/actions/shared.ts` 이식) + `proxy.ts` matcher에 `/gifts`·`/products`·`/payment-methods`·`/events` 추가
+- [X] T018 [P] `app/gifts/actions/shared.ts` — `ActionResult`·`guarded` (M2 `app/friends/actions/shared.ts` 이식) + `proxy.ts` matcher에 `/gifts`·`/products`·`/payment-methods`·`/events` 추가
 - [ ] T019 [P] `app/gifts/error.tsx` · `app/products/error.tsx` · `app/payment-methods/error.tsx` · `app/events/error.tsx`
 - [ ] T020 [P] `components/gift/countdown.tsx`(`'use client'`) — **공용 카운트다운 하나**, 서버 시각 보정 (R8). 5분 미만 `ink` · 1분 미만 `alarm` · 모션 금지
 - [ ] T021 `lib/dal/gift.ts` — `getPendingRequestsForMe`·`getSentGifts`·`getReceivedGifts`·`getGiftRequest` — **전부 `evaluateExpiry()` 경유** (R3), View는 스냅샷 필드만 (R5)
