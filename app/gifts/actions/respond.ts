@@ -1,7 +1,12 @@
 'use server'
 
 import { z } from 'zod'
-import { prisma } from '@/lib/prisma'
+import {
+  findGiftRequestById,
+  findGiftRequestStatus,
+  findProductById,
+  lockCounterAndNotify,
+} from '@/lib/dal/gift-respond'
 import { verifySession } from '@/lib/dal/session'
 import { chargeGiftRequest } from '@/lib/gift/charge'
 import { evaluateExpiry, transitionGiftRequest } from '@/lib/gift/state'
@@ -86,11 +91,10 @@ function statusBlocked<T>(status: string): ActionResult<T> | null {
  * 재조회로 사유를 구분해 돌려준다 (contracts §4-5).
  */
 async function lockLost<T>(giftRequestId: string): Promise<ActionResult<T>> {
-  const row = await prisma.giftRequest.findUnique({
-    where: { id: giftRequestId },
-    select: { status: true },
-  })
-  return statusBlocked<T>(row?.status ?? 'CANCELLED') ?? fail('ALREADY_RESPONDED', ALREADY_RESPONDED_MESSAGE)
+  const status = await findGiftRequestStatus(giftRequestId)
+  return (
+    statusBlocked<T>(status ?? 'CANCELLED') ?? fail('ALREADY_RESPONDED', ALREADY_RESPONDED_MESSAGE)
+  )
 }
 
 /** 1·2 공통 게이트 — receiver 본인 확인 뒤 지연 만료 평가까지. 통과하면 PENDING 행이다 */
@@ -100,7 +104,7 @@ async function loadPendingForReceiver(giftRequestId: string, userId: string) {
     return { blocked: fail<never>('NOT_RECEIVER', NOT_RECEIVER_MESSAGE), gift: null }
   }
 
-  const gift = await prisma.giftRequest.findUnique({ where: { id: parsed.data } })
+  const gift = await findGiftRequestById(parsed.data)
   if (!gift || gift.receiverId !== userId) {
     return { blocked: fail<never>('NOT_RECEIVER', NOT_RECEIVER_MESSAGE), gift: null }
   }
@@ -160,7 +164,7 @@ export async function counterGift(input: {
     const idParsed = uuidSchema.safeParse(input.counterProductId)
     if (!idParsed.success) return fail('PRODUCT_UNAVAILABLE', PRODUCT_UNAVAILABLE_MESSAGE)
 
-    const product = await prisma.product.findUnique({ where: { id: idParsed.data } })
+    const product = await findProductById(idParsed.data)
     if (!product || !product.isActive) {
       return fail('PRODUCT_UNAVAILABLE', PRODUCT_UNAVAILABLE_MESSAGE)
     }
@@ -174,41 +178,31 @@ export async function counterGift(input: {
 
     // 5+6. 잠금과 GIFT_COUNTERED 가 한 트랜잭션 — 잠금에 진 쪽은 알림 지점에 못 온다 (R7).
     //      대안 스냅샷도 잠금과 한 UPDATE 다 (C6: 3필드 전무/전유는 DB CHECK 가 최종 방어선).
+    //      대안 경로의 GIFT_COUNTERED 만 respond 가 보낸다 — 결제 알림은 charge 소유.
     const now = new Date()
-    const locked = await prisma.$transaction(async (tx) => {
-      const { transitioned } = await transitionGiftRequest(gift.id, 'PENDING', 'PAYING', {
-        db: tx,
-        data: {
-          resolution: 'COUNTERED',
-          resolvedAt: now,
-          counterProductId: product.id,
-          counterProductSnapshot: {
-            name: product.name,
-            imageUrl: product.imageUrl,
-            price: product.price,
-          },
-          counterAmount: product.price,
-          counteredAt: now,
-          finalAmount: product.price,
-          shippingAddressSnapshot: shipping.data,
+    const locked = await lockCounterAndNotify({
+      giftRequestId: gift.id,
+      giverId: gift.giverId,
+      data: {
+        resolution: 'COUNTERED',
+        resolvedAt: now,
+        counterProductId: product.id,
+        counterProductSnapshot: {
+          name: product.name,
+          imageUrl: product.imageUrl,
+          price: product.price,
         },
-      })
-      if (!transitioned) return false
-
-      // 대안 경로의 GIFT_COUNTERED 만 respond 가 보낸다 — 결제 알림은 charge 소유 (R7)
-      await tx.notification.create({
-        data: {
-          userId: gift.giverId,
-          type: 'GIFT_COUNTERED',
-          payload: {
-            giftRequestId: gift.id,
-            counterpartDisplayName: gift.receiverDisplayName,
-            productName: product.name,
-            amount: product.price,
-          },
-        },
-      })
-      return true
+        counterAmount: product.price,
+        counteredAt: now,
+        finalAmount: product.price,
+        shippingAddressSnapshot: shipping.data,
+      },
+      payload: {
+        giftRequestId: gift.id,
+        counterpartDisplayName: gift.receiverDisplayName,
+        productName: product.name,
+        amount: product.price,
+      },
     })
     if (!locked) return lockLost(gift.id)
 
