@@ -14,7 +14,9 @@ import { verifySession } from '@/lib/dal/session'
 import { CONSENT_VERSION } from '@/lib/gift/consent'
 // D 소유 T018 — origin/main 에 오르기 전까지 이 import 는 미해결이다 (M3-J-BRIEFING ③ 게이트:
 // "없으면 import 만 써 두고 대기"). M2 app/friends/actions/shared.ts 와 같은 모양일 것.
-import { guarded, type ActionResult } from './shared'
+// 상대 경로 대신 절대 임포트(@/*) — 프로젝트 규칙이기도 하고, T018 전까지 통합 테스트가
+// 같은 지정자로 vi.mock 대체할 수 있어야 한다 (gift-request.test.ts 참조).
+import { guarded, type ActionResult } from '@/app/gifts/actions/shared'
 
 /**
  * 선물 요청 생성·취소 Server Action (T038 · US3)
