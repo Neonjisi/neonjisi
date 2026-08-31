@@ -254,14 +254,15 @@ describe.skipIf(skipReason !== '')('createGiftRequest · cancelGiftRequest (T035
     // 알림 — 수령자에게만, payload 는 표시용 값 스냅샷 (data-model.md NotificationType)
     const received = await notificationsOf(receiver.id)
     expect(received).toHaveLength(1)
+    // payload 는 gift 계열 공통 형태(T015 GiftNotificationPayload) — 알림 목록이 형태 하나만 안다
     expect(received[0]).toMatchObject({
       type: 'GIFT_REQUEST_RECEIVED',
       readAt: null,
       payload: {
         giftRequestId,
-        giverDisplayName: giver.displayName,
+        counterpartDisplayName: giver.displayName,
         productName: product.name,
-        requestedAmount: product.price,
+        amount: product.price,
       },
     })
     expect(await notificationsOf(giver.id)).toHaveLength(0)

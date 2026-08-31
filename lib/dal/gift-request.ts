@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { prisma } from '@/lib/prisma'
+import { transitionGiftRequest, type GiftNotificationPayload } from '@/lib/gift/state'
 
 /**
  * 선물 요청 생성·취소 DAL (T038 · US3) — 계약: specs/003-gift-request-payment/contracts/server-actions.md §4
@@ -135,12 +136,13 @@ export async function createGiftRequestTransaction(
       data: {
         userId: input.receiverId,
         type: 'GIFT_REQUEST_RECEIVED',
+        // gift 계열 공통 payload (T015 GiftNotificationPayload) — 수령자에게 가므로 상대는 giver
         payload: {
           giftRequestId,
-          giverDisplayName: input.giverDisplayName,
+          counterpartDisplayName: input.giverDisplayName,
           productName: input.product.name,
-          requestedAmount: input.product.price,
-        },
+          amount: input.product.price,
+        } satisfies GiftNotificationPayload,
       },
       select: { id: true },
     }),
@@ -152,28 +154,24 @@ export async function createGiftRequestTransaction(
 export type CancelOutcome = 'CANCELLED' | 'NOT_CANCELLABLE' | 'NOT_OWNER'
 
 /**
- * 본인(giver)의 PENDING 요청을 취소한다 — `PENDING → CANCELLED` 는 R6 전이 표의 화살표다.
- * 조회와 갱신을 한 문장(updateMany + 조건)으로 묶어 "확인 뒤 갱신" 사이의 경합을 없앤다 —
- * ④의 `PENDING → PAYING` 잠금이 동시에 이기면 0건이 바뀌고, 그것이 곧 "취소 불가"다 (R2).
- * TODO(T015): 세션 ②의 `lib/gift/state.ts` 전이 모듈이 서면 그 경유로 정리한다 —
- * 화살표 자체는 이미 표에 있는 것만 쓴다.
+ * 본인(giver)의 PENDING 요청을 취소한다 — `PENDING → CANCELLED` 전이는 T015 관문
+ * (`transitionGiftRequest`) 경유다: 조건부 UPDATE 라 ④의 `PENDING → PAYING` 잠금과
+ * 경합해도 어느 한쪽만 이긴다 (R2). `cancelledAt` 은 관문이 채운다.
  *
- * 0건일 때만 사유를 가른다: 남의 것·없는 것은 **같은 NOT_OWNER** 로 뭉갠다 —
- * 존재 여부를 알리면 id 탐색에 힌트가 된다 (M2 알림 읽음 처리와 같은 규칙).
+ * 소유 검사는 전이보다 먼저 따로 한다 — giverId 는 불변이라 검사·전이 사이 경합이 없다.
+ * 남의 것·없는 것은 **같은 NOT_OWNER** 로 뭉갠다 — 존재 여부를 알리면 id 탐색에
+ * 힌트가 된다 (M2 알림 읽음 처리와 같은 규칙).
  */
 export async function cancelOwnPendingGiftRequest(
   giverId: string,
   giftRequestId: string,
 ): Promise<CancelOutcome> {
-  const { count } = await prisma.giftRequest.updateMany({
-    where: { id: giftRequestId, giverId, status: 'PENDING' },
-    data: { status: 'CANCELLED', cancelledAt: new Date() },
-  })
-  if (count > 0) return 'CANCELLED'
-
   const existing = await prisma.giftRequest.findUnique({
     where: { id: giftRequestId },
     select: { giverId: true },
   })
-  return existing?.giverId === giverId ? 'NOT_CANCELLABLE' : 'NOT_OWNER'
+  if (existing?.giverId !== giverId) return 'NOT_OWNER'
+
+  const { transitioned } = await transitionGiftRequest(giftRequestId, 'PENDING', 'CANCELLED')
+  return transitioned ? 'CANCELLED' : 'NOT_CANCELLABLE'
 }
