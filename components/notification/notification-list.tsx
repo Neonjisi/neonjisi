@@ -9,6 +9,7 @@ import {
 } from "@/app/friends/actions/notification";
 import { NOTIFICATION_READ_FAILED_MESSAGE } from "@/lib/actions/call-action";
 import { isRedirectError } from "@/lib/actions/redirect-error";
+import type { NotificationItem } from "@/lib/notification/display";
 
 /**
  * 알림 목록 (SCR-M3-02 · T047) — 클라이언트 컴포넌트 예산(contracts §4)에 계획된 셋 중 하나.
@@ -17,21 +18,11 @@ import { isRedirectError } from "@/lib/actions/redirect-error";
  * 상세로 넘어가므로, 서버 응답을 기다렸다가 표식을 지우면 이미 화면이 바뀐 뒤가 된다.
  * 그래서 표식은 즉시 지우고 요청은 뒤따라 보낸다 — 실패하면 표식을 되돌린다.
  *
- * **데이터는 서버에서 만들어 내려온다.** 상대 시각 문자열까지 서버가 만든다 (lib/format/time) —
- * 클라이언트가 다시 계산하면 1분 차이로 hydration 이 어긋난다. 여기서 거르는 것은 없다:
- * 목록은 이미 DAL 이 본인 것만 내보낸 결과다 (research R4).
+ * **데이터는 서버에서 만들어 내려온다.** 문구·이동 경로·상대 시각 문자열까지 전부
+ * lib/notification/display.ts 가 만든다 (T056) — 클라이언트가 다시 계산하면 1분 차이로
+ * hydration 이 어긋나고, 종류별 분기가 화면마다 흩어지면 새 종류를 빠뜨린 화면이 생긴다.
+ * 여기서 거르는 것은 없다: 목록은 이미 DAL 이 본인 것만 내보낸 결과다 (research R4).
  */
-
-export type NotificationItem = {
-  id: string;
-  /** 누르면 갈 곳 — 그 친구의 취향 카드 (FR-032) */
-  friendUserId: string;
-  friendDisplayName: string;
-  createdAtLabel: string;
-  /** <time datetime> 용 — 기계가 읽는 정확한 값 */
-  createdAtISO: string;
-  isRead: boolean;
-};
 
 export function NotificationList({ notifications }: { notifications: NotificationItem[] }) {
   const router = useRouter();
@@ -104,7 +95,7 @@ export function NotificationList({ notifications }: { notifications: Notificatio
         {notifications.map((item) => (
           <li key={item.id}>
             <Link
-              href={`/friends/${item.friendUserId}`}
+              href={item.href}
               onClick={() => {
                 if (!isRead(item)) markRead(item.id);
               }}
@@ -121,9 +112,7 @@ export function NotificationList({ notifications }: { notifications: Notificatio
                 )}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-[15px] text-neutral-900">
-                  {item.friendDisplayName}님이 링크로 친구가 되었습니다
-                </span>
+                <span className="block text-[15px] text-neutral-900">{item.message}</span>
                 <time
                   dateTime={item.createdAtISO}
                   className="block pt-1 text-xs text-neutral-500"

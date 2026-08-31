@@ -144,8 +144,11 @@ describe.skipIf(!hasDatabase)('알림 — 생성 · 목록 · 읽음 처리 (T04
         friendDisplayName: accepter.displayName,
       },
     })
-    // 방금 생긴 관계를 가리킨다 — 알림이 어느 성사에서 왔는지가 payload 안에 있다
-    expect(received[0].payload.friendshipId).toBe(friendshipId)
+    // 방금 생긴 관계를 가리킨다 — 알림이 어느 성사에서 왔는지가 payload 안에 있다.
+    // M3 에서 NotificationView 가 종류별 유니온이 됐다 (T056) — 종류를 먼저 좁힌다
+    const first = received[0]
+    if (first.type !== 'FRIEND_JOINED_VIA_LINK') throw new Error('친구 성사 알림이어야 한다')
+    expect(first.payload.friendshipId).toBe(friendshipId)
 
     // 링크를 연 쪽에는 알림이 생기지 않는다 — 통제 수단은 발급자의 것이다
     await expect(as(accepter.id, getMyNotifications)).resolves.toHaveLength(0)

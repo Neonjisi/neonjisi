@@ -33,10 +33,12 @@ vi.mock('next/link', () => ({
 
 const { NotificationList } = await import('@/components/notification/notification-list')
 
+// T056 이후 문구·이동 경로는 서버(lib/notification/display.ts)가 만들어 내려준다 —
+// 이 컴포넌트는 종류를 모른다. 그래서 픽스처도 완성된 문구·href 를 담는다.
 const UNREAD = {
   id: '11111111-1111-4111-8111-111111111111',
-  friendUserId: '22222222-2222-4222-8222-222222222222',
-  friendDisplayName: '김민수',
+  href: '/friends/22222222-2222-4222-8222-222222222222',
+  message: '김민수님이 링크로 친구가 되었습니다',
   createdAtLabel: '3분 전',
   createdAtISO: '2026-08-31T11:57:00.000Z',
   isRead: false,
@@ -44,8 +46,8 @@ const UNREAD = {
 
 const READ = {
   id: '33333333-3333-4333-8333-333333333333',
-  friendUserId: '44444444-4444-4444-8444-444444444444',
-  friendDisplayName: '이서연',
+  href: '/gifts/44444444-4444-4444-8444-444444444444/result',
+  message: '이서연님 선물의 결제가 완료되었어요',
   createdAtLabel: '어제',
   createdAtISO: '2026-08-30T12:00:00.000Z',
   isRead: true,
@@ -66,8 +68,9 @@ describe('NotificationList (T047)', () => {
     expect(screen.getByText('3분 전')).toBeInTheDocument()
 
     const links = screen.getAllByRole('link')
-    expect(links[0]).toHaveAttribute('href', `/friends/${UNREAD.friendUserId}`)
-    expect(links[1]).toHaveAttribute('href', `/friends/${READ.friendUserId}`)
+    expect(links[0]).toHaveAttribute('href', UNREAD.href)
+    // 선물 알림은 선물 화면으로 간다 — 목록은 종류를 모른 채 href 를 그대로 쓴다 (T056)
+    expect(links[1]).toHaveAttribute('href', READ.href)
   })
 
   it('알림을 누르면 표식이 즉시 사라지고 그 id 로 읽음 처리를 부른다 (FR-031)', async () => {

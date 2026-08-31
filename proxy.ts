@@ -45,5 +45,11 @@ export const config = {
     '/signup/:path*',
     '/friends/:path*',
     '/notifications/:path*',
+    // M3 (T018): 선물 · 카탈로그 · 결제수단 · 일정. 계약 contracts §5.
+    // 홈(/)은 여기 넣지 않는다 — M1부터 페이지 안에서 세션·온보딩을 판정해 리다이렉트한다.
+    '/gifts/:path*',
+    '/products/:path*',
+    '/payment-methods/:path*',
+    '/events/:path*',
   ],
 }

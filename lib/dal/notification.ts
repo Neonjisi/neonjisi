@@ -1,4 +1,5 @@
 import { cache } from 'react'
+import type { Prisma } from '@prisma/client'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { verifySession } from '@/lib/dal/session'
@@ -20,7 +21,8 @@ export type NotificationPayload = {
   friendDisplayName: string
 }
 
-export type NotificationView = {
+/** M2 의 친구 성사 알림 */
+export type FriendNotificationView = {
   id: string
   type: 'FRIEND_JOINED_VIA_LINK'
   payload: NotificationPayload
@@ -28,16 +30,48 @@ export type NotificationView = {
   createdAt: Date
 }
 
+/** M3 의 선물 알림 6종 (T056) — payload 는 발생 시점의 표시용 스냅샷이다 */
+export type GiftNotificationView = {
+  id: string
+  type: GiftNotificationType
+  payload: GiftNotificationPayload
+  readAt: Date | null
+  createdAt: Date
+}
+
+export type NotificationView = FriendNotificationView | GiftNotificationView
+
 /**
  * payload 는 Json 컬럼이라 타입이 보장되지 않는다 — 우리가 쓴 값이지만 스키마 변경·수동 수정에
  * 대비해 읽는 쪽에서 형태를 검사한다 (입력 검증은 경계에서). 형태가 깨진 행은 목록에서 빼고
  * 서버 로그에 남긴다 — 화면 하나를 통째로 죽이는 대신 그 줄만 잃는다.
  */
-const payloadSchema = z.object({
+const friendPayloadSchema = z.object({
   friendshipId: z.string(),
   friendUserId: z.string(),
   friendDisplayName: z.string(),
 })
+
+/** 선물 알림 payload (T017 이 쓴 형태) — 목록이 User·Product 를 다시 읽지 않게 하는 스냅샷 */
+const giftPayloadSchema = z.object({
+  giftRequestId: z.string(),
+  counterpartDisplayName: z.string(),
+  productName: z.string(),
+  amount: z.number(),
+})
+
+const GIFT_NOTIFICATION_TYPES = [
+  'GIFT_REQUEST_RECEIVED',
+  'GIFT_COUNTERED',
+  'GIFT_PAID',
+  'GIFT_PAYMENT_FAILED',
+  'GIFT_CANCELLED_BY_PAYMENT',
+  'GIFT_EXPIRED',
+] as const
+
+function isGiftNotificationType(type: string): type is GiftNotificationType {
+  return (GIFT_NOTIFICATION_TYPES as readonly string[]).includes(type)
+}
 
 type NotificationRow = {
   id: string
@@ -48,18 +82,27 @@ type NotificationRow = {
 }
 
 function toView(row: NotificationRow): NotificationView | null {
-  const parsed = payloadSchema.safeParse(row.payload)
-  if (!parsed.success) {
-    console.error('[dal/notification] payload 형태가 계약과 다르다 — 목록에서 제외', row.id)
-    return null
+  const common = { id: row.id, readAt: row.readAt, createdAt: row.createdAt }
+
+  if (row.type === 'FRIEND_JOINED_VIA_LINK') {
+    const parsed = friendPayloadSchema.safeParse(row.payload)
+    if (!parsed.success) return dropped(row.id)
+    return { ...common, type: 'FRIEND_JOINED_VIA_LINK', payload: parsed.data }
   }
-  return {
-    id: row.id,
-    type: 'FRIEND_JOINED_VIA_LINK',
-    payload: parsed.data,
-    readAt: row.readAt,
-    createdAt: row.createdAt,
+
+  if (isGiftNotificationType(row.type)) {
+    const parsed = giftPayloadSchema.safeParse(row.payload)
+    if (!parsed.success) return dropped(row.id)
+    return { ...common, type: row.type, payload: parsed.data }
   }
+
+  // M4 의 funding 4종이 먼저 들어오는 경우 — 모르는 종류는 조용히 뺀다
+  return dropped(row.id)
+}
+
+function dropped(id: string): null {
+  console.error('[dal/notification] payload 형태가 계약과 다르다 — 목록에서 제외', id)
+  return null
 }
 
 /**
@@ -121,4 +164,56 @@ export async function markAllOwnNotificationsRead(userId: string): Promise<{ cou
     data: { readAt: new Date() },
   })
   return { count }
+}
+
+// ---------------------------------------------------------------------------
+// M3 — 선물 알림 (T017 · research R7)
+//
+// **생성은 각 트랜잭션 소유자가 트랜잭션 안에서 한다** — 파일은 여기(D 소유)에 두되,
+// 결제 알림은 chargeGiftRequest 의 트랜잭션이, 요청·대안 알림은 각 액션의 트랜잭션이 만든다.
+// 트랜잭션 밖에서 만들면 "상태는 바뀌었는데 알림이 없다"가 생긴다 (M2 R5 와 같은 이유).
+//
+// 목록 표시(문구·이동 매핑)는 T056 에서 잇는다 — 위의 NotificationView 는 아직 M2 한 종류다.
+// ---------------------------------------------------------------------------
+
+/** 선물 알림 6종 (data-model.md "NotificationType — 6종 추가") */
+export type GiftNotificationType =
+  | 'GIFT_REQUEST_RECEIVED'
+  | 'GIFT_COUNTERED'
+  | 'GIFT_PAID'
+  | 'GIFT_PAYMENT_FAILED'
+  | 'GIFT_CANCELLED_BY_PAYMENT'
+  | 'GIFT_EXPIRED'
+
+/**
+ * payload 는 **표시용 값의 스냅샷**이다 (M2 와 같은 원칙) — 목록을 그릴 때 User·Product 를
+ * 다시 읽지 않는다. 관계가 해제돼도, 상품이 내려가도 지난 알림이 그대로 읽힌다.
+ */
+export type GiftNotificationPayload = {
+  giftRequestId: string
+  /** 받는 사람 기준의 상대 표시명 — giver 에게는 수령자, receiver 에게는 주는 사람 */
+  counterpartDisplayName: string
+  productName: string
+  amount: number
+}
+
+export type GiftNotificationEntry = {
+  userId: string
+  type: GiftNotificationType
+  payload: GiftNotificationPayload
+}
+
+/** 여러 건을 한 번에 — 성공 알림은 양쪽에 간다 (FR-029), 취소 고지도 양쪽이다 (FR-032) */
+export async function createGiftNotifications(
+  tx: Prisma.TransactionClient,
+  entries: GiftNotificationEntry[],
+): Promise<void> {
+  if (entries.length === 0) return
+  await tx.notification.createMany({
+    data: entries.map((entry) => ({
+      userId: entry.userId,
+      type: entry.type,
+      payload: entry.payload,
+    })),
+  })
 }

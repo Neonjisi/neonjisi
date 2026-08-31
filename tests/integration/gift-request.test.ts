@@ -48,22 +48,6 @@ vi.mock('@/lib/supabase/server', () => ({
 
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }))
 
-// D 소유 T018(app/gifts/actions/shared.ts)이 origin/main 에 오르기 전까지 M2
-// app/friends/actions/shared.ts 계약과 같은 모양으로 대체한다 — ④가 D5(chargeGiftRequest)를
-// vi.mock 으로 대체하는 것과 같은 방식이고, **파일은 만들지 않는다** (M3-J-BRIEFING 공통 규칙).
-// T018 이 실제로 오르면 이 mock 을 지워 진짜 guarded(STORAGE_FAILED 변환)를 태운다.
-vi.mock('@/app/gifts/actions/shared', () => ({
-  failure: (error: { code: string; message: string }) => ({ ok: false, error }),
-  guarded: async (message: string, run: () => Promise<unknown>) => {
-    try {
-      return await run()
-    } catch (e) {
-      console.error('[gift-request.test mock guarded] 예상 못 한 예외 — STORAGE_FAILED 변환', e)
-      return { ok: false, error: { code: 'STORAGE_FAILED', message } }
-    }
-  },
-}))
-
 // 이 머신에서 실 DB 왕복이 느려 기본 5초를 넘는 케이스가 있다(로직 문제 아님) — 이 파일만 상향
 vi.setConfig({ testTimeout: 30_000 })
 
