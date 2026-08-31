@@ -5,7 +5,10 @@ import { prisma } from '@/lib/prisma'
 import { verifySession } from '@/lib/dal/session'
 import { chargeGiftRequest } from '@/lib/gift/charge'
 import { evaluateExpiry, transitionGiftRequest } from '@/lib/gift/state'
-import { guarded, type ActionResult } from './shared'
+// D 소유 T018 — origin 에 오르기 전까지 이 import 는 미해결이다 (M3-J-BRIEFING ③④ 게이트:
+// "없으면 import 만 써 두고 대기"). 상대경로가 아닌 별칭인 이유: 파일이 오르기 전까지
+// 테스트가 vi.mock 으로 대체하는데, mock 은 별칭 지정자에만 걸린다 (T045 주석 참고).
+import { guarded, type ActionResult } from '@/app/gifts/actions/shared'
 
 /**
  * 수령자 응답 Server Action (T046 · US4)

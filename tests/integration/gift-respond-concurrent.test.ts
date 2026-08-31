@@ -54,6 +54,22 @@ vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }))
 // D5(T017) 대체 — 계약: contracts §2. 잠긴 요청만 받는다는 전제를 이 테스트가 강제한다.
 vi.mock('@/lib/gift/charge', () => ({ chargeGiftRequest: h.chargeGiftRequest }))
 
+// D 소유 T018(app/gifts/actions/shared.ts)이 오르기 전까지 M2 app/friends/actions/shared.ts
+// 계약과 같은 모양으로 대체한다 — ③ gift-request.test.ts 와 같은 방식이고 **파일은 만들지
+// 않는다** (M3-J-BRIEFING 공통 규칙). T018 이 실제로 오르면 이 mock 을 지워 진짜
+// guarded(STORAGE_FAILED 변환)를 태운다.
+vi.mock('@/app/gifts/actions/shared', () => ({
+  failure: (error: { code: string; message: string }) => ({ ok: false, error }),
+  guarded: async (message: string, run: () => Promise<unknown>) => {
+    try {
+      return await run()
+    } catch (e) {
+      console.error('[gift-respond.test mock guarded] 예상 못 한 예외 — STORAGE_FAILED 변환', e)
+      return { ok: false, error: { code: 'STORAGE_FAILED', message } }
+    }
+  },
+}))
+
 const hasDatabase = Boolean(process.env.DATABASE_URL)
 const { prisma } = hasDatabase
   ? await import('@/lib/prisma')
