@@ -41,9 +41,15 @@ model User {
   // M3 역참조 (specs/003 data-model — User 컬럼은 바꾸지 않는다).
   // GiftRequest 는 User 를 두 번 참조(giver·receiver)하므로 관계 이름이 필수다.
   paymentMethods       PaymentMethod[]
-  giftRequestsSent     GiftRequest[]      @relation("GiftGiver")
-  giftRequestsReceived GiftRequest[]      @relation("GiftReceiver")
+  giftRequestsSent     GiftRequest[]   @relation("GiftGiver")
+  giftRequestsReceived GiftRequest[]   @relation("GiftReceiver")
   events               Event[]
+
+  // M4 역참조 (specs/004 data-model — User 컬럼은 바꾸지 않는다).
+  // Funding 은 User 를 두 번 참조(organizer·receiver)하므로 관계 이름이 필수다.
+  fundingsOrganized    Funding[]             @relation("FundingOrganizer")
+  fundingsReceived     Funding[]             @relation("FundingReceiver")
+  fundingContributions FundingContribution[]
 }
 
 model TasteProfile {
@@ -83,12 +89,12 @@ model TasteItem {
   category Category     @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   product  Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
 
-  @@index([profileId, kind])
   // C2 유니크 (T010). 실제 제약은 NULLS NOT DISTINCT 인데 Prisma 문법으로 표현되지
   // 않아 raw SQL 마이그레이션(20260828011025)으로 넣었다. 여기 @@unique 는 diff 가
   // 그 제약을 지우려 들지 않게 하는 매핑이다 — `db push` 로 새 DB 를 만들면
   // NULLS DISTINCT 로 생기므로, 새 환경은 반드시 `migrate deploy` 로 만든다.
   @@unique([profileId, kind, categoryId, detail], map: "TasteItem_profile_kind_category_detail_key")
+  @@index([profileId, kind])
 }
 
 // ---------------------------------------------------------------------------
@@ -104,13 +110,17 @@ enum FriendshipStatus {
 enum NotificationType {
   FRIEND_JOINED_VIA_LINK // M2 (R6)
   // M3 gift 6종 — 만드는 곳이 정해져 있다 (specs/003 data-model, R7).
-  // funding 4종은 M4 에서 추가한다 (원칙 V).
   GIFT_REQUEST_RECEIVED // 수령자 ← createGiftRequest 트랜잭션
   GIFT_COUNTERED // 주는 사람 ← counterGift 액션
   GIFT_PAID // 양쪽 ← chargeGiftRequest()
   GIFT_PAYMENT_FAILED // 주는 사람 ← chargeGiftRequest()
   GIFT_CANCELLED_BY_PAYMENT // 수령자 ← chargeGiftRequest() 상한 초과 확정 시. 누락 금지 (FR-032)
   GIFT_EXPIRED // 주는 사람 ← evaluateExpiry() 만료 확정 지점 (R3)
+  // M4 funding 4종 — 만드는 곳이 정해져 있다 (specs/004 research R8).
+  FUNDING_CONTRIBUTION_RECEIVED // 주최자 ← 참여 확정 트랜잭션 (R2 ③)
+  FUNDING_SUCCEEDED // 참여자·수령자 ← settleFunding() 성사 확정
+  FUNDING_FAILED_REFUNDED // 참여자 ← settleFunding() 미달·취소 환불
+  FUNDING_ORGANIZER_TOPUP // 주최자 ← settleFunding() 차액 결제 성공
 }
 
 // 친구 관계 — 한 쌍당 한 행. 양방향으로 복제하지 않는다 (도메인 모델 §4).
@@ -225,6 +235,7 @@ model Product {
   tasteItems          TasteItem[]
   giftRequests        GiftRequest[] @relation("GiftRequestProduct")
   counterGiftRequests GiftRequest[] @relation("GiftRequestCounterProduct")
+  fundings            Funding[] // M4 — 펀딩 대상 상품
 
   @@index([categoryId, isActive]) // 목록·대상 필터
   @@index([isActive, price]) // 상한 필터(SCR-M3-13) · 추천 가격 정렬 (R9)
@@ -245,6 +256,7 @@ model PaymentMethod {
 
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   giftRequests GiftRequest[]
+  fundings     Funding[] // M4 — 차액 부담용 (organizerPaymentMethodId)
 
   @@index([userId, status]) // "활성 수단 존재" 검증(FR-013 ②)과 관리 화면
 }
@@ -307,24 +319,28 @@ model GiftRequest {
 // 결제 기록 — polymorphic(payableType+payableId) 대신 nullable FK 2개 + C8(XOR).
 // DB 가 참조 무결성을 계속 지킨다. 결제 데이터에서 이것을 양보하지 않는다 (도메인 모델 §5).
 model Payment {
-  id           String        @id @default(uuid()) @db.Uuid
-  provider     String // 'portone' (mock 포함)
-  providerTxId String // mock 은 mock_ 접두 uuid
-  amount       Int
-  status       PaymentStatus
-  giftRequestId String?      @db.Uuid // C8
-  // M4 FundingContribution 대상 — 컬럼만 선반영, FK 는 M4 F1 에서 ADD CONSTRAINT 한 줄 (R4).
-  // 지금 컬럼이 없으면 C8 을 줄여 걸었다가 M4 에서 제약을 떨어뜨리고 다시 걸어야 한다.
-  fundingContributionId String? @db.Uuid
-  paidAt       DateTime?
-  refundedAt   DateTime?
-  createdAt    DateTime      @default(now())
+  id                    String        @id @default(uuid()) @db.Uuid
+  provider              String // 'portone' (mock 포함)
+  providerTxId          String // mock 은 mock_ 접두 uuid
+  amount                Int
+  status                PaymentStatus
+  giftRequestId         String?       @db.Uuid // C8
+  // M4 FundingContribution 대상 — FK(payment_funding_contribution_fk)는 raw SQL
+  // 마이그레이션(T007)으로 추가했다. C9·C10 과 같은 이유로 Prisma `@relation` 을 선언하지
+  // 않는다 — 선언하면 T005(schema 반영) 시점에 FK 가 즉시 걸려 T006 의 RED 증거(FK 미적용
+  // 상태에서의 실패)를 낼 수 없다. 걸렸는지는 tests/integration/funding-constraints.test.ts 가 판정한다.
+  fundingContributionId String?       @db.Uuid
+  paidAt                DateTime?
+  refundedAt            DateTime?
+  createdAt             DateTime      @default(now())
 
   // SetNull 은 C8 을 깨므로 Restrict — 결제 이력은 대상보다 오래 남는다
   giftRequest GiftRequest? @relation(fields: [giftRequestId], references: [id], onDelete: Restrict)
 
   // ⚠️ C8 payment_exactly_one_target — 정확히 하나의 대상에 연결(XOR CHECK). raw SQL (R4).
-  // `db push` 로 만든 DB 에는 없다. tests/integration/gift-constraints.test.ts 가 판정한다.
+  // M4 에서 payment_funding_contribution_fk(FK)도 같은 방식(raw SQL, `--create-only`)으로
+  // 추가됐다 — 둘 다 `db push` 로 만든 DB 에는 없다. C8 은
+  // tests/integration/gift-constraints.test.ts, FK 는 tests/integration/funding-constraints.test.ts 가 판정한다.
 
   @@index([giftRequestId]) // 요청별 시도 이력 (FR-033)
 }
@@ -344,4 +360,90 @@ model Event {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, date]) // 본인·친구 일정 조회
+}
+
+// ---------------------------------------------------------------------------
+// M4 — 고가 선물을 여럿이 함께 준비한다 (specs/004-group-funding/data-model.md)
+// M1~M3 모델의 기존 필드는 바꾸지 않는다. User·Product·PaymentMethod 에는 역참조만,
+// Payment 에는 FK 만 추가한다(raw SQL, T007 — 스키마에는 선언하지 않는다. 위 Payment 모델 주석 참조).
+// ---------------------------------------------------------------------------
+
+enum FundingStatus {
+  OPEN
+  SUCCEEDED
+  SETTLED
+  FAILED
+  CANCELLED // 환불 상태 없음 — FAILED/CANCELLED 구분 유지 (FR-018)
+}
+
+enum ContributionStatus {
+  RESERVED // 예약 — FOR UPDATE 로 잔여를 선점한 뒤 생성 (R2)
+  PAID
+  REFUNDED // 환불 진행은 여기 남는다 (FR-018)
+}
+
+// 펀딩 — 개설자·수령자·참여자 3주체 구조. 화면은 스냅샷 필드만 읽는다 (원칙 IV — Product 조인 렌더 금지).
+model Funding {
+  id          String        @id @default(uuid()) @db.Uuid
+  organizerId String        @db.Uuid // 개설자 = 수령자 가능
+  receiverId  String        @db.Uuid // C10 의 축
+  status      FundingStatus @default(OPEN)
+
+  productId       String @db.Uuid // 이력 추적용 참조 — 렌더에 쓰지 않는다
+  productSnapshot Json // 이름·이미지·가격. 생성 시 복사
+
+  goalAmount Int
+  minAmount  Int // C9: ≤ goalAmount · C10: 개설자=수령자면 = goalAmount
+  deadline   DateTime // 정산 트리거의 기준 (R1) — 조회 시점 deadline < now 면 settleFunding()
+
+  organizerPaymentMethodId String?   @db.Uuid // 차액 부담용. 개설자=수령자면 NULL 허용
+  organizerConsentAgreedAt DateTime? // 차액 동의 — 개설자≠수령자면 필수 (FR-004)
+  consentVersion           String? // 어떤 문구에 동의했는지 — FUNDING_CONSENT_VERSION
+
+  receiverDisplayName String // D3 스냅샷 — 해제 후에도 "누구에게"가 렌더된다
+
+  topupAttemptCount Int       @default(0) // 차액 재시도 상한 (R5)
+  topupRetryUntil   DateTime?
+
+  settledAt   DateTime?
+  failedAt    DateTime?
+  cancelledAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organizer              User                  @relation("FundingOrganizer", fields: [organizerId], references: [id], onDelete: Cascade)
+  receiver               User                  @relation("FundingReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  product                Product               @relation(fields: [productId], references: [id], onDelete: Restrict)
+  organizerPaymentMethod PaymentMethod?        @relation(fields: [organizerPaymentMethodId], references: [id], onDelete: Restrict)
+  contributions          FundingContribution[]
+
+  // ⚠️ 아래 두 제약은 Prisma 문법으로 표현되지 않아 raw SQL 마이그레이션으로 넣었다 (R4).
+  //   C9  funding_min_le_goal    — CHECK minAmount <= goalAmount (FR-002)
+  //   C10 funding_self_full_goal — CHECK organizerId <> receiverId OR minAmount = goalAmount (FR-003)
+  // `db push` 로 만든 DB 에는 둘 다 없다. 새 환경은 반드시 `migrate deploy` 로 만든다.
+  // 걸렸는지는 tests/integration/funding-constraints.test.ts 가 판정한다.
+
+  @@index([receiverId, status]) // 수령 내역 (FR-022·023)
+  @@index([organizerId, status]) // 개설 내역 (FR-022·023)
+  @@index([status, deadline]) // 정산 대상 판정 (R1)
+}
+
+// 참여 — 2단계 예약(FOR UPDATE 로 잔여 선점 → RESERVED) → 결제 확정(PAID) (R2).
+model FundingContribution {
+  id            String             @id @default(uuid()) @db.Uuid
+  fundingId     String             @db.Uuid
+  contributorId String             @db.Uuid // 추가 참여 허용 — unique 없음 (FR-011)
+  amount        Int // 1인 상한 없음 (PRD). 예약 시점 잔여 검증 (R2)
+  status        ContributionStatus @default(RESERVED)
+  reservedUntil DateTime // 예약 만료 — 지연 해제 (R2, evaluateReservationExpiry())
+  paidAt        DateTime?
+  refundedAt    DateTime?
+  createdAt     DateTime           @default(now())
+
+  funding     Funding @relation(fields: [fundingId], references: [id], onDelete: Cascade)
+  contributor User    @relation(fields: [contributorId], references: [id], onDelete: Cascade)
+
+  @@index([fundingId, status]) // 총액 2종 합산 (R3) · 지분 목록
+  @@index([contributorId, status]) // 참여 내역 (FR-022)
 }
