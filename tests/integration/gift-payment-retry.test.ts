@@ -218,7 +218,7 @@ describe.skipIf(!canRun)('retryGiftPayment — 실패에서 복구한다 (T052)'
     expect(await notificationTypesFor(giverId)).toEqual(['GIFT_CANCELLED_BY_PAYMENT'])
   })
 
-  it('기한이 지나면 RETRY_EXPIRED — 잠그지도 시도 횟수를 쓰지도 않는다 (FR-031)', async () => {
+  it('기한이 지나면 RETRY_EXPIRED + **취소 확정** — 시도 횟수는 쓰지 않는다 (FR-031·FR-032)', async () => {
     const giverId = await createUser('giver')
     const receiverId = await createUser('receiver')
     const failingMethodId = await createPaymentMethod(giverId, FAILING_CARD_LAST4)
@@ -233,9 +233,16 @@ describe.skipIf(!canRun)('retryGiftPayment — 실패에서 복구한다 (T052)'
     expect(result.error.code).toBe('RETRY_EXPIRED')
 
     const gift = await prisma.giftRequest.findUniqueOrThrow({ where: { id: giftRequestId } })
-    expect(gift.status).toBe('PAYMENT_FAILED')
+    // 잠그지 않으므로 시도 횟수도 결제 기록도 늘지 않는다 — 기한 지난 요청을 잠그면
+    // 남은 시도만 축난다
     expect(gift.paymentAttemptCount).toBe(1)
     expect(await prisma.payment.count({ where: { giftRequestId } })).toBe(0)
+
+    // 대신 그 자리에서 **취소가 확정된다** (evaluateRetryExpiry) — 그냥 두면 요청이
+    // PAYMENT_FAILED 로 영영 남고 수령자는 FR-032 의 고지를 못 받는다
+    expect(gift.status).toBe('CANCELLED')
+    expect(await notificationTypesFor(receiverId)).toEqual(['GIFT_CANCELLED_BY_PAYMENT'])
+    expect(await notificationTypesFor(giverId)).toEqual(['GIFT_CANCELLED_BY_PAYMENT'])
   })
 
   it('시도 횟수를 다 쓴 요청은 NOT_RETRYABLE', async () => {

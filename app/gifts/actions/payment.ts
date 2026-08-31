@@ -10,6 +10,7 @@ import { getRetryTarget, lockForRetry } from '@/lib/dal/payment'
 import { verifySession } from '@/lib/dal/session'
 import { chargeGiftRequest, type ChargeOutcome } from '@/lib/gift/charge'
 import { retryAvailabilityOf } from '@/lib/gift/outcome'
+import { evaluateRetryExpiry } from '@/lib/gift/retry-window'
 import { assertTransition } from '@/lib/gift/state'
 
 /**
@@ -63,6 +64,11 @@ export async function retryGiftPayment(input: {
       new Date(),
     )
     if (!availability.canRetry) {
+      if (availability.reason !== 'NOT_FAILED') {
+        // 기한·횟수가 끝난 요청은 여기서 취소로 확정한다 — 그대로 두면 수령자가 영영
+        // 소식을 못 듣는다 (FR-032). 조회 지점(gift-outcome)과 같은 판정이다
+        await evaluateRetryExpiry(giftRequestId)
+      }
       return availability.reason === 'WINDOW_EXPIRED'
         ? failure({ code: 'RETRY_EXPIRED', message: RETRY_EXPIRED_MESSAGE })
         : failure({ code: 'NOT_RETRYABLE', message: NOT_RETRYABLE_MESSAGE })

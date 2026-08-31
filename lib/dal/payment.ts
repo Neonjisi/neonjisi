@@ -251,3 +251,26 @@ export async function lockForRetry(
   })
   return { locked: count > 0 }
 }
+
+/**
+ * 재시도 기한이 끝난 실패를 CANCELLED 로 확정한다 (FR-032) — `evaluateRetryExpiry()` 전용.
+ *
+ * 조건부 UPDATE 라서 동시에 두 번 평가해도 **한쪽만** 통과한다 (R2 와 같은 장치) —
+ * 통과한 쪽만 알림을 만들므로 고지가 두 번 가지 않는다.
+ */
+export async function cancelExpiredRetry(input: {
+  giftRequestId: string
+  cancelledAt: Date
+  notifications: GiftNotificationEntry[]
+}): Promise<{ cancelled: boolean }> {
+  return prisma.$transaction(async (tx) => {
+    const { count } = await tx.giftRequest.updateMany({
+      where: { id: input.giftRequestId, status: 'PAYMENT_FAILED' },
+      data: { status: 'CANCELLED', cancelledAt: input.cancelledAt },
+    })
+    if (count === 0) return { cancelled: false }
+
+    await createGiftNotifications(tx, input.notifications)
+    return { cancelled: true }
+  })
+}

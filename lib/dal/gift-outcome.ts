@@ -9,6 +9,7 @@ import {
   type ResultVariant,
   type RetryAvailability,
 } from '@/lib/gift/outcome'
+import { evaluateRetryExpiry } from '@/lib/gift/retry-window'
 
 /**
  * 결과·복구 화면의 읽기 (T054·T055) — 계약: contracts §3 `GiftDetailView` 의 부분집합
@@ -22,8 +23,10 @@ import {
  *    해제돼도, 상품이 내려가도 이 화면들은 그대로 열려야 한다
  *  - **인가는 여기서** — giver/receiver 아니면 null. 복구 화면은 giver 전용이다 (FR-030)
  *
- * ⚠️ 만료 지연 평가(R3)의 **쓰기**는 J 의 `evaluateExpiry()`(T015) 몫이다. 여기서는 표시만
- *    만료로 판정하고 상태를 바꾸지 않는다 — 그 함수가 붙으면 조회 진입점에서 확정된다.
+ * ⚠️ 응답 마감의 지연 평가(R3)는 J 의 `evaluateExpiry()`(T015) 몫이다. 여기서는 표시만 만료로
+ *    판정하고 상태를 바꾸지 않는다 — 그 함수가 붙으면 조회 진입점에서 확정된다.
+ *    **재시도 기한**은 D 소유라 여기서 확정한다 (`evaluateRetryExpiry`) — 조회가 판정
+ *    트리거라는 같은 규칙이다.
  */
 
 const snapshotSchema = z.object({
@@ -94,6 +97,8 @@ export type GiftResultView = {
 export const getGiftResultView = cache(
   async (giftRequestId: string): Promise<GiftResultView | null> => {
     const { userId } = await verifySession()
+    // 조회가 판정 트리거다 — 기한이 끝난 실패는 여기서 취소로 확정되고 양쪽에 고지된다 (FR-032)
+    await evaluateRetryExpiry(giftRequestId)
 
     const row = await prisma.giftRequest.findUnique({
       where: { id: giftRequestId },
@@ -146,6 +151,7 @@ export type GiftRecoveryView = {
 export const getGiftRecoveryView = cache(
   async (giftRequestId: string): Promise<GiftRecoveryView | null> => {
     const { userId } = await verifySession()
+    await evaluateRetryExpiry(giftRequestId)
 
     const row = await prisma.giftRequest.findUnique({
       where: { id: giftRequestId },
