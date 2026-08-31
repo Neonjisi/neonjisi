@@ -149,19 +149,24 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T039 [P] [US3] E2E 테스트 — `tests/e2e/invite-control.spec.ts`. spec.md US3 수용 시나리오 1~8. **만료·중지·부재 셋이 같은 문구인지** 포함 (SC-005)
-- [ ] T040 [P] [US3] 통합 테스트 — `tests/integration/notification.test.ts`. 성사 시 알림이 생기는지, 읽음 처리가 **이미 읽은 알림의 시각을 덮어쓰지 않는지**
+- [x] T039 [P] [US3] E2E 테스트 — `tests/e2e/invite-control.spec.ts`. spec.md US3 수용 시나리오 1~8. **만료·중지·부재 셋이 같은 문구인지** 포함 (SC-005)
+- [x] T040 [P] [US3] 통합 테스트 — `tests/integration/notification.test.ts`. 성사 시 알림이 생기는지, 읽음 처리가 **이미 읽은 알림의 시각을 덮어쓰지 않는지**
 
 ### Implementation for User Story 3
 
 - [ ] T041 [US3] `lib/dal/invite.ts` — `getMyInviteLinks()`. 사용 중 링크와 지난 링크를 나눠 반환
-- [ ] T042 [US3] `app/friends/actions/invite-link.ts` — `revokeInviteLink` Server Action. 소유자 검사 후 `revokedAt` 기록
-- [ ] T043 [US3] `lib/dal/notification.ts` — `getMyNotifications()`와 `getUnreadCount()`
-- [ ] T044 [US3] `app/friends/actions/notification.ts` — `markNotificationRead`와 `markAllNotificationsRead`. 후자는 **읽지 않은 것만** 갱신한다
-- [ ] T045 [P] [US3] `app/friends/invite/manage/page.tsx` (SCR-M2-03) — 사용 인원수와 만료까지 남은 기간, 중지 버튼
-- [ ] T046 [P] [US3] `app/notifications/page.tsx` (SCR-M3-02) — 알림 목록. 알림 0건이면 빈 상태 안내 (FR-034)
-- [ ] T047 [US3] `components/notification/notification-list.tsx` (`'use client'`) — 미읽음 구분, 읽음 처리 후 낙관적 갱신. 누르면 **그 친구의 취향 카드로 이동**한다 (FR-032)
+- [x] T042 [US3] `app/friends/actions/invite-link.ts` — `revokeInviteLink` Server Action. 소유자 검사 후 `revokedAt` 기록
+- [x] T043 [US3] `lib/dal/notification.ts` — `getMyNotifications()`와 `getUnreadCount()`
+- [x] T044 [US3] `app/friends/actions/notification.ts` — `markNotificationRead`와 `markAllNotificationsRead`. 후자는 **읽지 않은 것만** 갱신한다
+- [x] T045 [P] [US3] `app/friends/invite/manage/page.tsx` (SCR-M2-03) — 사용 인원수와 만료까지 남은 기간, 중지 버튼
+- [x] T046 [P] [US3] `app/notifications/page.tsx` (SCR-M3-02) — 알림 목록. 알림 0건이면 빈 상태 안내 (FR-034)
+- [x] T047 [US3] `components/notification/notification-list.tsx` (`'use client'`) — 미읽음 구분, 읽음 처리 후 낙관적 갱신. 누르면 **그 친구의 취향 카드로 이동**한다 (FR-032)
 - [ ] T048 [US3] `tests/e2e/invite-control.spec.ts`·`tests/integration/notification.test.ts`를 초록으로 만든다
+
+> **T048은 절반이다.** 통합 테스트(`notification.test.ts`·`invite-revoke.test.ts`)는 초록이고,
+> E2E 는 US3-8(빈 상태)만 통과한다. 나머지 US3-1~7 은 H 의 화면(T024 발급 · T027 미리보기 ·
+> T037 친구 상세)를 지나야 한다. 더구나 `lib/dal/invite.ts` 가 H 의 `lib/dal/friend.ts`(T022)를
+> import 하므로 **그 파일이 생기기 전에는 링크 관리 화면 자체가 뜨지 않는다.**
 
 > **T046·T047이 clarify Q4로 M2에 앞당겨진 것이다.** 도메인 모델 §11은 `Notification`을 M3
 > 대상으로 두었으나, FR-017이 승인 절차를 없앤 대가로 남긴 통제 수단이라 M2에서 뺄 수 없다.

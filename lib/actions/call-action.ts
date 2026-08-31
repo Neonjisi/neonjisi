@@ -15,6 +15,11 @@ export const SAVE_FAILED_MESSAGE = '저장하지 못했어요. 잠시 후 다시
 export const DELETE_FAILED_MESSAGE = '삭제하지 못했어요. 잠시 후 다시 시도해주세요.'
 /** M2 · 친구 해제 (app/friends/actions/friendship.ts · remove-friend-dialog.tsx) */
 export const REMOVE_FRIEND_FAILED_MESSAGE = '해제하지 못했어요. 잠시 후 다시 시도해주세요.'
+/** M2 · 초대 링크 중지 (app/friends/actions/invite-link.ts · revoke-link-dialog.tsx) */
+export const REVOKE_LINK_FAILED_MESSAGE = '중지하지 못했어요. 잠시 후 다시 시도해주세요.'
+/** M2 · 알림 읽음 처리 (app/friends/actions/notification.ts · notification-list.tsx) */
+export const NOTIFICATION_READ_FAILED_MESSAGE =
+  '읽음으로 표시하지 못했어요. 잠시 후 다시 시도해주세요.'
 
 type ActionFailure = Extract<ActionResult<never>, { ok: false }>
 

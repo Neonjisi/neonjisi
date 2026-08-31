@@ -189,6 +189,10 @@ test.describe('US1-7 — 본인 링크 (FR-016)', () => {
 })
 
 test.describe('SC-006 — 폭 360 가로 스크롤 없음', () => {
+  // expectNoHorizontalScroll 은 뷰포트 폭 360 을 전제로 한다 — chromium 프로젝트에서도
+  // 돌므로 폭을 여기서 못 박는다 (taste-detail.spec.ts 와 같은 패턴)
+  test.use({ viewport: { width: 360, height: 740 } })
+
   test('발급 화면과 미리보기에 가로 스크롤이 없다', async ({
     authedPage: pageA,
     browser,

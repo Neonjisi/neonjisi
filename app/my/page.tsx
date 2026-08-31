@@ -6,12 +6,15 @@ import { MOCK_USER } from "@/lib/mock/taste-data";
 
 /** 마이 탭 (SCR-M1-06). 내 취향 외 메뉴는 해당 마일스톤에서 연결한다. */
 
+// M2 에서 "알림"과 "초대 링크 관리"가 실제 화면으로 연결됐다 (T045·T046). 알림 배지가 있는
+// 홈(SCR-M3-01)은 M3 이라, 그때까지는 마이 탭이 두 화면의 유일한 진입점이다.
 const MAIN_MENU: { label: string; href: string }[] = [
   { label: "내 취향", href: "/taste" },
+  { label: "알림", href: "/notifications" },
   { label: "선물 내역", href: "#" },
   { label: "펀딩 내역", href: "#" },
   { label: "결제수단", href: "#" },
-  { label: "초대 링크 관리", href: "#" },
+  { label: "초대 링크 관리", href: "/friends/invite/manage" },
 ];
 
 const SUB_MENU: { label: string; href: string }[] = [
