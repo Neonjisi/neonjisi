@@ -46,10 +46,15 @@ vi.mock('@/lib/supabase/server', () => ({
 
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }))
 
+const { hasM3GiftTables } = await import('../support/m3-tables')
+
 const hasDatabase = Boolean(process.env.DATABASE_URL)
 const { prisma } = hasDatabase
   ? await import('@/lib/prisma')
   : { prisma: null as unknown as (typeof import('@/lib/prisma'))['prisma'] }
+
+// J 의 마이그레이션(T004) 전에는 M3 테이블이 없다 — 실패가 아니라 skip 이다 (tests/support/m3-tables.ts)
+const canRun = hasDatabase && (await hasM3GiftTables(prisma))
 
 const { retryGiftPayment } = await import('@/app/gifts/actions/payment')
 const { encryptBillingKey } = await import('@/lib/crypto/billing-key')
@@ -65,7 +70,7 @@ function actAs<T>(userId: string, run: () => Promise<T>): Promise<T> {
   return h.sessionUser.run(userId, run)
 }
 
-describe.skipIf(!hasDatabase)('retryGiftPayment — 실패에서 복구한다 (T052)', () => {
+describe.skipIf(!canRun)('retryGiftPayment — 실패에서 복구한다 (T052)', () => {
   const userIds: string[] = []
   let categoryId = ''
   let productId = ''
@@ -161,7 +166,7 @@ describe.skipIf(!hasDatabase)('retryGiftPayment — 실패에서 복구한다 (T
   })
 
   afterAll(async () => {
-    if (!hasDatabase) return
+    if (!canRun) return
     await prisma.payment.deleteMany({ where: { giftRequest: { giverId: { in: userIds } } } })
     await prisma.giftRequest.deleteMany({ where: { giverId: { in: userIds } } })
     await prisma.notification.deleteMany({ where: { userId: { in: userIds } } })

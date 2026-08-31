@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { failure, guarded, type ActionResult } from '@/app/gifts/actions/shared'
 import { getPaymentMaxAttempts } from '@/lib/config/gift'
@@ -8,6 +9,7 @@ import { isMyActivePaymentMethod } from '@/lib/dal/payment-method'
 import { getRetryTarget, lockForRetry } from '@/lib/dal/payment'
 import { verifySession } from '@/lib/dal/session'
 import { chargeGiftRequest, type ChargeOutcome } from '@/lib/gift/charge'
+import { retryAvailabilityOf } from '@/lib/gift/outcome'
 import { assertTransition } from '@/lib/gift/state'
 
 /**
@@ -49,14 +51,21 @@ export async function retryGiftPayment(input: {
       return failure({ code: 'NOT_OWNER', message: NOT_OWNER_MESSAGE })
     }
 
-    if (target.status !== 'PAYMENT_FAILED') {
-      return failure({ code: 'NOT_RETRYABLE', message: NOT_RETRYABLE_MESSAGE })
-    }
-    if (target.paymentAttemptCount >= getPaymentMaxAttempts()) {
-      return failure({ code: 'NOT_RETRYABLE', message: NOT_RETRYABLE_MESSAGE })
-    }
-    if (target.paymentRetryUntil !== null && Date.now() > target.paymentRetryUntil.getTime()) {
-      return failure({ code: 'RETRY_EXPIRED', message: RETRY_EXPIRED_MESSAGE })
+    // 복구 화면(T055)과 **같은 판정**을 본다 — 화면이 "재시도할 수 있어요"를 보여줬는데
+    // 여기서 거절하면 사용자는 버튼을 누르고 나서야 안 된다는 걸 안다
+    const availability = retryAvailabilityOf(
+      {
+        status: target.status,
+        attemptCount: target.paymentAttemptCount,
+        maxAttempts: getPaymentMaxAttempts(),
+        retryUntil: target.paymentRetryUntil,
+      },
+      new Date(),
+    )
+    if (!availability.canRetry) {
+      return availability.reason === 'WINDOW_EXPIRED'
+        ? failure({ code: 'RETRY_EXPIRED', message: RETRY_EXPIRED_MESSAGE })
+        : failure({ code: 'NOT_RETRYABLE', message: NOT_RETRYABLE_MESSAGE })
     }
 
     const nextPaymentMethodId = input.paymentMethodId
@@ -84,4 +93,34 @@ export async function retryGiftPayment(input: {
     revalidatePath('/')
     return { ok: true, data: { outcome: result.outcome } }
   })
+}
+
+/**
+ * 복구 화면(SCR-M3-16)의 form action (T055).
+ *
+ * 화면을 Server Component 로 두기 위한 얇은 껍데기다 — 클라이언트 컴포넌트 예산(contracts §6)에
+ * 복구 화면 몫이 없다. 재시도 버튼은 평범한 <form> 이고, 결과에 따라 갈 곳만 정한다.
+ */
+export async function retryGiftPaymentFromForm(formData: FormData): Promise<void> {
+  const giftRequestId = String(formData.get('giftRequestId') ?? '')
+  if (!z.uuid().safeParse(giftRequestId).success) {
+    // 조작된 입력으로 만든 경로를 그대로 따라가지 않는다
+    redirect('/')
+  }
+
+  const rawMethodId = formData.get('paymentMethodId')
+  const paymentMethodId =
+    typeof rawMethodId === 'string' && rawMethodId !== '' ? rawMethodId : undefined
+
+  const result = await retryGiftPayment({ giftRequestId, paymentMethodId })
+  if (!result.ok) {
+    redirect(`/gifts/${giftRequestId}/recover?error=${result.error.code}`)
+  }
+
+  // 또 실패하면 복구 화면으로 되돌아온다 — 남은 시도 횟수가 거기 있다
+  redirect(
+    result.data.outcome === 'PAYMENT_FAILED'
+      ? `/gifts/${giftRequestId}/recover?failed=1`
+      : `/gifts/${giftRequestId}/result`,
+  )
 }

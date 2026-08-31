@@ -28,11 +28,16 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
   Reflect.set(process.env, 'NODE_ENV', nodeEnv)
 }
 
+const { hasM3GiftTables } = await import('../support/m3-tables')
+
 const hasDatabase = Boolean(process.env.DATABASE_URL)
 // lib/prisma 는 임포트 시점에 DATABASE_URL 을 요구하므로 env 로드 뒤에 동적 임포트한다.
 const { prisma } = hasDatabase
   ? await import('@/lib/prisma')
   : { prisma: null as unknown as (typeof import('@/lib/prisma'))['prisma'] }
+
+// J 의 마이그레이션(T004) 전에는 M3 테이블이 없다 — 실패가 아니라 skip 이다 (tests/support/m3-tables.ts)
+const canRun = hasDatabase && (await hasM3GiftTables(prisma))
 
 const { chargeGiftRequest } = await import('@/lib/gift/charge')
 const { encryptBillingKey } = await import('@/lib/crypto/billing-key')
@@ -48,7 +53,7 @@ const GOOD_CARD_LAST4 = '4821'
 /** R1 mock 실패 규약 — 이 카드는 결제가 항상 실패한다 */
 const FAILING_CARD_LAST4 = '0000'
 
-describe.skipIf(!hasDatabase)('chargeGiftRequest — 결제 실행의 소유 경계 (T016)', () => {
+describe.skipIf(!canRun)('chargeGiftRequest — 결제 실행의 소유 경계 (T016)', () => {
   const userIds: string[] = []
   let categoryId = ''
   let productId = ''
@@ -164,7 +169,7 @@ describe.skipIf(!hasDatabase)('chargeGiftRequest — 결제 실행의 소유 경
   })
 
   afterAll(async () => {
-    if (!hasDatabase) return
+    if (!canRun) return
     await prisma.payment.deleteMany({ where: { giftRequest: { giverId: { in: userIds } } } })
     await prisma.giftRequest.deleteMany({ where: { giverId: { in: userIds } } })
     await prisma.notification.deleteMany({ where: { userId: { in: userIds } } })
@@ -193,7 +198,7 @@ describe.skipIf(!hasDatabase)('chargeGiftRequest — 결제 실행의 소유 경
     expect(payments).toHaveLength(1)
     expect(payments[0].status).toBe('PAID')
     expect(payments[0].amount).toBe(32000)
-    expect(payments[0].providerTxId).toMatch(/^mock_tx_/)
+    expect(payments[0].providerTxId).toMatch(/^mock_pay_/)
     // C8 — 결제 기록은 정확히 하나의 대상에 연결된다 (FR-033)
     expect(payments[0].fundingContributionId).toBeNull()
 
@@ -237,10 +242,11 @@ describe.skipIf(!hasDatabase)('chargeGiftRequest — 결제 실행의 소유 경
     const retryUntil = gift.paymentRetryUntil as Date
     expect(retryUntil.getTime()).toBeGreaterThanOrEqual(before + RETRY_WINDOW_HOURS * HOUR_MS - 5000)
 
-    // 시도는 실패도 기록된다 (FR-033)
+    // 시도는 실패도 기록된다 (FR-033) — 결제 id 를 호출 전에 만들기 때문에 실패에도 id 가 있다
     const payments = await prisma.payment.findMany({ where: { giftRequestId } })
     expect(payments).toHaveLength(1)
     expect(payments[0].status).toBe('FAILED')
+    expect(payments[0].providerTxId).toMatch(/^mock_pay_/)
 
     expect(await notificationTypesFor(giverId)).toEqual(['GIFT_PAYMENT_FAILED'])
     // 🔑 수령자는 실패 진행 상황을 모른다 — 최종 취소 시점에만 고지한다 (FR-030)

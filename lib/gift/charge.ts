@@ -48,7 +48,10 @@ export async function chargeGiftRequest(giftRequestId: string): Promise<ChargeOu
     )
   }
 
-  const charged = await attemptCharge(target)
+  // 시도 id 를 **호출 전에** 만든다 — 실패한 시도도 이 id 로 기록된다 (FR-033).
+  // 결제사 응답을 기다렸다 만들면 실패에는 남길 id 가 없다.
+  const paymentId = getPortOneClient().createPaymentId()
+  const charged = await attemptCharge(target, paymentId)
   const now = new Date()
 
   if (charged.ok) {
@@ -67,7 +70,7 @@ export async function chargeGiftRequest(giftRequestId: string): Promise<ChargeOu
     return { outcome: 'PAID' }
   }
 
-  return finalizeFailure(target, now)
+  return finalizeFailure(target, paymentId, now)
 }
 
 /**
@@ -76,6 +79,7 @@ export async function chargeGiftRequest(giftRequestId: string): Promise<ChargeOu
  */
 async function attemptCharge(
   target: ChargeTarget,
+  paymentId: string,
 ): Promise<{ ok: true; providerTxId: string; paidAt: Date } | { ok: false; reason: string }> {
   if (target.paymentMethodStatus !== 'ACTIVE') {
     // 삭제·만료된 수단은 결제사에 가지 않는다 (FR-011 — 경고 후 삭제를 허용한 결과다)
@@ -95,6 +99,7 @@ async function attemptCharge(
 
   return getPortOneClient().chargeBillingKey({
     billingKey,
+    paymentId,
     amount: target.amount,
     orderName: target.orderName,
   })
@@ -106,7 +111,11 @@ async function attemptCharge(
  * 재시도 기한은 **첫 실패 시점 + GIFT_PAYMENT_RETRY_WINDOW** 로 한 번만 박는다 (R11).
  * 실패할 때마다 다시 계산하면 기한이 계속 밀려 영원히 만료되지 않는다.
  */
-async function finalizeFailure(target: ChargeTarget, now: Date): Promise<ChargeOutcome> {
+async function finalizeFailure(
+  target: ChargeTarget,
+  paymentId: string,
+  now: Date,
+): Promise<ChargeOutcome> {
   const attemptCount = target.paymentAttemptCount + 1
   const retryUntil = target.paymentRetryUntil ?? retryUntilFrom(now)
   const isExhausted = attemptCount >= getPaymentMaxAttempts() || now.getTime() > retryUntil.getTime()
@@ -121,6 +130,7 @@ async function finalizeFailure(target: ChargeTarget, now: Date): Promise<ChargeO
 
   await finalizeChargeFailure({
     giftRequestId: target.giftRequestId,
+    providerTxId: paymentId,
     amount: target.amount,
     nextStatus,
     attemptCount,

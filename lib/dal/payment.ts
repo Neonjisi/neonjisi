@@ -90,7 +90,7 @@ export async function getChargeTarget(giftRequestId: string): Promise<ChargeTarg
 
 /**
  * 계약 §3 `recordPayment(tx, input)` — Payment 행 하나. C8(정확히 하나의 대상)은 DB 가 지킨다.
- * 실패한 시도도 남긴다 (FR-033) — 그때는 결제사 거래 번호가 없다.
+ * 실패한 시도도 남긴다 (FR-033) — 결제 id 를 호출 전에 만들어 두기 때문에 실패에도 id 가 있다.
  */
 export async function recordPayment(
   tx: Prisma.TransactionClient,
@@ -98,12 +98,15 @@ export async function recordPayment(
     giftRequestId: string
     amount: number
     status: 'PAID' | 'FAILED'
-    providerTxId: string | null
+    /** 가맹점이 만든 결제 id — 실패한 시도도 이 id 로 남는다 (FR-033) */
+    providerTxId: string
     paidAt: Date | null
   },
 ): Promise<void> {
   await tx.payment.create({
     data: {
+      // 명시적으로 넣는다 — 스키마의 @default 에 기대면 default 없는 정본에서 NOT NULL 위반이 난다
+      provider: 'portone',
       giftRequestId: input.giftRequestId,
       amount: input.amount,
       status: input.status,
@@ -167,6 +170,7 @@ export async function finalizeChargeSuccess(input: {
  */
 export async function finalizeChargeFailure(input: {
   giftRequestId: string
+  providerTxId: string
   amount: number
   nextStatus: 'PAYMENT_FAILED' | 'CANCELLED'
   attemptCount: number
@@ -179,7 +183,7 @@ export async function finalizeChargeFailure(input: {
       giftRequestId: input.giftRequestId,
       amount: input.amount,
       status: 'FAILED',
-      providerTxId: null,
+      providerTxId: input.providerTxId,
       paidAt: null,
     })
 

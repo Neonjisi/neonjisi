@@ -178,10 +178,10 @@
 ### Implementation for User Story 5
 
 - [X] T053 [US5] `app/gifts/actions/payment.ts` — `retryGiftPayment` (contracts §4: 재시도 가능 검사 → 수단 변경 → `PAYMENT_FAILED → PAYING` 재잠금 → `chargeGiftRequest()`)
-- [ ] T054 [P] [US5] `app/gifts/[id]/result/page.tsx` — SCR-M3-15 결제 결과 3변형 (paid / expired — 수령자 탓하지 않는 문구 / cancelled — "민수님께 별도로 연락해보세요"). **T044 승인 E2E의 종착 화면 — Phase 6과 병행으로 먼저 만들 수 있다** (분담표 D14)
-- [ ] T055 [US5] `app/gifts/[id]/recover/page.tsx` — SCR-M3-16 실패 복구 (시도 횟수·기한 · giver 전용 — 수령자에게 실패 진행 비노출)
+- [X] T054 [P] [US5] `app/gifts/[id]/result/page.tsx` — SCR-M3-15 결제 결과 3변형 (paid / expired — 수령자 탓하지 않는 문구 / cancelled — "민수님께 별도로 연락해보세요"). **T044 승인 E2E의 종착 화면 — Phase 6과 병행으로 먼저 만들 수 있다** (분담표 D14)
+- [X] T055 [US5] `app/gifts/[id]/recover/page.tsx` — SCR-M3-16 실패 복구 (시도 횟수·기한 · giver 전용 — 수령자에게 실패 진행 비노출)
 - [X] T056 [P] [US5] 알림 목록 확장 — gift 6종의 표시 문구·탭 이동 매핑 (`components/notification/` — M2 파일)
-- [ ] T057 [US5] T052 초록 + E2E — `tests/e2e/gift-payment-recovery.spec.ts`: `0000` 카드 실패 → 수단 변경 재시도 → 성공
+- [X] T057 [US5] T052 초록 + E2E — `tests/e2e/gift-payment-recovery.spec.ts`: `0000` 카드 실패 → 수단 변경 재시도 → 성공
 - [ ] T058 [US5] (P0-1 실연동 확장 시점) `lib/portone/client.ts`에 실연동 구현 추가 — `PORTONE_MODE=real` 스모크. 실키는 `.env.local`에만, E2E는 여전히 mock
 
 **Checkpoint**: **마일스톤 3 완료 판정** — 양쪽 경로 자동 결제 + 실패 → 재시도 복구

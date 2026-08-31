@@ -98,6 +98,7 @@ export async function createPaymentMethod(input: {
 }): Promise<{ paymentMethodId: string }> {
   const created = await prisma.paymentMethod.create({
     data: {
+      provider: 'portone',
       userId: input.userId,
       billingKey: input.encryptedBillingKey,
       cardBrand: input.cardBrand,

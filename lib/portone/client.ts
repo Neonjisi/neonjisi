@@ -31,6 +31,12 @@ export type IssueBillingKeyResult =
 export type ChargeInput = {
   /** 복호화된 값 — 호출 직전에만 존재한다. 로그·반환값에 남기지 않는다 */
   billingKey: string
+  /**
+   * **가맹점이 먼저 만드는 결제 id** (createPaymentId). 실 PortOne V2 도 같은 구조다 —
+   * 우리가 만든 id 로 결제를 걸고, 그 id 로 조회·환불한다.
+   * 시도마다 새로 만든다: 실패한 시도도 이 id 로 기록되어야 한다 (FR-033).
+   */
+  paymentId: string
   amount: number
   orderName: string
 }
@@ -44,6 +50,11 @@ export type RefundInput = { providerTxId: string; amount: number }
 export type RefundResult = { ok: true; refundedAt: Date } | { ok: false; reason: string }
 
 export type PortOneClient = {
+  /**
+   * 결제 시도 하나의 id 를 만든다. **호출 전에** 만들어 두는 이유는 실패한 시도에도
+   * 기록할 id 가 있어야 하기 때문이다 — 결제사 응답을 기다렸다 만들면 실패에는 id 가 없다.
+   */
+  createPaymentId(): string
   issueBillingKey(input: IssueBillingKeyInput): Promise<IssueBillingKeyResult>
   chargeBillingKey(input: ChargeInput): Promise<ChargeResult>
   /** M4(환불·차액 결제)가 처음 실사용한다. 그때 인터페이스를 고치면 M3 mock 테스트가 흔들린다 */
@@ -87,7 +98,7 @@ export async function normalizeFailure<T extends { ok: boolean }>(
 
 const MOCK_ALWAYS_FAIL_LAST4 = '0000'
 const MOCK_BILLING_KEY_PATTERN = /^mock_bk_(\d{4})_[0-9a-f]{16}$/
-const MOCK_TX_PATTERN = /^mock_tx_[0-9a-f]{16}$/
+const MOCK_TX_PATTERN = /^mock_pay_[0-9a-f]{16}$/
 
 function mockId(prefix: string): string {
   return `${prefix}_${randomBytes(8).toString('hex')}`
@@ -103,6 +114,10 @@ function isChargeableAmount(amount: number): boolean {
  */
 function createMockClient(): PortOneClient {
   return {
+    createPaymentId() {
+      return mockId('mock_pay')
+    },
+
     issueBillingKey({ cardBrand, cardLast4 }) {
       return normalizeFailure('issueBillingKey', async () => {
         if (!/^\d{4}$/.test(cardLast4)) {
@@ -115,7 +130,7 @@ function createMockClient(): PortOneClient {
       })
     },
 
-    chargeBillingKey({ billingKey, amount }) {
+    chargeBillingKey({ billingKey, paymentId, amount }) {
       return normalizeFailure('chargeBillingKey', async () => {
         const matched = MOCK_BILLING_KEY_PATTERN.exec(billingKey)
         if (!matched) {
@@ -129,7 +144,8 @@ function createMockClient(): PortOneClient {
           // R1 실패 규약 — 결정론적이라 통합 테스트·E2E·시연이 실패 경로를 재현할 수 있다
           return { ok: false, reason: '카드사에서 결제를 거절했습니다' } as const
         }
-        return { ok: true, providerTxId: mockId('mock_tx'), paidAt: new Date() } as const
+        // 우리가 만든 id 를 그대로 돌려준다 — 성공·실패가 같은 id 로 조회된다
+        return { ok: true, providerTxId: paymentId, paidAt: new Date() } as const
       })
     },
 

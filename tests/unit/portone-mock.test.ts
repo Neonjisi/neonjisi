@@ -23,6 +23,11 @@ afterEach(() => {
   vi.unstubAllEnvs()
 })
 
+/** 시도 id 는 호출 전에 만든다 — 실패한 시도도 이 id 로 기록되어야 한다 (FR-033) */
+function newPaymentId(): string {
+  return getPortOneClient().createPaymentId()
+}
+
 async function issueMockBillingKey(cardLast4: string): Promise<string> {
   const issued = await getPortOneClient().issueBillingKey({
     userId: USER_ID,
@@ -68,15 +73,18 @@ describe('issueBillingKey (mock)', () => {
 describe('chargeBillingKey (mock)', () => {
   it('정상 카드는 성공한다 — providerTxId 와 paidAt 이 온다', async () => {
     const billingKey = await issueMockBillingKey('4821')
+    const paymentId = newPaymentId()
     const charged = await getPortOneClient().chargeBillingKey({
       billingKey,
+      paymentId,
       amount: 32000,
       orderName: '핸드크림 세트',
     })
 
     expect(charged.ok).toBe(true)
     if (!charged.ok) return
-    expect(charged.providerTxId).toBeTruthy()
+    // 우리가 만든 id 가 그대로 돌아온다 — 성공·실패가 같은 id 로 조회된다
+    expect(charged.providerTxId).toBe(paymentId)
     expect(charged.paidAt).toBeInstanceOf(Date)
   })
 
@@ -87,6 +95,7 @@ describe('chargeBillingKey (mock)', () => {
     for (let attempt = 0; attempt < 3; attempt++) {
       const charged = await client.chargeBillingKey({
         billingKey,
+        paymentId: newPaymentId(),
         amount: 32000,
         orderName: '핸드크림 세트',
       })
@@ -95,11 +104,21 @@ describe('chargeBillingKey (mock)', () => {
     }
   })
 
-  it('같은 요청을 여러 번 불러도 매번 다른 거래 번호가 난다 — 멱등성은 PAYING 잠금이 맡는다 (R2)', async () => {
+  it('시도마다 다른 결제 id 를 만든다 — 멱등성은 PAYING 잠금이 맡는다 (R2)', async () => {
     const billingKey = await issueMockBillingKey('4821')
     const client = getPortOneClient()
-    const first = await client.chargeBillingKey({ billingKey, amount: 1000, orderName: 'x' })
-    const second = await client.chargeBillingKey({ billingKey, amount: 1000, orderName: 'x' })
+    const first = await client.chargeBillingKey({
+      billingKey,
+      paymentId: newPaymentId(),
+      amount: 1000,
+      orderName: 'x',
+    })
+    const second = await client.chargeBillingKey({
+      billingKey,
+      paymentId: newPaymentId(),
+      amount: 1000,
+      orderName: 'x',
+    })
 
     expect(first.ok && second.ok).toBe(true)
     if (!first.ok || !second.ok) return
@@ -112,13 +131,19 @@ describe('chargeBillingKey (mock)', () => {
 
     const unknown = await client.chargeBillingKey({
       billingKey: 'not_a_billing_key',
+      paymentId: newPaymentId(),
       amount: 1000,
       orderName: 'x',
     })
     expect(unknown.ok).toBe(false)
 
     for (const amount of [0, -1000, 1000.5]) {
-      const charged = await client.chargeBillingKey({ billingKey, amount, orderName: 'x' })
+      const charged = await client.chargeBillingKey({
+        billingKey,
+        paymentId: newPaymentId(),
+        amount,
+        orderName: 'x',
+      })
       expect(charged.ok).toBe(false)
     }
   })
@@ -128,7 +153,12 @@ describe('refund (mock) — M4 가 처음 실사용하지만 지금 만든다 (R
   it('결제한 거래를 환불한다', async () => {
     const billingKey = await issueMockBillingKey('4821')
     const client = getPortOneClient()
-    const charged = await client.chargeBillingKey({ billingKey, amount: 32000, orderName: 'x' })
+    const charged = await client.chargeBillingKey({
+      billingKey,
+      paymentId: newPaymentId(),
+      amount: 32000,
+      orderName: 'x',
+    })
     expect(charged.ok).toBe(true)
     if (!charged.ok) return
 
@@ -192,5 +222,27 @@ describe('PORTONE_MODE 스위치', () => {
   it('오타는 거부한다', () => {
     vi.stubEnv('PORTONE_MODE', 'mokc')
     expect(() => getPortOneClient()).toThrow(/PORTONE_MODE/)
+  })
+})
+
+describe('createPaymentId — 시도마다 하나 (FR-033)', () => {
+  it('매번 다른 id 를 만든다 — 시도 하나가 기록 하나다', () => {
+    const client = getPortOneClient()
+    const ids = new Set(Array.from({ length: 100 }, () => client.createPaymentId()))
+    expect(ids.size).toBe(100)
+  })
+
+  it('실패한 결제도 그 id 로 기록할 수 있다 — 호출 전에 만들기 때문이다', async () => {
+    const billingKey = await issueMockBillingKey('0000')
+    const paymentId = newPaymentId()
+    const charged = await getPortOneClient().chargeBillingKey({
+      billingKey,
+      paymentId,
+      amount: 1000,
+      orderName: 'x',
+    })
+    // 실패 결과에는 거래 번호가 없지만, 호출자는 자기가 만든 paymentId 를 남길 수 있다
+    expect(charged.ok).toBe(false)
+    expect(paymentId).toMatch(/^mock_pay_/)
   })
 })

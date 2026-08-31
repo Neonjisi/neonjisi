@@ -19,6 +19,8 @@ type ActionResult<T> =
 
 ```ts
 type PortOneClient = {
+  createPaymentId(): string    // 가맹점이 먼저 만드는 결제 id — 아래 주석 참고 (2026-08-31 추가)
+
   issueBillingKey(input: {
     userId: string
     cardBrand: string          // mock: 폼에서 선택
@@ -27,6 +29,7 @@ type PortOneClient = {
 
   chargeBillingKey(input: {
     billingKey: string         // 복호화된 값 — 호출 직전에만 존재
+    paymentId: string          // createPaymentId()로 만든 시도 id
     amount: number
     orderName: string
   }): Promise<
@@ -45,6 +48,11 @@ export function getPortOneClient(): PortOneClient  // PORTONE_MODE로 mock/real 
 
 - 타임아웃·네트워크 예외는 클라이언트 내부에서 `{ ok: false }`로 정규화한다 — 호출자는
   분기 두 개만 안다.
+- **`createPaymentId()`는 T017 구현 중에 더해졌다 (2026-08-31).** `Payment.providerTxId`는
+  data-model.md에서 비-null인데 FR-033은 **실패한 시도의 기록**도 요구한다 — 결제사 응답을
+  기다렸다 id를 얻으면 실패에는 남길 값이 없다. 실 PortOne V2도 가맹점이 `paymentId`를 먼저
+  만들어 넘기는 구조라, 시도마다 id를 먼저 만들고 성공·실패 양쪽을 그 id로 기록한다.
+  mock은 성공 시 그 id를 `providerTxId`로 그대로 돌려준다(`mock_pay_` 접두).
 - 빌링키 암호화/복호화는 `lib/crypto/billing-key.ts`(R10) — `encryptBillingKey(plain)` ·
   `decryptBillingKey(stored)`. 복호화된 값을 반환·로그에 남기지 않는다.
 

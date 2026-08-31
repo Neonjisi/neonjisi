@@ -78,12 +78,13 @@ model TasteItem {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
-  // M3 의 TasteItem.productId(FR-044)는 **이 임시본에 넣지 않는다** — 기존 테이블에 컬럼이
-  // 늘면 마이그레이션 전의 DB 에서 M1·M2 조회가 ColumnNotFound 로 깨진다.
-  // J 의 T003 정본이 data-model.md 대로 넣는다.
+  // M3 — 위시리스트 "카탈로그에서 고르기" (FR-044). J 의 마이그레이션(20260831081812_m3_gift)이
+  // 공용 DB 에 적용돼 컬럼이 실재한다.
+  productId String? @db.Uuid
 
   profile  TasteProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
   category Category     @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  product  Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
 
   // C2 유니크 (T010). 실제 제약은 NULLS NOT DISTINCT 인데 Prisma 문법으로 표현되지
   // 않아 raw SQL 마이그레이션(20260828011025)으로 넣었다. 여기 @@unique 는 diff 가
@@ -179,7 +180,9 @@ model Notification {
 //
 // ⚠️ 임시본이다. 스키마·마이그레이션은 J 소유(T003·T004)이고, 이 블록은 D 가 US2·charge를
 //    선행 작업하려고 data-model.md 를 그대로 옮겨 둔 것이다. **마이그레이션은 만들지 않았다.**
-//    J 의 T003 이 올라오면 이 블록을 버리고 그쪽으로 갈아끼운다.
+//    2026-08-31 확인: J 가 공용 DB 에 `20260831081812_m3_gift` 를 적용했고, 이 블록은 그
+//    스키마와 필드·인덱스가 **일치한다**(db pull 대조). J 가 파일을 push 하면 그쪽으로
+//    갈아끼우고 이 주석을 지운다 — 마이그레이션 파일은 J 것만 남는다.
 //
 // CHECK C5~C8 은 Prisma 문법으로 표현되지 않아 raw SQL 마이그레이션(T006)으로 들어간다:
 //   C5 gift_counter_le_requested   — counterAmount <= requestedAmount
@@ -236,6 +239,7 @@ model Product {
   category            Category      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   giftRequests        GiftRequest[] @relation("GiftProduct")
   counterGiftRequests GiftRequest[] @relation("GiftCounterProduct")
+  tasteItems          TasteItem[]
 
   @@index([categoryId, isActive]) // 목록 · 대상 필터
   @@index([isActive, price]) // 상한 필터(SCR-M3-13) · 추천 가격 정렬 (R9)
@@ -311,10 +315,9 @@ model GiftRequest {
 model Payment {
   id           String        @id @default(uuid()) @db.Uuid
   provider     String        @default("portone")
-  // 실패한 시도에는 결제사 거래 번호가 없다 — data-model.md 는 비-null 로 적혀 있으나
-  // FR-033("모든 결제 시도는 ... 기록되어야")과 함께 두려면 nullable 이어야 한다.
-  // ⚠️ J 의 T003 정본에 반영이 필요한 지점 — 인수인계에 적어 둔다.
-  providerTxId String? // mock 은 mock_ 접두
+  // 가맹점이 만든 결제 id 를 넣는다 (createPaymentId) — 실패한 시도에도 값이 있으므로
+  // data-model.md 대로 비-null 을 유지한다. J 의 정본(20260831081812_m3_gift)과 같다.
+  providerTxId String // mock 은 mock_pay_ 접두
   amount       Int
   status       PaymentStatus
 
