@@ -180,3 +180,24 @@ export async function evaluateReservationExpiry(
   })
   return { releasedCount: count }
 }
+
+/**
+ * 예약 **한 건**의 해제 관문 (T025 — 결제 실패 해제 · `cancelReservation`).
+ *
+ * 만료 해제(위)와 같은 자리·같은 규율이다: 해제는 상태 전이가 아니라 행 삭제이고, where 에
+ * `status: 'RESERVED'` 를 넣어 **이미 확정(PAID)된 행은 절대 지우지 않는다** — 조건부 UPDATE
+ * 와 같은 원자성이라, 확정 트랜잭션과 경합해도 한쪽만 이긴다. `released: false` 는 "다른
+ * 흐름이 먼저 지나갔다"(만료 해제됨 · 이미 PAID)는 뜻이다.
+ *
+ * 소유자 검사는 호출자(액션)의 몫이다 — 이 모듈은 상태값 규칙만 쥔다. 상태 전이·해제를
+ * 이 파일 밖에서 하지 않는다는 헤더 규약을 지키기 위해 여기 둔다.
+ */
+export async function releaseReservation(
+  contributionId: string,
+  db: ContributionWriteClient = prisma,
+): Promise<{ released: boolean }> {
+  const { count } = await db.fundingContribution.deleteMany({
+    where: { id: contributionId, status: 'RESERVED' },
+  })
+  return { released: count > 0 }
+}
