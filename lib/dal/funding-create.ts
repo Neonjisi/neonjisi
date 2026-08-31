@@ -50,13 +50,19 @@ export type ProductForFunding = {
   name: string
   imageUrl: string | null
   price: number
+  isActive: boolean
 }
 
-/** 개설 대상 상품 — productSnapshot(FR-005) 원천. 부재면 null → 호출부가 STORAGE_FAILED 로 뭉갠다 */
+/**
+ * 개설 대상 상품 — productSnapshot(FR-005) 원천. 부재면 null → 호출부가 STORAGE_FAILED 로
+ * 뭉갠다. `isActive` 도 함께 조회한다 — 판정은 호출부(action)가 한다(M3
+ * `findProductForGift` + `!product || !product.isActive` 패턴, lib/dal/gift-request.ts:59-64
+ * · app/gifts/actions/request.ts:138-140).
+ */
 export async function findProductForFunding(productId: string): Promise<ProductForFunding | null> {
   return prisma.product.findUnique({
     where: { id: productId },
-    select: { id: true, name: true, imageUrl: true, price: true },
+    select: { id: true, name: true, imageUrl: true, price: true, isActive: true },
   })
 }
 

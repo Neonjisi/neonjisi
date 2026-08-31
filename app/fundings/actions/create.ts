@@ -53,11 +53,15 @@ const CREATE_FAILED_MESSAGE = '펀딩을 열지 못했어요. 잠시 후 다시 
 /** verifySession 이 User 행을 보장하므로 보통 도달하지 않는다 — 세션 DAL 의 폴백과 같은 값 */
 const FALLBACK_DISPLAY_NAME = '이름 미설정'
 
+// 형식(정수)만 스키마로 막는다 — "0 보다 커야 한다"·"목표 이하여야 한다"는 업무 규칙(검사 3)
+// 이라 런타임에서 판정한다. `.positive()` 를 여기 두면 검사 2(수령자·친구)보다 먼저 실행돼
+// 검사 순서가 깨진다(리뷰 지적) — 예: 낯선 사람 + minAmount=0 이 NOT_FRIENDS 가 아니라
+// 여기서 곧장 걸려버린다.
 const createInputSchema = z.object({
   receiverId: z.string().uuid(),
   productId: z.string().uuid(),
-  goalAmount: z.number().int().positive(),
-  minAmount: z.number().int().positive(),
+  goalAmount: z.number().int(),
+  minAmount: z.number().int(),
   deadline: z.coerce.date(),
   // "나에게" 분기(개설자=수령자)는 동의 스텝 자체가 없어 생략될 수 있다 (FR-003)
   consent: z.boolean().optional(),
@@ -80,7 +84,19 @@ export async function createFunding(input: {
 
   return guarded(CREATE_FAILED_MESSAGE, async () => {
     const parsed = createInputSchema.safeParse(input)
-    if (!parsed.success) return fail('STORAGE_FAILED', CREATE_FAILED_MESSAGE)
+    if (!parsed.success) {
+      // 형식 불량도 검사 순서에 맞춰 뭉갠다(M3 request.ts:114-121 패턴) — 이 if-체인 자체가
+      // 검사 2→3→4→5 우선순위와 같은 순서라, 여러 필드가 동시에 불량이어도 앞선 검사의
+      // 코드가 이긴다. productId 등 대응 코드가 없는 필드는 STORAGE_FAILED 로 뭉갠다.
+      const paths = new Set(parsed.error.issues.map((issue) => issue.path[0]))
+      if (paths.has('receiverId')) return fail('NOT_FRIENDS', NOT_FRIENDS_MESSAGE)
+      if (paths.has('goalAmount') || paths.has('minAmount')) {
+        return fail('INVALID_AMOUNTS', INVALID_AMOUNTS_MESSAGE)
+      }
+      if (paths.has('deadline')) return fail('INVALID_DEADLINE', INVALID_DEADLINE_MESSAGE)
+      if (paths.has('consent')) return fail('CONSENT_REQUIRED', CONSENT_REQUIRED_MESSAGE)
+      return fail('STORAGE_FAILED', CREATE_FAILED_MESSAGE)
+    }
     const { receiverId, productId, goalAmount, deadline, consent } = parsed.data
     const isSelf = receiverId === userId
 
@@ -114,9 +130,11 @@ export async function createFunding(input: {
       consentVersion = FUNDING_CONSENT_VERSION
     }
 
-    // 6. 생성 — 스냅샷 2종 + 동의 기록
+    // 6. 생성 — 스냅샷 2종 + 동의 기록. 부재·비활성은 같은 응답(M3 request.ts:138-140 과
+    // 같은 이유 — 존재 여부를 구분해 알리면 id 탐색에 힌트가 된다). §4 표에 전용 코드가
+    // 없어 STORAGE_FAILED 로 뭉갠다(리뷰 확인 완료).
     const product = await findProductForFunding(productId)
-    if (!product) return fail('STORAGE_FAILED', CREATE_FAILED_MESSAGE)
+    if (!product || !product.isActive) return fail('STORAGE_FAILED', CREATE_FAILED_MESSAGE)
     const receiverDisplayName =
       (await findUserDisplayName(receiverId)) ?? FALLBACK_DISPLAY_NAME
 

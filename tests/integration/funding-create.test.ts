@@ -130,14 +130,17 @@ describe.skipIf(skipReason !== '')('createFunding (T019)', () => {
     return category.id
   }
 
-  async function createProduct(categoryId: string, overrides: { price?: number } = {}) {
+  async function createProduct(
+    categoryId: string,
+    overrides: { price?: number; isActive?: boolean } = {},
+  ) {
     const product = await prisma.product.create({
       data: {
         name: `T019 상품 ${randomUUID().slice(0, 8)}`,
         categoryId,
         price: overrides.price ?? 300_000,
         imageUrl: null,
-        isActive: true,
+        isActive: overrides.isActive ?? true,
       },
     })
     productIds.push(product.id)
@@ -386,6 +389,61 @@ describe.skipIf(skipReason !== '')('createFunding (T019)', () => {
 
     expect(result.ok).toBe(false)
     if (!result.ok) expect(result.error.code).toBe('NO_PAYMENT_METHOD')
+    expect(await fundingsOf(organizer.id)).toHaveLength(0)
+  })
+
+  it('비친구 + 금액 0(또는 음수) 조합이어도 NOT_FRIENDS 가 이긴다 — 검사 2 가 검사 3(금액)보다 먼저다', async () => {
+    const organizer = await createUser('T019 O')
+    const stranger = await createUser('T019 S')
+    const categoryId = await createCategory()
+    const product = await createProduct(categoryId)
+    // 결제수단도 일부러 안 만든다 — 5번(동의·결제수단)까지 갈 것도 없이 2번에서 끝나야 한다
+
+    const zero = await as(organizer.id, () =>
+      actions!.createFunding({
+        receiverId: stranger.id,
+        productId: product.id,
+        goalAmount: 300_000,
+        minAmount: 0, // `.positive()` 스키마 검사였다면 여기서 STORAGE_FAILED 로 새어나간다
+        deadline: futureDeadline(),
+        consent: false,
+      }),
+    )
+    const negative = await as(organizer.id, () =>
+      actions!.createFunding({
+        receiverId: stranger.id,
+        productId: product.id,
+        goalAmount: 300_000,
+        minAmount: -100_000,
+        deadline: futureDeadline(),
+        consent: false,
+      }),
+    )
+
+    for (const result of [zero, negative]) {
+      expect(result.ok).toBe(false)
+      if (!result.ok) expect(result.error.code).toBe('NOT_FRIENDS')
+    }
+    expect(await fundingsOf(organizer.id)).toHaveLength(0)
+  })
+
+  it('상품이 비활성(isActive=false)이면 STORAGE_FAILED — 존재 여부를 구분해 알리지 않는다', async () => {
+    const { organizer, receiver, categoryId } = await readyPair()
+    const inactive = await createProduct(categoryId, { isActive: false })
+
+    const result = await as(organizer.id, () =>
+      actions!.createFunding({
+        receiverId: receiver.id,
+        productId: inactive.id,
+        goalAmount: 300_000,
+        minAmount: 200_000,
+        deadline: futureDeadline(),
+        consent: true,
+      }),
+    )
+
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.error.code).toBe('STORAGE_FAILED')
     expect(await fundingsOf(organizer.id)).toHaveLength(0)
   })
 })
