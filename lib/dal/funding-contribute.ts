@@ -42,7 +42,7 @@ async function lockFunding(
 }
 
 export type ReserveContributionResult =
-  | { ok: true; contributionId: string; reservedUntil: Date; remainingBefore: number }
+  | { ok: true; contributionId: string; reservedUntil: Date }
   | { ok: false; reason: 'NOT_FOUND' | 'FUNDING_CLOSED' | 'OVER_REMAINING'; remaining: number }
 
 /**
@@ -85,25 +85,18 @@ export async function reserveContribution(input: {
       select: { id: true, reservedUntil: true },
     })
 
-    return {
-      ok: true as const,
-      contributionId: created.id,
-      reservedUntil: created.reservedUntil,
-      remainingBefore: remaining,
-    }
+    return { ok: true as const, contributionId: created.id, reservedUntil: created.reservedUntil }
   }, TX_OPTIONS)
 }
 
 /** 결제 실행에 필요한 것 전부 — 빌링키를 포함하므로 부르는 곳은 참여 액션 하나뿐이어야 한다 */
 export type ContributionChargeTarget = {
   contributionId: string
-  fundingId: string
-  contributorId: string
+  /** 알림 payload 의 표시용 스냅샷 (R8) */
   contributorDisplayName: string
+  /** FUNDING_CONTRIBUTION_RECEIVED 수신자 */
   organizerId: string
   amount: number
-  reservedUntil: Date
-  status: ContributionStatus
   /** 결제사에 보낼 주문명 — 펀딩의 상품 스냅샷에서 읽는다 */
   orderName: string
   /** 암호화된 채로 낸다 — 복호화는 결제사 호출 직전 한 곳에서만 (M3 R10) */
@@ -130,11 +123,8 @@ export async function getContributionChargeTarget(
     where: { id: contributionId },
     select: {
       id: true,
-      fundingId: true,
       contributorId: true,
       amount: true,
-      status: true,
-      reservedUntil: true,
       contributor: { select: { displayName: true } },
       funding: { select: { organizerId: true, productSnapshot: true } },
     },
@@ -149,13 +139,9 @@ export async function getContributionChargeTarget(
 
   return {
     contributionId: row.id,
-    fundingId: row.fundingId,
-    contributorId: row.contributorId,
     contributorDisplayName: row.contributor.displayName,
     organizerId: row.funding.organizerId,
     amount: row.amount,
-    reservedUntil: row.reservedUntil,
-    status: row.status,
     orderName: snapshotName(row.funding.productSnapshot) ?? '펀딩 참여',
     encryptedBillingKey: method?.billingKey ?? null,
     paymentMethodStatus: method?.status ?? null,
@@ -285,11 +271,11 @@ export async function finalizeContributionPaid(input: {
 }
 
 /** `cancelReservation` 의 소유자·상태 판정용 원시 행 (contracts §4) */
-export type CancelTarget = { contributorId: string; status: ContributionStatus; fundingId: string }
+export type CancelTarget = { contributorId: string; status: ContributionStatus }
 
 export async function findContributionForCancel(contributionId: string): Promise<CancelTarget | null> {
   return prisma.fundingContribution.findUnique({
     where: { id: contributionId },
-    select: { contributorId: true, status: true, fundingId: true },
+    select: { contributorId: true, status: true },
   })
 }

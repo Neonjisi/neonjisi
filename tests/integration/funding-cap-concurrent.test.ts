@@ -144,8 +144,6 @@ const FAILING_CARD_LAST4 = '0000'
 const ROUNDS = 3
 const RACE_TEST_TIMEOUT = 90_000
 
-type ContributeResult = Awaited<ReturnType<typeof contributeToFunding>>
-
 function errorCode(result: { ok: boolean; error?: { code: string } }): string | null {
   return result.ok ? null : (result.error?.code ?? null)
 }
@@ -622,6 +620,3 @@ describe.skipIf(skipReason !== '')('contributeToFunding · cancelReservation —
     expect(rows.reduce((s, r) => s + r.amount, 0)).toBe(80_000)
   })
 })
-
-// 타입 전용 참조 — 결과 타입이 계약(ActionResult)에서 벗어나면 여기서 먼저 깨진다
-export type _ContributeResultShape = ContributeResult

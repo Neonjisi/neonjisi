@@ -132,7 +132,10 @@ export async function contributeToFunding(input: {
     const charged = await attemptCharge(target, paymentId)
 
     if (!charged.ok) {
-      // 4-실패. 예약을 해제해 잔여를 즉시 되돌린다 — 남겨두면 TTL 동안 잔여가 잠긴다
+      // 4-실패. 예약을 해제해 잔여를 즉시 되돌린다 — 남겨두면 TTL 동안 잔여가 잠긴다.
+      // 실패한 시도는 Payment 로 남기지 않는다: 해제가 행 삭제라서, FK
+      // (payment_funding_contribution_fk)가 붙은 Payment 가 있으면 삭제가 막혀 예약이
+      // 영영 잔여를 잡는다. M3 의 FR-033(실패 시도 기록)은 대상 행이 남는 선물 요청 얘기다.
       await releaseReservation(reserved.contributionId)
       return fail('PAYMENT_FAILED', PAYMENT_FAILED_MESSAGE)
     }
@@ -157,7 +160,8 @@ export async function contributeToFunding(input: {
 
     // 조기 성사 (R1·R2 ③) — 확정 잠금 안에서 읽은 합계라 목표에 닿는 확정은 정확히 하나다.
     // 호출 뒤 상태·환불·정산 알림에 손대지 않는다 (contracts §2).
-    const goalReached = finalized.paidTotal >= finalized.goalAmount
+    // goalAmount 0 은 "확정 시점에 펀딩 행이 없었다"는 뜻이다 — 없는 펀딩을 정산시키지 않는다.
+    const goalReached = finalized.goalAmount > 0 && finalized.paidTotal >= finalized.goalAmount
     if (goalReached) await settleFunding(fundingId)
 
     return {
