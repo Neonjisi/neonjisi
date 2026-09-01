@@ -60,8 +60,8 @@
 ### 공용 기반
 
 - [X] T018 [P] `app/gifts/actions/shared.ts` — `ActionResult`·`guarded` (M2 `app/friends/actions/shared.ts` 이식) + `proxy.ts` matcher에 `/gifts`·`/products`·`/payment-methods`·`/events` 추가
-- [ ] T019 [P] `app/gifts/error.tsx` · `app/products/error.tsx` · `app/payment-methods/error.tsx` · `app/events/error.tsx`
-- [ ] T020 [P] `components/gift/countdown.tsx`(`'use client'`) — **공용 카운트다운 하나**, 서버 시각 보정 (R8). 5분 미만 `ink` · 1분 미만 `alarm` · 모션 금지
+- [X] T019 [P] `app/gifts/error.tsx` · `app/products/error.tsx` · `app/payment-methods/error.tsx` · `app/events/error.tsx`
+- [X] T020 [P] `components/gift/countdown.tsx`(`'use client'`) — **공용 카운트다운 하나**, 서버 시각 보정 (R8). 5분 미만 `ink` · 1분 미만 `alarm` · 모션 금지
 - [ ] T021 `lib/dal/gift.ts` — `getPendingRequestsForMe`·`getSentGifts`·`getReceivedGifts`·`getGiftRequest` — **전부 `evaluateExpiry()` 경유** (R3), View는 스냅샷 필드만 (R5)
 
 **Checkpoint**: T005 초록(CHECK 실재) · T016 초록(mock 결제 왕복) · 시드 주입 완료 —
