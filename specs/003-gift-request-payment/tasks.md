@@ -182,7 +182,7 @@
 - [X] T055 [US5] `app/gifts/[id]/recover/page.tsx` — SCR-M3-16 실패 복구 (시도 횟수·기한 · giver 전용 — 수령자에게 실패 진행 비노출)
 - [X] T056 [P] [US5] 알림 목록 확장 — gift 6종의 표시 문구·탭 이동 매핑 (`components/notification/` — M2 파일)
 - [X] T057 [US5] T052 초록 + E2E — `tests/e2e/gift-payment-recovery.spec.ts`: `0000` 카드 실패 → 수단 변경 재시도 → 성공
-- [ ] T058 [US5] (P0-1 실연동 확장 시점) `lib/portone/client.ts`에 실연동 구현 추가 — `PORTONE_MODE=real` 스모크. 실키는 `.env.local`에만, E2E는 여전히 mock
+- [X] T058 [US5] (P0-1 실연동 확장 시점) `lib/portone/client.ts`에 실연동 구현 추가 — `PORTONE_MODE=real` 스모크. 실키는 `.env.local`에만, E2E는 여전히 mock (스모크: `npx tsx scripts/portone-smoke.ts` — 2026-09-01 인증 통과 확인)
 
 **Checkpoint**: **마일스톤 3 완료 판정** — 양쪽 경로 자동 결제 + 실패 → 재시도 복구
 
