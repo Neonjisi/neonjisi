@@ -6,8 +6,11 @@ import { GoogleLoginButton, LoginErrorNotice } from "./login-buttons";
  * 신규·기존 계정 모두 같은 버튼을 쓴다 — Supabase 가 가입과 로그인을 구분해 처리한다.
  */
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
-  const { error } = await searchParams;
+  const { error, next } = await searchParams;
   const errorCode = typeof error === "string" ? error : undefined;
+  const nextPath = typeof next === "string" && next.startsWith("/") && !next.startsWith("//")
+    ? next
+    : "/taste";
 
   return (
     <>
@@ -21,7 +24,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
         </div>
         <div className="mt-auto flex flex-col items-center gap-3">
           <LoginErrorNotice code={errorCode} />
-          <GoogleLoginButton />
+          <GoogleLoginButton nextPath={nextPath} />
           <p className="pt-2 text-xs text-neutral-500">
             로그인하면 이용약관과 개인정보처리방침에 동의하는 것으로 봅니다.
           </p>
