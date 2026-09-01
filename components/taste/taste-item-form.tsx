@@ -2,7 +2,7 @@
 
 import { useId, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 import { createTasteItem, deleteTasteItem, updateTasteItem } from "@/app/taste/actions";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
@@ -381,11 +381,13 @@ export function TasteItemRowButton({ item, categories, existingItems }: TasteIte
     <>
       <button
         type="button"
+        aria-label={`${label} 수정`}
         onClick={() => setIsOpen(true)}
         className="flex h-[52px] w-full items-center gap-3 px-1 text-left active:bg-neutral-50"
       >
         <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-rose-300" />
-        <span className="truncate text-[15px] text-neutral-900">{label}</span>
+        <span className="min-w-0 flex-1 truncate text-[15px] text-neutral-900">{label}</span>
+        <Pencil size={16} className="shrink-0 text-neutral-400" aria-hidden />
       </button>
       {isOpen && (
         <SheetComponent
