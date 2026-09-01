@@ -69,6 +69,7 @@ function pendingGift(overrides: Record<string, unknown> = {}) {
     receiverDisplayName: '김민수',
     requestedAmount: 32000,
     productSnapshot: { name: '핸드크림 세트', imageUrl: null, price: 32000 },
+    expiredAt: null as Date | null,
     ...overrides,
   }
 }

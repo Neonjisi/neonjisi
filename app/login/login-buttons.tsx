@@ -46,7 +46,7 @@ export function LoginErrorNotice({ code }: { code?: string }) {
   );
 }
 
-export function GoogleLoginButton() {
+export function GoogleLoginButton({ nextPath = "/taste" }: { nextPath?: string }) {
   const [isPending, setIsPending] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -56,7 +56,9 @@ export function GoogleLoginButton() {
     const supabase = createSupabaseBrowserClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback?next=/taste` },
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`,
+      },
     });
     if (error) {
       setErrorMessage("로그인을 시작하지 못했어요. 잠시 후 다시 시도해주세요.");

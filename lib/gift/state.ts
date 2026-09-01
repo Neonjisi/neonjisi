@@ -62,7 +62,7 @@ export async function transitionGiftRequest(
   from: GiftStatus,
   to: GiftStatus,
   opts: {
-    data?: Omit<Prisma.GiftRequestUpdateManyMutationInput, 'status'>
+    data?: Omit<Prisma.GiftRequestUncheckedUpdateManyInput, 'status'>
     db?: GiftWriteClient
     now?: Date
   } = {},

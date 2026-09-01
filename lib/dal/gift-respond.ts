@@ -34,7 +34,7 @@ export async function findGiftRequestStatus(giftRequestId: string): Promise<Gift
 export async function lockCounterAndNotify(input: {
   giftRequestId: string
   giverId: string
-  data: Omit<Prisma.GiftRequestUpdateManyMutationInput, 'status'>
+  data: Omit<Prisma.GiftRequestUncheckedUpdateManyInput, 'status'>
   payload: GiftNotificationPayload
 }): Promise<boolean> {
   return prisma.$transaction(async (tx) => {
