@@ -65,7 +65,7 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 - [x] T010 [P] `lib/invite/token.ts` — 32바이트 랜덤을 base64url로. Node 표준 `crypto`만 쓴다 (research R2)
 - [x] T011 [P] `lib/dal/session.ts`에 `getOptionalSession()` 추가 — 세션이 없으면 **`null`을 반환하고 redirect 하지 않는다** (research R3)
 - [x] T012 [P] `proxy.ts`의 matcher에 `/friends/:path*`·`/notifications/:path*` 추가. **`/i/:path*`는 넣지 않는다** — 미리보기는 공개여야 한다 (FR-008)
-- [ ] T013 [P] `app/friends/error.tsx`와 `app/notifications/error.tsx` 배치 — 예상 못 한 예외 경계
+- [x] T013 [P] `app/friends/error.tsx`와 `app/notifications/error.tsx` 배치 — 예상 못 한 예외 경계
 - [ ] T014 [P] `lib/dal/invite.ts`에 링크 유효성 판정 하나를 만든다 — `isValid(link) := revokedAt === null && expiresAt > now`. FR-004와 FR-007이 **같은 판정식**을 쓰므로 한 곳에 둔다
 - [x] T015 [P] `app/friends/actions/shared.ts` — `ActionResult` 타입과 `guarded` 래퍼. **Action 파일 4개가 함께 쓰므로 기반 단계에서 먼저 만든다** (M1의 `lib/actions/call-action.ts` 패턴)
 
@@ -101,13 +101,13 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 
 - [ ] T020 [US1] `lib/dal/invite.ts` — `getOrCreateActiveInviteLink()`. **유효한 링크가 있으면 새로 발급하지 않고 그것을 반환한다** (FR-004)
 - [ ] T021 [US1] `lib/dal/invite.ts` — `getPreview(token)`. 유효하면 표시명·이미지·대표 태그, 무효면 `null`. **만료·중지·부재를 구분하지 않는다** (FR-007)
-- [ ] T022 [US1] `lib/dal/friend.ts` — 대표 태그 추출. `WANT` 항목의 카테고리명 최근 등록순 최대 3건, 0건이면 빈 배열 (FR-012)
+- [x] T022 [US1] `lib/dal/friend.ts` — 대표 태그 추출. `WANT` 항목의 카테고리명 최근 등록순 최대 3건, 0건이면 빈 배열 (FR-012)
 - [ ] T023 [US1] `app/friends/actions/accept-invite.ts` — `acceptInvite` Server Action. 검사 순서를 지킨다: 세션 → 토큰 유효성 → 본인 링크 → 기존 관계 → 트랜잭션(관계·`usedCount`·알림). **P2002를 `ALREADY_FRIENDS`로 바꾼다**
-- [ ] T024 [P] [US1] `app/friends/invite/page.tsx` (SCR-M2-02) — 링크·만료 안내·복사·공유. **"받은 사람이 바로 친구가 됩니다"를 발급 시점에 고지한다** (FR-014)
-- [ ] T025 [P] [US1] `components/friend/invite-link-card.tsx` (`'use client'`) — 클립보드 복사와 OS 공유 시트 호출
-- [ ] T026 [P] [US1] `components/friend/invite-preview.tsx` (**Server Component**) — 표시명·이미지·대표 태그와 **가려진 항목의 이름 목록**(FR-010)
-- [ ] T027 [US1] `app/i/[token]/page.tsx` (SCR-M2-04·05) — 세션 유무로 미리보기/성사를 가른다. 6가지 분기는 contracts의 표를 따른다. **`getOptionalSession()`을 쓴다 — `verifySession()`은 비가입자를 튕긴다**
-- [ ] T028 [US1] `app/friends/page.tsx` (SCR-M2-01) — 친구 목록. **다가오는 일정 영역은 만들지 않는다** (clarify Q1)
+- [x] T024 [P] [US1] `app/friends/invite/page.tsx` (SCR-M2-02) — 링크·만료 안내·복사·공유. **"받은 사람이 바로 친구가 됩니다"를 발급 시점에 고지한다** (FR-014)
+- [x] T025 [P] [US1] `components/friend/invite-link-card.tsx` (`'use client'`) — 클립보드 복사와 OS 공유 시트 호출
+- [x] T026 [P] [US1] `components/friend/invite-preview.tsx` (**Server Component**) — 표시명·이미지·대표 태그와 **가려진 항목의 이름 목록**(FR-010)
+- [x] T027 [US1] `app/i/[token]/page.tsx` (SCR-M2-04·05) — 세션 유무로 미리보기/성사를 가른다. 6가지 분기는 contracts의 표를 따른다. **`getOptionalSession()`을 쓴다 — `verifySession()`은 비가입자를 튕긴다**
+- [x] T028 [US1] `app/friends/page.tsx` (SCR-M2-01) — 친구 목록. **다가오는 일정 영역은 만들지 않는다** (clarify Q1)
 - [ ] T029 [US1] `tests/e2e/friend-invite.spec.ts`·`tests/integration/accept-invite.test.ts`·`tests/integration/accept-invite-concurrent.test.ts`를 초록으로 만들고 `--project=mobile-360`으로 재확인
 
 **Checkpoint**: 링크로 친구가 된다. **여기까지가 MVP다** — 취향 열람이 없어도 관계가 맺어지는 것을 시연할 수 있다
@@ -123,18 +123,18 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T030 [P] [US2] E2E 테스트 — `tests/e2e/friend-taste.spec.ts`. spec.md US2 수용 시나리오 1~5. 취향이 비어 있는 친구의 카드가 오류 없이 성립하는지 포함 (SC-007)
-- [ ] T031 [P] [US2] 통합 테스트 — `tests/integration/friend-access-control.test.ts`. **친구가 아닌 사용자의 취향 접근이 거부되는지**, 해제된 관계로는 열리지 않는지 (FR-022)
+- [x] T030 [P] [US2] E2E 테스트 — `tests/e2e/friend-taste.spec.ts`. spec.md US2 수용 시나리오 1~5. 취향이 비어 있는 친구의 카드가 오류 없이 성립하는지 포함 (SC-007)
+- [x] T031 [P] [US2] 통합 테스트 — `tests/integration/friend-access-control.test.ts`. **친구가 아닌 사용자의 취향 접근이 거부되는지**, 해제된 관계로는 열리지 않는지 (FR-022)
 
 ### Implementation for User Story 2
 
-- [ ] T032 [US2] `lib/dal/friend.ts` — `requireActiveFriendship(friendUserId)`. 활성 관계가 없으면 접근 거부. **친구 데이터를 읽는 모든 경로의 유일한 관문** (constitution 데이터 보호)
-- [ ] T033 [US2] `lib/dal/friend.ts` — `getFriendTaste(friendUserId)`. 내부에서 `requireActiveFriendship()`을 부른다. **M1의 `lib/dal/taste.ts`를 고치지 않는다** (research R8)
-- [ ] T034 [US2] `lib/dal/friend.ts` — `getFriends()`. 친구 목록 + 각자 대표 태그를 **N+1 없이 한 번에** 모아 온다 (research R7)
-- [ ] T035 [P] [US2] `components/friend/friend-list.tsx` (**Server Component**) — 친구 목록. 대표 태그가 0건이면 자리를 비운다. 친구 0명이면 링크로 시작하라는 안내
-- [ ] T036 [P] [US2] `components/friend/friend-taste-card.tsx` (**Server Component**) — 세 종류 항목과 취향 서술을 필터 없이 전부 렌더 (FR-021)
-- [ ] T037 [US2] `app/friends/[userId]/page.tsx` (SCR-M2-06) — 친구 상세. **`이 취향에 맞는 선물 보기` 버튼은 숨긴다** — 상품이 없어 빈 목록으로 연결된다
-- [ ] T038 [US2] `tests/e2e/friend-taste.spec.ts`·`tests/integration/friend-access-control.test.ts`를 초록으로 만든다
+- [x] T032 [US2] `lib/dal/friend.ts` — `requireActiveFriendship(friendUserId)`. 활성 관계가 없으면 접근 거부. **친구 데이터를 읽는 모든 경로의 유일한 관문** (constitution 데이터 보호)
+- [x] T033 [US2] `lib/dal/friend.ts` — `getFriendTaste(friendUserId)`. 내부에서 `requireActiveFriendship()`을 부른다. **M1의 `lib/dal/taste.ts`를 고치지 않는다** (research R8)
+- [x] T034 [US2] `lib/dal/friend.ts` — `getFriends()`. 친구 목록 + 각자 대표 태그를 **N+1 없이 한 번에** 모아 온다 (research R7)
+- [x] T035 [P] [US2] `components/friend/friend-list.tsx` (**Server Component**) — 친구 목록. 대표 태그가 0건이면 자리를 비운다. 친구 0명이면 링크로 시작하라는 안내
+- [x] T036 [P] [US2] `components/friend/friend-taste-card.tsx` (**Server Component**) — 세 종류 항목과 취향 서술을 필터 없이 전부 렌더 (FR-021)
+- [x] T037 [US2] `app/friends/[userId]/page.tsx` (SCR-M2-06) — 친구 상세. **`이 취향에 맞는 선물 보기` 버튼은 숨긴다** — 상품이 없어 빈 목록으로 연결된다
+- [x] T038 [US2] `tests/e2e/friend-taste.spec.ts`·`tests/integration/friend-access-control.test.ts`를 초록으로 만든다
 
 **Checkpoint**: US1 + US2. **마일스톤 2의 완료 판정이 여기서 성립한다** — 링크 수신자가 상대 취향을 열람한다
 
@@ -210,10 +210,10 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 
 **Purpose**: 마일스톤 완료 판정
 
-- [ ] T055 [P] 폭 360px에서 quickstart V1~V4를 다시 밟는다 — `npx playwright test --project=mobile-360`. **알림 목록을 포함한다** (SC-006)
+- [x] T055 [P] 폭 360px에서 quickstart V1~V4를 다시 밟는다 — `npx playwright test --project=mobile-360`. **알림 목록을 포함한다** (SC-006)
 - [X] T056 [P] 제약 확인 — `pg_indexes`에서 `friendship_pair_active`, `pg_constraint`에서 `friendship_not_self`가 조회되는지 (quickstart V5-1). **`db push`로 만든 DB에는 없다**
-- [ ] T057 [P] `components/friend/`·`components/notification/`의 `'use client'` 사용처 점검 — 계획한 3개(`invite-link-card.tsx`·`remove-friend-dialog.tsx`·`notification-list.tsx`) 외에 붙은 것이 정당한지. `error.tsx`는 Next.js가 강제하므로 위반이 아니다
-- [ ] T058 [P] `components/friend/`·`components/notification/`·`app/friends/` 컴포넌트 크기 점검 — 500줄 초과가 있으면 하위 컴포넌트로 분해 (constitution 품질 게이트)
+- [x] T057 [P] `components/friend/`·`components/notification/`의 `'use client'` 사용처 점검 — 계획한 3개(`invite-link-card.tsx`·`remove-friend-dialog.tsx`·`notification-list.tsx`) 외에 붙은 것이 정당한지. `error.tsx`는 Next.js가 강제하므로 위반이 아니다
+- [x] T058 [P] `components/friend/`·`components/notification/`·`app/friends/` 컴포넌트 크기 점검 — 500줄 초과가 있으면 하위 컴포넌트로 분해 (constitution 품질 게이트)
 - [ ] T059 `npm run lint`와 `npm run build` 통과 (constitution 품질 게이트)
 - [ ] T060 quickstart.md V1~V6 전체를 순서대로 수동 검증. **`skipped` 수를 확인한다**
 - [ ] T061 [P] SC-003 확인 — 링크를 발급한 사용자 5명에게 "받은 사람이 승인 없이 바로 친구가 되는 것을 알고 있었는지" 묻는다. **4명 이상**이 기준이며 결과를 숫자로 기록한다. 구현에 참여한 사람은 평가자가 될 수 없다

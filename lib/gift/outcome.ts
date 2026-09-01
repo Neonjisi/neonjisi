@@ -1,4 +1,4 @@
-import type { GiftStatusValue } from '@/lib/gift/state'
+import type { GiftStatus } from '@prisma/client'
 
 /**
  * 종착 판정 — 결과 화면(SCR-M3-15)과 복구 화면(SCR-M3-16)이 함께 쓴다 (T054·T055)
@@ -20,7 +20,7 @@ export type ResultVariant = 'PAID' | 'EXPIRED' | 'CANCELLED' | 'IN_PROGRESS'
  *    소유다. 그것이 붙기 전까지 결과 화면은 만료를 보여주되 DB 는 PENDING 으로 남는다.
  */
 export function resultVariantOf(
-  status: GiftStatusValue,
+  status: GiftStatus,
   respondDueAt: Date,
   now: Date,
 ): ResultVariant {
@@ -44,7 +44,7 @@ export type RetryAvailability =
  */
 export function retryAvailabilityOf(
   input: {
-    status: GiftStatusValue
+    status: GiftStatus
     attemptCount: number
     maxAttempts: number
     retryUntil: Date | null

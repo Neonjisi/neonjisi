@@ -87,6 +87,7 @@ describe.skipIf(!canRun)('chargeGiftRequest — 결제 실행의 소유 경계 (
     const created = await prisma.paymentMethod.create({
       data: {
         userId,
+        provider: 'portone',
         billingKey: encryptBillingKey(issued.billingKey),
         cardBrand: '신한',
         cardLast4,

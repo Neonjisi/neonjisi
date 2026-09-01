@@ -65,8 +65,9 @@ export function rows(page: Page, name: SectionName): Locator {
   return section(page, name).getByRole('button').filter({ hasText: /\S/ })
 }
 
+/** 항목 행의 접근 가능한 이름은 화면 라벨에 동작 목적(`수정`)을 덧붙인다. */
 export function row(page: Page, name: SectionName, label: string): Locator {
-  return section(page, name).getByRole('button', { name: label, exact: true })
+  return section(page, name).getByRole('button', { name: `${label} 수정`, exact: true })
 }
 
 export function sheet(page: Page, title: string): Locator {

@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
+import { updateSupabaseSession } from '@/lib/supabase/proxy'
 
 /**
  * T018 — 미인증 요청의 optimistic 리다이렉트 (research R1).
@@ -16,7 +17,7 @@ function hasSupabaseAuthCookie(request: NextRequest): boolean {
     .some(({ name }) => name.startsWith('sb-') && name.includes('-auth-token'))
 }
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // 로컬 화면 프리뷰용 우회 — 인증 연동 전까지만 쓴다.
   // development + 명시적 플래그 이중 게이트라 프로덕션 빌드에는 영향이 없다.
   if (process.env.NODE_ENV === 'development' && process.env.PREVIEW_BYPASS_AUTH === '1') {
@@ -24,7 +25,7 @@ export function proxy(request: NextRequest) {
   }
 
   if (hasSupabaseAuthCookie(request)) {
-    return NextResponse.next()
+    return updateSupabaseSession(request)
   }
 
   const loginUrl = request.nextUrl.clone()

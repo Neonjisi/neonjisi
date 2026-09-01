@@ -38,12 +38,12 @@ model User {
   inviteLinks          FriendInviteLink[]
   notifications        Notification[]
 
-  // M3 역참조 (data-model.md "변경 없는 것" — User 컬럼은 바꾸지 않는다).
-  // GiftRequest 는 User 를 두 번 참조하므로 관계 이름이 필수다.
-  paymentMethods PaymentMethod[]
-  giftsGiven     GiftRequest[]   @relation("GiftGiver")
-  giftsReceived  GiftRequest[]   @relation("GiftReceiver")
-  events         Event[]
+  // M3 역참조 (specs/003 data-model — User 컬럼은 바꾸지 않는다).
+  // GiftRequest 는 User 를 두 번 참조(giver·receiver)하므로 관계 이름이 필수다.
+  paymentMethods       PaymentMethod[]
+  giftRequestsSent     GiftRequest[]      @relation("GiftGiver")
+  giftRequestsReceived GiftRequest[]      @relation("GiftReceiver")
+  events               Event[]
 }
 
 model TasteProfile {
@@ -64,7 +64,7 @@ model Category {
   sortOrder Int // 배열 순서 = 화면 순서. 묶음은 DB에 넣지 않는다 (categories.md §3 철회 결정)
 
   items    TasteItem[]
-  products Product[] // M3 — 상품과 취향 항목이 같은 카테고리 마스터를 쓴다 (FR-002)
+  products Product[] // M3 — 취향 항목과 상품이 공유하는 단일 마스터 (FR-002)
 
   @@index([sortOrder])
 }
@@ -75,23 +75,20 @@ model TasteItem {
   kind       TasteKind
   categoryId String    @db.Uuid // 자유 텍스트 금지 (FR-004)
   detail     String? // 선택 (FR-006)
+  productId  String?   @db.Uuid // M3 — 위시리스트 "카탈로그에서 고르기" (FR-044). 텍스트 경로 유지, 기존 행은 전부 NULL
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
-
-  // M3 — 위시리스트 "카탈로그에서 고르기" (FR-044). J 의 마이그레이션(20260831081812_m3_gift)이
-  // 공용 DB 에 적용돼 컬럼이 실재한다.
-  productId String? @db.Uuid
 
   profile  TasteProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
   category Category     @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   product  Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
 
+  @@index([profileId, kind])
   // C2 유니크 (T010). 실제 제약은 NULLS NOT DISTINCT 인데 Prisma 문법으로 표현되지
   // 않아 raw SQL 마이그레이션(20260828011025)으로 넣었다. 여기 @@unique 는 diff 가
   // 그 제약을 지우려 들지 않게 하는 매핑이다 — `db push` 로 새 DB 를 만들면
   // NULLS DISTINCT 로 생기므로, 새 환경은 반드시 `migrate deploy` 로 만든다.
   @@unique([profileId, kind, categoryId, detail], map: "TasteItem_profile_kind_category_detail_key")
-  @@index([profileId, kind])
 }
 
 // ---------------------------------------------------------------------------
@@ -105,16 +102,15 @@ enum FriendshipStatus {
 }
 
 enum NotificationType {
-  FRIEND_JOINED_VIA_LINK // M2 는 이 하나. 나머지 10종은 M3·M4 에서 추가 (R6)
-
-  // M3 gift 6종 (data-model.md "NotificationType — 6종 추가").
-  // funding 4종은 M4 에서 더한다 — 같은 이유로 지금 넣지 않는다 (원칙 V).
-  GIFT_REQUEST_RECEIVED // 수령자   — createGiftRequest 트랜잭션
-  GIFT_COUNTERED // 주는 사람 — counterGift 액션
-  GIFT_PAID // 양쪽     — chargeGiftRequest()
-  GIFT_PAYMENT_FAILED // 주는 사람 — chargeGiftRequest()
-  GIFT_CANCELLED_BY_PAYMENT // 수령자   — chargeGiftRequest() 상한 초과 확정 시. 누락 금지 (FR-032)
-  GIFT_EXPIRED // 주는 사람 — evaluateExpiry() 만료 확정 지점 (R3)
+  FRIEND_JOINED_VIA_LINK // M2 (R6)
+  // M3 gift 6종 — 만드는 곳이 정해져 있다 (specs/003 data-model, R7).
+  // funding 4종은 M4 에서 추가한다 (원칙 V).
+  GIFT_REQUEST_RECEIVED // 수령자 ← createGiftRequest 트랜잭션
+  GIFT_COUNTERED // 주는 사람 ← counterGift 액션
+  GIFT_PAID // 양쪽 ← chargeGiftRequest()
+  GIFT_PAYMENT_FAILED // 주는 사람 ← chargeGiftRequest()
+  GIFT_CANCELLED_BY_PAYMENT // 수령자 ← chargeGiftRequest() 상한 초과 확정 시. 누락 금지 (FR-032)
+  GIFT_EXPIRED // 주는 사람 ← evaluateExpiry() 만료 확정 지점 (R3)
 }
 
 // 친구 관계 — 한 쌍당 한 행. 양방향으로 복제하지 않는다 (도메인 모델 §4).
@@ -177,34 +173,23 @@ model Notification {
 
 // ---------------------------------------------------------------------------
 // M3 — 선물이 수령자 확인을 거쳐 결정된다 (specs/003-gift-request-payment/data-model.md)
-//
-// ⚠️ 임시본이다. 스키마·마이그레이션은 J 소유(T003·T004)이고, 이 블록은 D 가 US2·charge를
-//    선행 작업하려고 data-model.md 를 그대로 옮겨 둔 것이다. **마이그레이션은 만들지 않았다.**
-//    2026-08-31 확인: J 가 공용 DB 에 `20260831081812_m3_gift` 를 적용했고, 이 블록은 그
-//    스키마와 필드·인덱스가 **일치한다**(db pull 대조). J 가 파일을 push 하면 그쪽으로
-//    갈아끼우고 이 주석을 지운다 — 마이그레이션 파일은 J 것만 남는다.
-//
-// CHECK C5~C8 은 Prisma 문법으로 표현되지 않아 raw SQL 마이그레이션(T006)으로 들어간다:
-//   C5 gift_counter_le_requested   — counterAmount <= requestedAmount
-//   C6 gift_counter_all_or_none    — counter 3필드 전무 또는 전유
-//   C7 gift_no_self                — giverId <> receiverId
-//   C8 payment_exactly_one_target  — gift XOR funding 연결
+// M1·M2 모델의 기존 필드는 바꾸지 않는다 — User·Category 에는 역참조만,
+// TasteItem 에는 productId 컬럼 하나만 더했다. NotificationType 은 값 6종 추가.
 // ---------------------------------------------------------------------------
 
 enum GiftStatus {
-  PENDING // 수령자 응답 대기
-  PAYING // 결제 진행 중 — 멱등성 장치다. 이 상태 없이는 중복 청구를 막을 수 없다 (R2)
-  PAID // 종착
-  PAYMENT_FAILED // 재시도 가능 (기한·횟수 안에서)
-  EXPIRED // 종착 — respondDueAt 초과, 지연 평가 (R3)
-  CANCELLED // 종착 — 주는 사람 취소 또는 결제 기한·횟수 초과
-  // DECLINED 는 없다 (FR-020) — 수령자에게 거절 버튼을 주지 않는다
+  PENDING
+  PAYING // 멱등성 장치 — PENDING→PAYING 조건부 UPDATE 가 0행이면 이미 진행 중이므로 중단 (R2)
+  PAID
+  PAYMENT_FAILED
+  EXPIRED
+  CANCELLED
+  // DECLINED 은 없다 — 거절이 아닌 대안 제시로 읽혀야 한다는 요구사항의 구현 (FR-020)
 }
 
 enum GiftResolution {
   APPROVED
-  COUNTERED
-  // 상태가 아니라 지나간 경로의 기록. 승인률 집계가 이 필드 하나로 성립한다 (FR-045)
+  COUNTERED // 상태가 아니라 지나간 경로의 기록 — 승인률 집계가 이 필드 하나로 (FR-045)
 }
 
 enum PaymentStatus {
@@ -212,13 +197,13 @@ enum PaymentStatus {
   PAID
   FAILED
   CANCELLED
-  REFUNDED // M4 에서 처음 쓰인다
+  REFUNDED // M4 환불에서 처음 쓰인다
 }
 
 enum PaymentMethodStatus {
   ACTIVE
   EXPIRED
-  DELETED // soft — 과거 요청의 표시(cardLast4)가 남아야 한다
+  DELETED // 삭제는 soft — 과거 요청의 cardLast4 표시가 남아야 한다 (SCR-M3-07)
 }
 
 enum EventType {
@@ -227,49 +212,50 @@ enum EventType {
   CUSTOM
 }
 
-// 상품 — 시드 카탈로그. 자체 커머스는 범위 밖이다 (시드 30~50건, T002·T008).
+// 상품 — 시드 카탈로그 (자체 커머스는 범위 밖). 삭제 대신 isActive=false 로 내린다.
 model Product {
   id         String  @id @default(uuid()) @db.Uuid
-  name       String // 검색 대상 — 부분 일치 (R9)
-  categoryId String  @db.Uuid // 취향 항목과 같은 마스터 — unwanted 필터가 조인 한 번이 된다 (FR-002)
+  name       String // 부분 일치 검색 대상 (R9)
+  categoryId String  @db.Uuid // 취향 항목과 같은 마스터 — unwanted 필터가 조인 한 번으로 된다 (FR-002)
   price      Int // 원 단위 정수
   imageUrl   String?
   isActive   Boolean @default(true) // false 면 카탈로그·상세 진입 차단. 기존 요청은 스냅샷으로 렌더
 
   category            Category      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  giftRequests        GiftRequest[] @relation("GiftProduct")
-  counterGiftRequests GiftRequest[] @relation("GiftCounterProduct")
   tasteItems          TasteItem[]
+  giftRequests        GiftRequest[] @relation("GiftRequestProduct")
+  counterGiftRequests GiftRequest[] @relation("GiftRequestCounterProduct")
 
-  @@index([categoryId, isActive]) // 목록 · 대상 필터
+  @@index([categoryId, isActive]) // 목록·대상 필터
   @@index([isActive, price]) // 상한 필터(SCR-M3-13) · 추천 가격 정렬 (R9)
 }
 
-// 결제수단 — 빌링키는 사용자당 재사용. 등록은 한 번, 동의는 요청마다 (FR-009).
+// 결제수단 — 빌링키만 저장(AES-256-GCM 암호화, R10). 카드번호·CVC 는 어디에도 없다 (FR-008).
+// 빌링키는 사용자당 재사용 — 등록은 한 번, 동의는 요청마다 (FR-009).
 model PaymentMethod {
   id         String              @id @default(uuid()) @db.Uuid
   userId     String              @db.Uuid
-  provider   String              @default("portone")
-  billingKey String // AES-256-GCM 암호화 저장 (R10). 카드번호·CVC 는 어디에도 없다 (FR-008)
+  provider   String // 'portone'
+  billingKey String // 암호화 저장 — 평문 금지 (R10)
   cardBrand  String // 화면 표시 전용
-  cardLast4  String // 화면 표시 전용. mock 실패 규약의 키 (0000, R1)
+  cardLast4  String // 화면 표시 전용. mock 실패 규약의 키 ('0000', R1)
   status     PaymentMethodStatus @default(ACTIVE)
   createdAt  DateTime            @default(now())
-  deletedAt  DateTime? // 삭제는 soft
+  deletedAt  DateTime? // 삭제는 soft — 과거 요청의 표시(cardLast4)가 남아야 한다
 
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   giftRequests GiftRequest[]
 
-  @@index([userId, status]) // "활성 수단 존재" 검증(FR-013 ②) · 관리 화면
+  @@index([userId, status]) // "활성 수단 존재" 검증(FR-013 ②)과 관리 화면
 }
 
-// 선물 요청 — 이 마일스톤의 중심.
+// 선물 요청 — 이 마일스톤의 중심. 화면은 스냅샷 필드만 읽는다 (R5 — Product·User 조인 렌더 금지).
 model GiftRequest {
   id         String          @id @default(uuid()) @db.Uuid
   giverId    String          @db.Uuid
   receiverId String          @db.Uuid // C7 — 자기 자신 금지
   status     GiftStatus      @default(PENDING)
-  resolution GiftResolution? // 지나간 경로의 기록
+  resolution GiftResolution? // 어느 경로로 확정됐는지 (FR-045)
   resolvedAt DateTime?
 
   productId       String @db.Uuid // 이력 추적용 참조 — 렌더에 쓰지 않는다 (R5)
@@ -277,19 +263,19 @@ model GiftRequest {
   requestedAmount Int // C5 의 상한 기준
 
   counterProductId       String?   @db.Uuid // C6 — 3필드 전무/전유
-  counterProductSnapshot Json?
-  counterAmount          Int? // C5: <= requestedAmount
+  counterProductSnapshot Json? // C6
+  counterAmount          Int? // C5: ≤ requestedAmount. 화면 필터가 1차, CHECK 가 최종 방어선 (FR-021)
   counteredAt            DateTime?
+  finalAmount            Int? // 결제 시 확정 = counterAmount ?? requestedAmount
 
-  finalAmount             Int? // 결제 시 확정 = counterAmount ?? requestedAmount
   receiverDisplayName     String // D3 스냅샷 — 해제 후에도 "누구에게"가 렌더된다
-  shippingAddressSnapshot Json? // 수령자가 이 거래에 제공. 프로필 배송지 없음 (FR-025)
+  shippingAddressSnapshot Json? // 수령자가 이 거래에 제공한 것. 프로필 배송지 없음 (FR-025)
 
   paymentMethodId String   @db.Uuid // 재시도 시 변경 가능 (FR-030)
   consentAgreedAt DateTime // 동의 없이 생성 불가 (FR-014)
-  consentVersion  String // 어떤 문구에 동의했는지 (FR-015)
-  respondDueAt    DateTime // 생성 시 절대 시각 스냅샷 (FR-017, R11)
+  consentVersion  String // 어떤 문구에 동의했는지. v1 = clarify Q4 (FR-015)
 
+  respondDueAt        DateTime // 생성 시 절대 시각 스냅샷 (FR-017, R11) — TTL 을 바꿔도 이미 뜬 요청은 불변
   paymentRetryUntil   DateTime? // 첫 실패 시점 + GIFT_PAYMENT_RETRY_WINDOW
   paymentAttemptCount Int       @default(0) // GIFT_PAYMENT_MAX_ATTEMPTS 상한 (FR-031)
 
@@ -301,52 +287,61 @@ model GiftRequest {
 
   giver          User          @relation("GiftGiver", fields: [giverId], references: [id], onDelete: Cascade)
   receiver       User          @relation("GiftReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
-  product        Product       @relation("GiftProduct", fields: [productId], references: [id], onDelete: Restrict)
-  counterProduct Product?      @relation("GiftCounterProduct", fields: [counterProductId], references: [id], onDelete: Restrict)
-  paymentMethod  PaymentMethod @relation(fields: [paymentMethodId], references: [id], onDelete: Restrict)
+  product        Product       @relation("GiftRequestProduct", fields: [productId], references: [id], onDelete: Restrict)
+  counterProduct Product?      @relation("GiftRequestCounterProduct", fields: [counterProductId], references: [id], onDelete: Restrict)
+  paymentMethod  PaymentMethod @relation(fields: [paymentMethodId], references: [id], onDelete: Restrict) // 하드 삭제 금지 — 수단 삭제는 status 로 soft (FR-011)
   payments       Payment[]
 
-  @@index([receiverId, status, respondDueAt]) // 홈 승인 대기(임박순) · 수신 목록 (FR-038)
-  @@index([giverId, status]) // 보낸 내역 · 진행 중 구분 (FR-042)
+  // ⚠️ 아래 세 제약은 Prisma 문법으로 표현되지 않아 raw SQL 마이그레이션으로 넣었다 (R4).
+  //   C5 gift_counter_le_requested — CHECK counterAmount ≤ requestedAmount (PRD 확정 정책의 최종 방어선)
+  //   C6 gift_counter_all_or_none  — counter 3필드는 전부 NULL 이거나 전부 NOT NULL
+  //   C7 gift_no_self              — CHECK giverId <> receiverId
+  // `db push` 로 만든 DB 에는 셋 다 없다. 새 환경은 반드시 `migrate deploy` 로 만든다.
+  // 걸렸는지는 tests/integration/gift-constraints.test.ts 가 판정한다.
+
+  @@index([receiverId, status, respondDueAt]) // 홈 승인 대기(임박순) + 수신 목록 (FR-038)
+  @@index([giverId, status]) // 보낸 내역·진행 중 구분 (FR-042)
   @@index([paymentMethodId, status]) // 수단 삭제 시 "진행 중 N건" 경고 (FR-011)
 }
 
-// 결제 기록 — polymorphic 대신 nullable FK 2개 + C8. DB 가 참조 무결성을 계속 지킨다.
+// 결제 기록 — polymorphic(payableType+payableId) 대신 nullable FK 2개 + C8(XOR).
+// DB 가 참조 무결성을 계속 지킨다. 결제 데이터에서 이것을 양보하지 않는다 (도메인 모델 §5).
 model Payment {
   id           String        @id @default(uuid()) @db.Uuid
-  provider     String        @default("portone")
-  // 가맹점이 만든 결제 id 를 넣는다 (createPaymentId) — 실패한 시도에도 값이 있으므로
-  // data-model.md 대로 비-null 을 유지한다. J 의 정본(20260831081812_m3_gift)과 같다.
-  providerTxId String // mock 은 mock_pay_ 접두
+  provider     String // 'portone' (mock 포함)
+  providerTxId String // mock 은 mock_ 접두 uuid
   amount       Int
   status       PaymentStatus
-
-  giftRequestId         String? @db.Uuid // C8
-  // M4 F1 에서 FK 가 붙는다 — 지금은 컬럼만 (R4). 관계를 지금 만들면 M4 마이그레이션이
-  // 이 컬럼을 다시 만들지 않아도 되고, C8 은 두 컬럼을 모두 보고 판정한다.
+  giftRequestId String?      @db.Uuid // C8
+  // M4 FundingContribution 대상 — 컬럼만 선반영, FK 는 M4 F1 에서 ADD CONSTRAINT 한 줄 (R4).
+  // 지금 컬럼이 없으면 C8 을 줄여 걸었다가 M4 에서 제약을 떨어뜨리고 다시 걸어야 한다.
   fundingContributionId String? @db.Uuid
+  paidAt       DateTime?
+  refundedAt   DateTime?
+  createdAt    DateTime      @default(now())
 
-  paidAt     DateTime?
-  refundedAt DateTime?
-  createdAt  DateTime  @default(now())
-
+  // SetNull 은 C8 을 깨므로 Restrict — 결제 이력은 대상보다 오래 남는다
   giftRequest GiftRequest? @relation(fields: [giftRequestId], references: [id], onDelete: Restrict)
+
+  // ⚠️ C8 payment_exactly_one_target — 정확히 하나의 대상에 연결(XOR CHECK). raw SQL (R4).
+  // `db push` 로 만든 DB 에는 없다. tests/integration/gift-constraints.test.ts 가 판정한다.
 
   @@index([giftRequestId]) // 요청별 시도 이력 (FR-033)
 }
 
-// 일정 — 생일을 User 컬럼으로 두지 않는다. 홈이 "다가오는 일정" 하나의 축으로 돈다.
+// 일정 — 생일을 User.birthday 필드로 두지 않고 Event 로 통일한다.
+// 홈 탭이 "다가오는 일정" 하나의 축으로 돈다 (도메인 모델 §5). 캘린더는 목록형 (clarify Q2).
 model Event {
   id          String    @id @default(uuid()) @db.Uuid
   userId      String    @db.Uuid // 일정의 주체 (생일의 주인)
   type        EventType
   title       String
   date        DateTime  @db.Date
-  isRecurring Boolean   @default(false) // true 면 연도 무시, 월·일 매칭 (FR-040)
+  isRecurring Boolean // true 면 연도를 무시하고 월·일로 매칭 (FR-040)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId, date]) // 본인 · 친구 일정 조회
+  @@index([userId, date]) // 본인·친구 일정 조회
 }

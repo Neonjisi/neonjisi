@@ -213,8 +213,9 @@ test.describe('US4 — 친구 해제', () => {
     await pageB.goto(`/friends/${aId}`)
     const dialog = await openRemoveDialog(pageB)
     await expect(dialog.getByText('서로의 취향을 볼 수 없게 됩니다')).toBeVisible()
-    // M2 에는 거래가 없다 — 이 문구가 있으면 거짓말이 된다 (research R9 · spec 가정)
-    await expect(dialog.getByText(/진행 중인 선물|펀딩/)).toHaveCount(0)
+    // M2 에서는 거래가 없어 이 문구를 부재로 단언했다. M3 에 GiftRequest 가 생기며
+    // 참이 되어 문장을 추가했고(T050 · D3 "진행 중 거래 예외"), 단언도 뒤집는다.
+    await expect(dialog.getByText('진행 중인 선물은 그대로 진행됩니다')).toBeVisible()
 
     await dialog.getByRole('button', { name: '취소', exact: true }).click()
     await expect(dialog).toBeHidden()

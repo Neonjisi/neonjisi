@@ -57,6 +57,29 @@ test.describe('US4 — 수정과 삭제', () => {
     await expect(row(page, SECTION.UNWANTED, `${CATEGORY.TUMBLER} · 스탠리 퀜처`)).toBeVisible()
   })
 
+  test('이미 있어요와 관심 없어요 항목에 수정 진입점이 명시적으로 보인다', async ({
+    authedPage: page,
+  }) => {
+    await completeOnboarding(page, [
+      { category: CATEGORY.TUMBLER, kind: 'HAVE' },
+      { category: CATEGORY.PERFUME, kind: 'UNWANTED' },
+    ])
+
+    const haveEdit = page.getByRole('button', { name: `${CATEGORY.TUMBLER} 수정`, exact: true })
+    const unwantedEdit = page.getByRole('button', { name: `${CATEGORY.PERFUME} 수정`, exact: true })
+    await expect(haveEdit).toBeVisible()
+    await expect(unwantedEdit).toBeVisible()
+
+    await haveEdit.click()
+    await expect(page.getByRole('dialog', { name: '취향 항목 편집' })).toBeVisible()
+    await page.getByRole('dialog', { name: '취향 항목 편집' }).getByRole('button', { name: '닫기' }).click({ position: { x: 10, y: 10 } })
+
+    await unwantedEdit.click()
+    const dialog = page.getByRole('dialog', { name: '취향 항목 편집' })
+    await expect(dialog).toBeVisible()
+    await expect(dialog.getByRole('button', { name: '삭제', exact: true })).toBeVisible()
+  })
+
   test('US4-2 · 삭제는 확인을 거친 뒤 목록에서 사라지며 복구되지 않는다', async ({
     authedPage: page,
   }) => {

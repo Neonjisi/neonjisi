@@ -99,6 +99,7 @@ describe.skipIf(!canRun)('retryGiftPayment — 실패에서 복구한다 (T052)'
     const created = await prisma.paymentMethod.create({
       data: {
         userId,
+        provider: 'portone',
         billingKey: encryptBillingKey(issued.billingKey),
         cardBrand: '신한',
         cardLast4,

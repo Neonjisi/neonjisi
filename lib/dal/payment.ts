@@ -1,10 +1,9 @@
-import type { Prisma } from '@prisma/client'
+import type { GiftStatus, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import {
   createGiftNotifications,
   type GiftNotificationEntry,
 } from '@/lib/dal/notification'
-import type { GiftStatusValue } from '@/lib/gift/state'
 
 /**
  * 결제 기록 DAL (T017) — 계약: specs/003-gift-request-payment/contracts/server-actions.md §3
@@ -23,7 +22,7 @@ export type ChargeTarget = {
   giftRequestId: string
   giverId: string
   receiverId: string
-  status: GiftStatusValue
+  status: GiftStatus
   /** 청구 금액 — finalAmount ?? counterAmount ?? requestedAmount */
   amount: number
   /** 결제사에 보낼 주문명 — 대안이 있으면 대안 상품명 (스냅샷에서 읽는다, R5) */
@@ -213,7 +212,7 @@ export async function finalizeChargeFailure(input: {
 /** 재시도 가능 여부를 판정하는 데 필요한 것만 (T053) */
 export type RetryTarget = {
   giverId: string
-  status: GiftStatusValue
+  status: GiftStatus
   paymentAttemptCount: number
   paymentRetryUntil: Date | null
   paymentMethodId: string
