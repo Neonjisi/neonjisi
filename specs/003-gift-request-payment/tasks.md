@@ -109,7 +109,7 @@
 - [X] T031 [US2] `app/payment-methods/actions.ts` — `registerPaymentMethod`(T013 경유 발급 → T011 암호화 저장) · `deletePaymentMethod`(경고 카운트 반환)
 - [X] T032 [US2] `components/payment/billing-key-form.tsx`(`'use client'`) + `app/payment-methods/new/page.tsx` — SCR-M3-06 (mock 카드 선택 폼 · "카드 정보는 넌지시에 저장되지 않습니다" · **강제 진입 시 복귀 경로**)
 - [X] T033 [US2] `app/payment-methods/page.tsx` — SCR-M3-07 관리 + 마이 탭 만료 배지 + `components/payment/method-delete-dialog.tsx`
-- [ ] T034 [US2] T029 초록
+- [X] T034 [US2] T029 초록
 
 **Checkpoint**: US1·US2 각각 독립 동작 — 빌링키 등록 완료
 

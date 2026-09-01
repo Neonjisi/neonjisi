@@ -214,9 +214,12 @@ describe('PORTONE_MODE 스위치', () => {
     expect(issued.ok).toBe(true)
   })
 
-  it('real 은 아직 구현이 없다 — 조용히 mock 으로 떨어지지 않고 던진다 (T058)', () => {
+  it('real 인데 실연동 env 가 비면 던진다 — 조용히 mock 으로 떨어지지 않는다 (T058)', () => {
     vi.stubEnv('PORTONE_MODE', 'real')
-    expect(() => getPortOneClient()).toThrow(/T058|실연동/)
+    vi.stubEnv('PORTONE_STORE_ID', '')
+    vi.stubEnv('PORTONE_CHANNEL_KEY', '')
+    vi.stubEnv('PORTONE_API_SECRET', '')
+    expect(() => getPortOneClient()).toThrow(/PORTONE_STORE_ID/)
   })
 
   it('오타는 거부한다', () => {
