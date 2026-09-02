@@ -11,7 +11,11 @@
  * ("수령자에게 실패 진행 상황을 노출하지 않는다")이 깨진다.
  */
 import { describe, expect, it } from 'vitest'
-import type { GiftNotificationView, NotificationView } from '@/lib/dal/notification'
+import type {
+  FundingNotificationView,
+  GiftNotificationView,
+  NotificationView,
+} from '@/lib/dal/notification'
 import { toNotificationItem } from '@/lib/notification/display'
 
 const NOW = new Date('2026-08-31T12:00:00.000Z')
@@ -105,5 +109,99 @@ describe('선물 알림 6종 (M3)', () => {
   it('만료 문구는 수령자를 탓하지 않는다 — 사실만 서술한다', () => {
     const item = toNotificationItem(giftView('GIFT_EXPIRED'), NOW)
     expect(item.message).not.toMatch(/거절|무시|응답하지 않아/)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// M4 — 펀딩 알림 4종 (T032) · 계약: 004 data-model "NotificationType — 4종 추가" (탭 시 이동 표)
+//
+// 판정하는 것 둘: ① 4종 모두 문구와 갈 곳을 가진다 — 참여 발생은 상세, 나머지는 결과 화면.
+// ② 같은 종류(FUNDING_FAILED_REFUNDED)라도 미달·주최자 취소·차액 상한 초과·잉여가 문구에서 갈린다 (FR-018).
+// 환불 안내는 "영업일 3~5일" 로 고정한다 (clarify Q4).
+// ---------------------------------------------------------------------------
+
+const FUNDING_ID = '66666666-6666-4666-8666-666666666666'
+
+function fundingView(
+  type: FundingNotificationView['type'],
+  payload: Partial<FundingNotificationView['payload']> = {},
+): NotificationView {
+  return {
+    id: '77777777-7777-4777-8777-777777777777',
+    type,
+    payload: {
+      fundingId: FUNDING_ID,
+      productName: '무선 이어폰',
+      amount: 30000,
+      ...payload,
+    },
+    readAt: null,
+    createdAt: CREATED_AT,
+  }
+}
+
+describe('펀딩 알림 4종 (M4)', () => {
+  it('4종 모두 문구와 갈 곳을 가진다 — 참여 발생은 상세(SCR-M4-04), 나머지는 결과(SCR-M4-07)', () => {
+    const detail = `/fundings/${FUNDING_ID}`
+    const result = `${detail}/result`
+
+    expect(toNotificationItem(fundingView('FUNDING_CONTRIBUTION_RECEIVED'), NOW).href).toBe(detail)
+    expect(toNotificationItem(fundingView('FUNDING_SUCCEEDED'), NOW).href).toBe(result)
+    expect(toNotificationItem(fundingView('FUNDING_FAILED_REFUNDED', { reason: 'FAILED' }), NOW).href).toBe(result)
+    expect(toNotificationItem(fundingView('FUNDING_ORGANIZER_TOPUP'), NOW).href).toBe(result)
+  })
+
+  it('참여 발생 — 누가 얼마를 보탰는지 스냅샷만으로 말한다 (J 의 확정 트랜잭션 payload 형태)', () => {
+    const item = toNotificationItem(
+      fundingView('FUNDING_CONTRIBUTION_RECEIVED', { contributorDisplayName: '지수', amount: 20000 }),
+      NOW,
+    )
+    expect(item.message).toBe('지수님이 무선 이어폰 펀딩에 20,000원을 보탰어요')
+  })
+
+  it('성사 — 수령자 이름이 있으면 누구를 위한 펀딩인지 말한다', () => {
+    const item = toNotificationItem(
+      fundingView('FUNDING_SUCCEEDED', { receiverDisplayName: '서연', amount: 100000 }),
+      NOW,
+    )
+    expect(item.message).toBe('서연님을 위한 무선 이어폰 펀딩이 성사되었어요')
+  })
+
+  it('차액 — "동의를 받았어도 고지는 별개다": 금액을 숫자로 말한다 (FR-016)', () => {
+    const item = toNotificationItem(fundingView('FUNDING_ORGANIZER_TOPUP', { amount: 30000 }), NOW)
+    expect(item.message).toBe('무선 이어폰 펀딩 차액 30,000원이 내 결제수단으로 결제되었어요')
+  })
+
+  it('환불 — 미달·주최자 취소·차액 상한 초과·잉여가 문구에서 갈린다 (FR-018), 환불 안내는 한 문장 고정 (clarify Q4)', () => {
+    const failed = toNotificationItem(fundingView('FUNDING_FAILED_REFUNDED', { reason: 'FAILED' }), NOW).message
+    const byOrganizer = toNotificationItem(
+      fundingView('FUNDING_FAILED_REFUNDED', { reason: 'CANCELLED', cause: 'ORGANIZER' }),
+      NOW,
+    ).message
+    const byTopup = toNotificationItem(
+      fundingView('FUNDING_FAILED_REFUNDED', { reason: 'CANCELLED', cause: 'TOPUP_EXHAUSTED' }),
+      NOW,
+    ).message
+    const surplus = toNotificationItem(fundingView('FUNDING_FAILED_REFUNDED', { reason: 'SURPLUS' }), NOW).message
+
+    expect(failed).toContain('달성선에 못 미쳤어요')
+    expect(byOrganizer).toContain('주최자가 무선 이어폰 펀딩을 취소했어요')
+    expect(byTopup).toContain('차액 결제가 완료되지 않아')
+    expect(surplus).toContain('이미 목표를 채워')
+
+    for (const message of [failed, byOrganizer, byTopup, surplus]) {
+      expect(message).toContain('30,000원이 환불돼요')
+      expect(message).toContain('영업일 3~5일')
+    }
+    expect(new Set([failed, byOrganizer, byTopup, surplus]).size).toBe(4)
+  })
+
+  it('환불 금액 0 — 참여 없는 전원 고지(주최자·수령자)는 환불 문장 없이 취소 사실만 말한다', () => {
+    const item = toNotificationItem(
+      fundingView('FUNDING_FAILED_REFUNDED', { reason: 'CANCELLED', cause: 'TOPUP_EXHAUSTED', amount: 0 }),
+      NOW,
+    )
+    expect(item.message).toBe('차액 결제가 완료되지 않아 무선 이어폰 펀딩이 취소되었어요.')
+    expect(item.message).not.toContain('환불')
   })
 })

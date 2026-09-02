@@ -11,8 +11,8 @@ import { verifySession } from '@/lib/dal/session'
  * 검사가 없다 (research R4). 쓰기 프리미티브(읽음 처리)도 여기 둔다: 알림은 US3 하나가
  * 통째로 소유하므로 읽기/쓰기를 파일로 가를 이유가 없다 (team-assignment §5 충돌 지도).
  *
- * M2 의 알림은 **친구 성사 한 종류뿐**이다 (research R6). 도메인 모델 §5 의 나머지 10종은
- * M3·M4 에서 더한다 — 미리 만들지 않는다.
+ * M2 의 알림은 **친구 성사 한 종류뿐**이었다 (research R6). M3 이 선물 6종(T056), M4 가 펀딩 4종(T014·T032)을
+ * 더했다 — 도메인 모델 §5 의 11종이 전부 여기 있다.
  */
 
 export type NotificationPayload = {
@@ -39,7 +39,16 @@ export type GiftNotificationView = {
   createdAt: Date
 }
 
-export type NotificationView = FriendNotificationView | GiftNotificationView
+/** M4 의 펀딩 알림 4종 (T014·T032) — payload 는 발생 시점의 표시용 스냅샷이다 */
+export type FundingNotificationView = {
+  id: string
+  type: FundingNotificationType
+  payload: FundingNotificationPayload
+  readAt: Date | null
+  createdAt: Date
+}
+
+export type NotificationView = FriendNotificationView | GiftNotificationView | FundingNotificationView
 
 /**
  * payload 는 Json 컬럼이라 타입이 보장되지 않는다 — 우리가 쓴 값이지만 스키마 변경·수동 수정에
@@ -59,6 +68,32 @@ const giftPayloadSchema = z.object({
   productName: z.string(),
   amount: z.number(),
 })
+
+/**
+ * 펀딩 알림 payload — 한 형태로 4종을 덮는다. J 의 확정 트랜잭션(FUNDING_CONTRIBUTION_RECEIVED,
+ * lib/dal/funding-contribute.ts)이 쓰는 `{ fundingId, contributorDisplayName, productName, amount }` 를
+ * 포함하도록 선택 필드로 넓혔다. settle 3종은 `receiverDisplayName`·`reason`·`cause` 를 더 싣는다.
+ */
+const fundingPayloadSchema = z.object({
+  fundingId: z.string(),
+  productName: z.string(),
+  amount: z.number(),
+  contributorDisplayName: z.string().optional(),
+  receiverDisplayName: z.string().optional(),
+  reason: z.enum(['FAILED', 'CANCELLED', 'SURPLUS']).optional(),
+  cause: z.enum(['ORGANIZER', 'TOPUP_EXHAUSTED']).optional(),
+})
+
+const FUNDING_NOTIFICATION_TYPES = [
+  'FUNDING_CONTRIBUTION_RECEIVED',
+  'FUNDING_SUCCEEDED',
+  'FUNDING_FAILED_REFUNDED',
+  'FUNDING_ORGANIZER_TOPUP',
+] as const
+
+function isFundingNotificationType(type: string): type is FundingNotificationType {
+  return (FUNDING_NOTIFICATION_TYPES as readonly string[]).includes(type)
+}
 
 const GIFT_NOTIFICATION_TYPES = [
   'GIFT_REQUEST_RECEIVED',
@@ -96,7 +131,13 @@ function toView(row: NotificationRow): NotificationView | null {
     return { ...common, type: row.type, payload: parsed.data }
   }
 
-  // M4 의 funding 4종이 먼저 들어오는 경우 — 모르는 종류는 조용히 뺀다
+  if (isFundingNotificationType(row.type)) {
+    const parsed = fundingPayloadSchema.safeParse(row.payload)
+    if (!parsed.success) return dropped(row.id)
+    return { ...common, type: row.type, payload: parsed.data }
+  }
+
+  // 모르는 종류는 조용히 뺀다 — enum 에 값이 먼저 늘고 표시 매핑이 뒤따르는 창에서 화면을 지킨다
   return dropped(row.id)
 }
 
@@ -207,6 +248,51 @@ export type GiftNotificationEntry = {
 export async function createGiftNotifications(
   tx: Prisma.TransactionClient,
   entries: GiftNotificationEntry[],
+): Promise<void> {
+  if (entries.length === 0) return
+  await tx.notification.createMany({
+    data: entries.map((entry) => ({
+      userId: entry.userId,
+      type: entry.type,
+      payload: entry.payload,
+    })),
+  })
+}
+
+// ---------------------------------------------------------------------------
+// M4 — 펀딩 알림 (T014 · research R8)
+//
+// 생성 경계가 정해져 있다: FUNDING_CONTRIBUTION_RECEIVED 는 참여 **확정 트랜잭션**(J, R2 ③) 안에서,
+// 나머지 3종(FUNDING_SUCCEEDED · FUNDING_FAILED_REFUNDED · FUNDING_ORGANIZER_TOPUP)은 전부
+// `lib/funding/settle.ts` 안이다. 호출자는 정산 알림을 보내지 않는다 — 트리거 지점이 여럿(상세·홈·내역
+// 조회 + 조기 성사 + 취소 + 재시도)이라 호출자에 두면 복제·중복 발송이 난다.
+// ---------------------------------------------------------------------------
+
+/** 펀딩 알림 4종 (data-model.md "NotificationType — 4종 추가") */
+export type FundingNotificationType = (typeof FUNDING_NOTIFICATION_TYPES)[number]
+
+/**
+ * payload 는 **표시용 값의 스냅샷**이다 (M2·M3 와 같은 원칙). 목록이 User·Funding 을 다시 읽지 않는다.
+ *
+ * `amount` 의 뜻은 종류마다 하나다 — CONTRIBUTION_RECEIVED: 참여 금액 / SUCCEEDED: 모인 금액(목표) /
+ * FAILED_REFUNDED: **환불 금액**(0 이면 참여 없는 전원 고지 — topup 상한 초과 취소의 주최자·수령자) /
+ * ORGANIZER_TOPUP: 차액.
+ * `reason`·`cause` 는 FAILED_REFUNDED 만 쓴다 — 미달(FAILED)과 취소(CANCELLED)를 문구에서 갈라야 한다(FR-018).
+ * 취소는 주최자 취소(ORGANIZER)와 차액 결제 상한 초과(TOPUP_EXHAUSTED)로 다시 갈린다. SURPLUS 는 성사가
+ * 끝난 뒤 늦게 확정된 결제(대사)를 되돌린 경우다 — 펀딩은 성사했고 이 돈만 필요 없어졌다.
+ */
+export type FundingNotificationPayload = z.infer<typeof fundingPayloadSchema>
+
+export type FundingNotificationEntry = {
+  userId: string
+  type: FundingNotificationType
+  payload: FundingNotificationPayload
+}
+
+/** 여러 건을 한 번에 — 성사 알림은 참여자 전원 + 수령자에게, 취소 고지는 전원에게 간다 */
+export async function createFundingNotifications(
+  tx: Pick<Prisma.TransactionClient, 'notification'>,
+  entries: FundingNotificationEntry[],
 ): Promise<void> {
   if (entries.length === 0) return
   await tx.notification.createMany({
