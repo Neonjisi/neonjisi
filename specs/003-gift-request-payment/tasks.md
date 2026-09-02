@@ -22,7 +22,7 @@
 **Purpose**: 전원 각자의 환경 준비. M2 완료 상태(`origin/main`)에서 시작한다.
 
 - [ ] T001 `.env.local`에 M3 env 추가 — `PORTONE_MODE=mock` · `BILLING_KEY_ENCRYPTION_KEY`(32바이트 base64) · `GIFT_RESPOND_TTL` · `GIFT_PAYMENT_RETRY_WINDOW` · `GIFT_PAYMENT_MAX_ATTEMPTS` (quickstart 전제 조건, 전원 각자, **커밋 금지**)
-- [ ] T002 [P] Product 시드 콘텐츠 표 작성 — 30~50건, 시나리오 커버 4조건(want 일치·have·unwanted·싼 대안 다수) 충족 확인 (S 산출물, 마감: Phase 3 시작 전 — T008이 소비)
+- [X] T002 [P] Product 시드 콘텐츠 표 작성 — 52건, 시나리오 커버 4조건(want 일치·have·unwanted·싼 대안 다수) 충족 확인 (S 산출물, 마감: Phase 3 시작 전 — T008이 소비)
 
 ---
 
@@ -35,12 +35,12 @@
 
 ### 스키마 (마이그레이션은 한 사람만 — M1·M2 규칙)
 
-- [ ] T003 `prisma/schema.prisma` — `Product`·`PaymentMethod`·`GiftRequest`·`Payment`·`Event` 모델 + enum `GiftStatus`(**DECLINED 없음**)·`GiftResolution`·`PaymentStatus`·`PaymentMethodStatus`·`EventType` + `NotificationType`에 gift 6종 + `TasteItem.productId`(nullable FK) + `Payment.fundingContributionId`(컬럼만, FK 없음 — R4). 인덱스는 data-model.md 대로
-- [ ] T004 마이그레이션 생성·적용 — `npx prisma migrate dev --name m3_gift` (`db push` 금지)
-- [ ] T005 [P] 제약 검증 통합 테스트 **먼저(실패 확인)** — `tests/integration/gift-constraints.test.ts`: ① counter 초과 금액 삽입 ② counter 3필드 부분 NULL ③ Payment 양쪽 FK/무FK ④ giver=receiver (`friendship-constraints.test.ts` 템플릿)
-- [ ] T006 raw SQL 마이그레이션 — `npx prisma migrate dev --create-only --name m3_gift_checks` → C5 `gift_counter_le_requested` · C6 `gift_counter_all_or_none` · C7 `gift_no_self` · C8 `payment_exactly_one_target` (SQL은 research R4 원문)
-- [ ] T007 마이그레이션 적용 → T005 초록 확인
-- [ ] T008 `prisma/seed.ts` 확장 — T002의 표로 Product 30~50건 주입 (기존 Category 시드 유지)
+- [X] T003 `prisma/schema.prisma` — `Product`·`PaymentMethod`·`GiftRequest`·`Payment`·`Event` 모델 + enum `GiftStatus`(**DECLINED 없음**)·`GiftResolution`·`PaymentStatus`·`PaymentMethodStatus`·`EventType` + `NotificationType`에 gift 6종 + `TasteItem.productId`(nullable FK) + `Payment.fundingContributionId`(컬럼만, FK 없음 — R4). 인덱스는 data-model.md 대로
+- [X] T004 마이그레이션 생성·적용 — `npx prisma migrate dev --name m3_gift` (`db push` 금지)
+- [X] T005 [P] 제약 검증 통합 테스트 **먼저(실패 확인)** — `tests/integration/gift-constraints.test.ts`: ① counter 초과 금액 삽입 ② counter 3필드 부분 NULL ③ Payment 양쪽 FK/무FK ④ giver=receiver (`friendship-constraints.test.ts` 템플릿)
+- [X] T006 raw SQL 마이그레이션 — `npx prisma migrate dev --create-only --name m3_gift_checks` → C5 `gift_counter_le_requested` · C6 `gift_counter_all_or_none` · C7 `gift_no_self` · C8 `payment_exactly_one_target` (SQL은 research R4 원문)
+- [X] T007 마이그레이션 적용 → T005 초록 확인
+- [X] T008 `prisma/seed.ts` 확장 — T002의 표로 Product 52건 주입 (기존 Category 시드 유지). 상한을 50→52 로 올렸다 (products.md §0 · spec Assumptions 동시 갱신)
 
 ### 설정·암호화·PortOne
 
