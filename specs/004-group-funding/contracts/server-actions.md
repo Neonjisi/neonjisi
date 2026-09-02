@@ -14,7 +14,7 @@ export async function paidTotal(tx, fundingId): Promise<number>   // PAID만 —
 export async function capTotal(tx, fundingId): Promise<number>    // RESERVED+PAID — 잔여 캡
 ```
 
-**다른 파일에서 참여 금액을 직접 합산하지 않는다** — 리뷰 체크 항목.
+**다른 파일에서 참여 금액을 펀딩 단위 총액으로 직접 합산하지 않는다** — 리뷰 체크 항목.
 
 ## 2. `lib/funding/settle.ts` — 정산 소유 경계 (R1·R5·R8) ★ M4 최우선 선행 계약
 
@@ -23,6 +23,13 @@ export async function capTotal(tx, fundingId): Promise<number>    // RESERVED+PA
  * 트리거: 마감 지난 OPEN 펀딩을 지나는 첫 조회(DAL 경유) / 조기 성사(참여 확정) /
  *        주최자 취소 / topup 재시도.
  * 잠금: OPEN→SUCCEEDED|FAILED (또는 OPEN→CANCELLED) 조건부 UPDATE. 0행이면 중단 — 멱등.
+ *       ⚠️ 잠금 조건은 status 만 본다 — deadline 술어를 넣지 않는다. 조기 성사(참여 확정)
+ *       트리거는 **마감 전**에 들어오며, paidTotal ≥ goalAmount 면 마감 무관 SUCCEEDED 다.
+ *       잠금 순서는 항상 Funding 먼저 — Contribution 을 먼저 잠그면 참여 확정 경로
+ *       (Funding FOR UPDATE 선점)와 역순 교착이 성립한다.
+ * 재진입: 비-OPEN(FAILED·CANCELLED·SUCCEEDED) 상태로 재호출되면 잠금은 0행이지만 그냥
+ *       끝내지 않는다 — **환불 미처리 PAID**(마감·취소를 가로질러 확정된 대사 복원 건;
+ *       contribute 가 settledMeanwhile 로 재호출한다)를 찾아 환불/정산에 편입한 뒤 종료.
  * 소유: 판정 → 환불 실행(refund, 전 PAID 건) → 차액 결제(chargeBillingKey) → SETTLED 확정
  *       → 알림 3종(FUNDING_SUCCEEDED · FUNDING_FAILED_REFUNDED · FUNDING_ORGANIZER_TOPUP).
  * topup 실패: SUCCEEDED 유지 + topupAttemptCount·retryUntil 기록. 상한 초과 시
@@ -31,7 +38,7 @@ export async function capTotal(tx, fundingId): Promise<number>    // RESERVED+PA
 export async function settleFunding(fundingId: string): Promise<
   | { outcome: 'SETTLED' } | { outcome: 'FAILED' } | { outcome: 'CANCELLED' }
   | { outcome: 'TOPUP_FAILED'; attemptCount: number; retryUntil: Date }
-  | { outcome: 'STILL_OPEN' }    // 마감 전 — 아무것도 하지 않음
+  | { outcome: 'STILL_OPEN' }    // 마감 전이고 paidTotal < goalAmount — 아무것도 하지 않음
 >
 ```
 
@@ -72,7 +79,7 @@ type FundingDetailView = {
 | 파일 (소유) | Action | 성공 | 실패 코드 |
 |---|---|---|---|
 | `create.ts` (J) | `createFunding` | `{ fundingId }` | `NOT_FRIENDS` · `NO_PAYMENT_METHOD` · `INVALID_AMOUNTS` · `INVALID_DEADLINE` · `CONSENT_REQUIRED` · `STORAGE_FAILED` |
-| `contribute.ts` (J 예약 + D 결제 연결) | `contributeToFunding` | `{ contributionId, outcome }` | `NOT_ALLOWED` · `FUNDING_CLOSED` · `OVER_REMAINING` · `PAYMENT_FAILED` · `STORAGE_FAILED` |
+| `contribute.ts` (J 예약 + D 결제 연결) | `contributeToFunding` | `{ contributionId, outcome }` | `NOT_ALLOWED` · `FUNDING_CLOSED` · `OVER_REMAINING` · `INVALID_AMOUNTS` · `PAYMENT_FAILED` · `STORAGE_FAILED` |
 | `contribute.ts` | `cancelReservation` | `{ ok: true }` | `NOT_OWNER` · `NOT_RESERVED` · `STORAGE_FAILED` |
 | `manage.ts` (D) | `cancelFunding` | `{ outcome }` | `NOT_ORGANIZER` · `NOT_OPEN` · `STORAGE_FAILED` |
 | `manage.ts` (D) | `retryFundingTopup` | `{ outcome }` | `NOT_ORGANIZER` · `NOT_RETRYABLE` · `RETRY_EXPIRED` · `STORAGE_FAILED` |

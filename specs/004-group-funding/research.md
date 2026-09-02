@@ -21,6 +21,10 @@ const locked = await tx.funding.updateMany({
 if (locked.count === 0) return  // 다른 조회가 이미 정산 중 — 중단
 ```
 
+⚠️ 위 스케치의 `deadline: { lt: now }` 는 **마감 경로 전용**이다. 조기 성사(참여 확정)
+트리거는 마감 전에 들어오므로 잠금은 `status: 'OPEN'` 만 보고, 성사 판정(`paidTotal ≥
+goalAmount`)이 SUCCEEDED 를 결정한다. 비-OPEN 재진입 처리 포함 — contracts §2 참조.
+
 잠금 이후 settle이 소유하는 것 — `FAILED`/`CANCELLED`: 전 `PAID` 건 환불 실행 +
 `FUNDING_FAILED_REFUNDED` 알림. `SUCCEEDED`: 부족분 있으면 주최자 차액 결제(R5) →
 `SETTLED` 확정 + `FUNDING_SUCCEEDED`·`FUNDING_ORGANIZER_TOPUP` 알림.
@@ -54,7 +58,8 @@ goal이면 **조기 성사 — R1의 성사 경로 즉시 실행**), 실패·초
 
 **Decision**: `lib/funding/totals.ts`에 두 함수만 둔다 — `paidTotal(fundingId)`(판정·진행바
 용, `PAID`만) · `capTotal(fundingId)`(잔여 캡용, `RESERVED`+`PAID`). **다른 파일에서 참여
-금액을 직접 합산하지 않는다** — 리뷰 체크 항목.
+금액을 펀딩 단위 총액으로 직접 합산하지 않는다** — 리뷰 체크 항목. (한 뷰어의 자기 참여분을
+접는 소액 합산은 이 금지의 대상이 아니다 — 금지의 근거는 아래 두 총액 정의의 표류뿐이다.)
 
 **Rationale**: 도메인 모델 §6 — "두 합산이 코드 두 곳에 흩어지면 조용히 깨진다." 판정에
 `RESERVED`를 넣으면 결제 안 될 돈으로 성사를 선언하고, 캡에서 빼면 동시 참여가 목표를

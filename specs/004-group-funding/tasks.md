@@ -29,25 +29,25 @@ M3의 T017(charge)과 같은 자리.
 
 ### 스키마 (마이그레이션은 J만 — M1~M3 규칙)
 
-- [ ] T004 `prisma/schema.prisma` — `Funding`·`FundingContribution` + enum `FundingStatus`·`ContributionStatus` + `NotificationType` funding 4종 + `Payment.fundingContributionId` FK. 인덱스는 data-model.md 대로
-- [ ] T005 마이그레이션 — `npx prisma migrate dev --name m4_funding` (`db push` 금지)
-- [ ] T006 [P] 제약 검증 통합 테스트 **먼저(실패 확인)** — `tests/integration/funding-constraints.test.ts`: ① `minAmount > goalAmount` 삽입 ② 개설자=수령자인데 `min ≠ goal` ③ Payment FK 무결성
-- [ ] T007 raw SQL — `--create-only`로 C9 `funding_min_le_goal` · C10 `funding_self_full_goal` · `payment_funding_contribution_fk` (SQL은 research R4 원문)
-- [ ] T008 적용 → T006 초록
+- [x] T004 `prisma/schema.prisma` — `Funding`·`FundingContribution` + enum `FundingStatus`·`ContributionStatus` + `NotificationType` funding 4종 + `Payment.fundingContributionId` FK. 인덱스는 data-model.md 대로
+- [x] T005 마이그레이션 — `npx prisma migrate dev --name m4_funding` (`db push` 금지)
+- [x] T006 [P] 제약 검증 통합 테스트 **먼저(실패 확인)** — `tests/integration/funding-constraints.test.ts`: ① `minAmount > goalAmount` 삽입 ② 개설자=수령자인데 `min ≠ goal` ③ Payment FK 무결성
+- [x] T007 raw SQL — `--create-only`로 C9 `funding_min_le_goal` · C10 `funding_self_full_goal` · `payment_funding_contribution_fk` (SQL은 research R4 원문)
+- [x] T008 적용 → T006 초록
 
 ### 총액 · 상태 · 정산 ★
 
-- [ ] T009 [P] 단위 테스트 먼저 — `tests/unit/funding-totals.test.ts`: `paidTotal`은 `PAID`만 / `capTotal`은 `RESERVED`+`PAID` — 섞이면 실패하는 케이스 포함
-- [ ] T010 [P] `lib/funding/totals.ts` — 총액 단일 모듈 (R3) → T009 초록
-- [ ] T011 [P] 단위 테스트 먼저 — `tests/unit/funding-state.test.ts`: 허용·금지 전이 전수 + 예약 만료 판정
-- [ ] T012 [P] `lib/funding/state.ts` — 전이 함수 + `evaluateReservationExpiry()`(지연 해제 — R2) → T011 초록
+- [x] T009 [P] 단위 테스트 먼저 — `tests/unit/funding-totals.test.ts`: `paidTotal`은 `PAID`만 / `capTotal`은 `RESERVED`+`PAID` — 섞이면 실패하는 케이스 포함
+- [x] T010 [P] `lib/funding/totals.ts` — 총액 단일 모듈 (R3) → T009 초록
+- [x] T011 [P] 단위 테스트 먼저 — `tests/unit/funding-state.test.ts`: 허용·금지 전이 전수 + 예약 만료 판정
+- [x] T012 [P] `lib/funding/state.ts` — 전이 함수 + `evaluateReservationExpiry()`(지연 해제 — R2) → T011 초록
 - [ ] T013 통합 테스트 먼저 — `tests/integration/funding-settle.test.ts`: 성사(마감·조기) / 미달 → 전 PAID 환불 + 알림 / 취소 → 환불 + 구분 문구 / 차액 topup + `FUNDING_ORGANIZER_TOPUP` / **동시 정산 2회 → 실행 1회**(멱등 잠금) / topup 실패 → 재시도 → 상한 초과 CANCELLED
 - [ ] T014 `lib/funding/settle.ts` — `settleFunding()` (contracts §2 소유 경계 전부: 판정 잠금 → 환불(refund 첫 실사용) → 차액(chargeBillingKey) → SETTLED → 알림 3종) → T013 초록. **M4 최우선 선행 태스크**
 
 ### 공용 기반
 
 - [ ] T015 [P] `app/fundings/actions/shared.ts`(M3 이식) + `proxy.ts` matcher `/fundings/:path*` + `app/fundings/error.tsx`
-- [ ] T016 `lib/dal/funding.ts` — `getFunding`(canViewFunding + **지분 3단계 마스킹**) · `getMyFundings` · `getHomeFundings` — **모든 조회가 정산 트리거(R1)·예약 만료 해제(R2) 경유**
+- [x] T016 `lib/dal/funding.ts` — `getFunding`(canViewFunding + **지분 3단계 마스킹**) · `getMyFundings` · `getHomeFundings` — **모든 조회가 정산 트리거(R1)·예약 만료 해제(R2) 경유**
 
 **Checkpoint**: T006 초록(CHECK·FK 실재) · T013 초록(정산 왕복·멱등) — 스토리 착수 가능
 
@@ -60,8 +60,8 @@ M3의 T017(charge)과 같은 자리.
 **Independent Test**: quickstart V1 — 참여 없이 개설·저장 값 검증.
 
 - [ ] T017 [P] [US1] E2E 먼저 — `tests/e2e/funding-create.spec.ts`: 친구에게 3스텝(차액 동의 숫자·체크 전 비활성) / 나에게 2스텝(달성선 잠금) / 금액·마감 검증 오류
-- [ ] T018 [US1] `lib/funding/consent.ts` — 차액 동의 문구(T002 확정분) + `FUNDING_CONSENT_VERSION = '1'` (M3 gift 동의와 **독립 버전**)
-- [ ] T019 [US1] `app/fundings/actions/create.ts` — `createFunding` (contracts §4 검사 순서 · 스냅샷 2종 · 개설자=수령자면 `min := goal` 강제)
+- [x] T018 [US1] `lib/funding/consent.ts` — 차액 동의 문구(T002 확정분) + `FUNDING_CONSENT_VERSION = '1'` (M3 gift 동의와 **독립 버전**)
+- [x] T019 [US1] `app/fundings/actions/create.ts` — `createFunding` (contracts §4 검사 순서 · 스냅샷 2종 · 개설자=수령자면 `min := goal` 강제)
 - [ ] T020 [US1] `components/funding/create-form.tsx`(`'use client'`) + `app/fundings/new/page.tsx` — SCR-M4-01~03 (달성선 **잠금이지 숨김 아님** · 최대 부담액 숫자 · 결제수단 없으면 SCR-M3-06 강제 진입 복귀)
 - [ ] T021 [P] [US1] SCR-M3-04 상품 상세의 `( 여럿이 모아서 선물하기 )` 진입점 활성화
 - [ ] T022 [US1] T017 초록
@@ -77,8 +77,8 @@ M3의 T017(charge)과 같은 자리.
 **Independent Test**: quickstart V2·V3 — 3계정으로 참여·캡·지분 뷰 검증.
 
 - [ ] T023 [P] [US2] E2E 먼저 — `tests/e2e/funding-contribute.spec.ts`: 상세 게이지·남은 금액·"결제 중 N원" / 참여 성공 + 주최자 알림 / 잔여 초과 거부 / **지분 3단계 뷰** / 비친구 접근 거부 (**3계정**)
-- [ ] T024 [P] [US2] 통합 테스트 먼저 — `tests/integration/funding-cap-concurrent.test.ts`: **동시 참여 2건 → 합계 ≤ 목표** (FOR UPDATE) / 예약 만료 지연 해제 / 결제 실패 → 예약 해제 / 추가 참여 허용 · RESERVED 취소
-- [ ] T025 [US2] `app/fundings/actions/contribute.ts` — `contributeToFunding` (contracts §4 2단계: FOR UPDATE 예약 → 결제 → 확정/해제 + `FUNDING_CONTRIBUTION_RECEIVED` + **조기 성사 시 `settleFunding()` 즉시 호출**) · `cancelReservation`
+- [x] T024 [P] [US2] 통합 테스트 먼저 — `tests/integration/funding-cap-concurrent.test.ts`: **동시 참여 2건 → 합계 ≤ 목표** (FOR UPDATE) / 예약 만료 지연 해제 / 결제 실패 → 예약 해제 / 추가 참여 허용 · RESERVED 취소
+- [x] T025 [US2] `app/fundings/actions/contribute.ts` — `contributeToFunding` (contracts §4 2단계: FOR UPDATE 예약 → 결제 → 확정/해제 + `FUNDING_CONTRIBUTION_RECEIVED` + **조기 성사 시 `settleFunding()` 즉시 호출**) · `cancelReservation`
 - [ ] T026 [US2] `app/fundings/[id]/page.tsx` — SCR-M4-04 상세 (상태 7변형 · 진행바=paid·남은=cap · 게이지 CSS 400ms 1회 · 주최자 취소 메뉴 · `share-button`)
 - [ ] T027 [US2] `components/funding/contribute-form.tsx` + `app/fundings/[id]/contribute/page.tsx` — SCR-M4-05 (**고지 2종 나란히** · 빠른 칩 "전액" · 잔여 검증)
 - [ ] T028 [US2] SCR-M4-06 참여 결과 3변형 (처리 중 / 완료 / 실패 — 예약 해제 안내)
@@ -119,7 +119,7 @@ M3의 T017(charge)과 같은 자리.
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
-- [ ] T039 [P] 제약 확인 — `pg_constraint`에서 C9·C10·FK 3행 (quickstart SQL)
+- [x] T039 [P] 제약 확인 — `pg_constraint`에서 C9·C10·FK 3행 (quickstart SQL)
 - [ ] T040 [P] 360px — `mobile-360`에 M4 화면 8종 추가 후 통과 (SC-010)
 - [ ] T041 [P] `'use client'` 예산(4개 — contracts §6) + 500줄 + **totals 모듈 밖 합산 없는지** 점검 (R3)
 - [ ] T042 quickstart V1~V6 수동 검증 (**3계정**) + `skipped` 수 확인 (S 주도)

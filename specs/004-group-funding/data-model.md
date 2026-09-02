@@ -102,7 +102,8 @@ canViewFunding(viewer, f) := viewer ∈ {organizer, receiver} ∪ contributors(f
 ```
 
 지분 마스킹(3단계)은 `lib/dal/funding.ts`가 View 타입에서 이미 잘라 내려보낸다 —
-비참여 친구의 View에는 금액 필드 자체가 없다.
+비참여 친구의 View에는 금액이 전부 `null`이다 (contracts §3의 `amount: number | null`
+타입 계약과 동일 — 값이 새지 않는 것이 요구의 전부다).
 
 ---
 
