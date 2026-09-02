@@ -15,7 +15,7 @@
  * 서버 전용. 빌링키 평문은 chargeBillingKey 호출 직전에만 존재한다 (lib/crypto/billing-key.ts).
  */
 import { randomBytes } from 'node:crypto'
-import { getPortOneMode } from '@/lib/config/gift'
+import { getPortOneMode, getPortOneRealConfig } from '@/lib/config/gift'
 
 export type IssueBillingKeyInput = {
   userId: string
@@ -163,6 +163,134 @@ function createMockClient(): PortOneClient {
   }
 }
 
+// ---------------------------------------------------------------------------
+// 실연동 (T058) — PortOne V2 REST API. mock 과 같은 시그니처 뒤에 붙는다 (R1).
+// ---------------------------------------------------------------------------
+
+const PORTONE_API_BASE = 'https://api.portone.io'
+
+type PortOneApiCall = {
+  method: 'POST'
+  path: string
+  body: Record<string, unknown>
+  apiSecret: string
+}
+
+/**
+ * V2 API 호출 한 번. 실패 이유는 화면(Payment.failureReason)에 닿으므로 결제사 원문을
+ * 싣지 않는다 — 상세(에러 type·message)는 서버 로그에만 남는다 (contracts §1).
+ */
+async function callPortOneApi(call: PortOneApiCall): Promise<{ ok: true; body: unknown } | { ok: false; reason: string }> {
+  const res = await fetch(`${PORTONE_API_BASE}${call.path}`, {
+    method: call.method,
+    headers: {
+      Authorization: `PortOne ${call.apiSecret}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(call.body),
+  })
+
+  if (res.ok) {
+    // 본문이 비거나 JSON 이 아니어도 성공은 성공이다 — 필요한 필드는 호출자가 방어적으로 읽는다
+    const body = await res.json().catch(() => null)
+    return { ok: true, body }
+  }
+
+  const errorBody = (await res.json().catch(() => null)) as { type?: string; message?: string } | null
+  console.error(
+    `[portone] ${call.path} 실패 — status=${res.status} type=${errorBody?.type ?? '?'} message=${errorBody?.message ?? '?'}`,
+  )
+
+  if (res.status === 401 || res.status === 403) {
+    return { ok: false, reason: '결제사 인증에 실패했습니다' }
+  }
+  if (res.status >= 500) {
+    return { ok: false, reason: '결제사 오류로 처리하지 못했습니다' }
+  }
+  return { ok: false, reason: '결제사에서 요청을 거절했습니다' }
+}
+
+/** 응답의 시각 문자열을 방어적으로 읽는다 — 형태가 예상과 달라도 결제 성공을 실패로 바꾸지 않는다 */
+function readDateField(body: unknown, field: string): Date {
+  if (typeof body === 'object' && body !== null) {
+    const record = body as Record<string, unknown>
+    const nested = record.payment ?? record.cancellation ?? record
+    const raw = typeof nested === 'object' && nested !== null ? (nested as Record<string, unknown>)[field] : undefined
+    if (typeof raw === 'string') {
+      const parsed = new Date(raw)
+      if (!Number.isNaN(parsed.getTime())) return parsed
+    }
+  }
+  return new Date()
+}
+
+/**
+ * 실연동 구현 (T058) — 빌링키 **결제·환불**만 서버가 한다.
+ *
+ * 빌링키 **발급**은 실연동에서 서버가 할 수 없다: V2 발급 API 는 카드번호·CVC 를 요구하는데
+ * FR-008이 앱이 카드 정보를 만지는 것을 금지한다. 실연동 발급은 결제사 인증 창(브라우저 SDK,
+ * SCR-M3-06 의 실연동 변형 — contracts 파일 지도 참고)이 빌링키를 받아온 뒤 서버는 저장만
+ * 한다. 그 위젯 전환은 실서비스 시점의 후속 작업이고, 여기서는 실패 값으로 정직하게 알린다.
+ */
+function createRealClient(): PortOneClient {
+  return {
+    createPaymentId() {
+      // 가맹점이 먼저 만드는 id (contracts §1) — 성공·실패·조회·환불이 전부 이 id 를 쓴다
+      return `pay_${randomBytes(16).toString('hex')}`
+    },
+
+    issueBillingKey() {
+      return normalizeFailure('issueBillingKey', async () => {
+        return {
+          ok: false,
+          reason: '실연동에서는 카드 등록을 결제사 인증 창으로만 할 수 있습니다',
+        } as const
+      })
+    },
+
+    chargeBillingKey({ billingKey, paymentId, amount, orderName }) {
+      return normalizeFailure('chargeBillingKey', async () => {
+        if (!isChargeableAmount(amount)) {
+          return { ok: false, reason: '결제 금액이 올바르지 않습니다' } as const
+        }
+        const { storeId, apiSecret } = getPortOneRealConfig()
+        const called = await callPortOneApi({
+          method: 'POST',
+          path: `/payments/${encodeURIComponent(paymentId)}/billing-key`,
+          body: {
+            storeId,
+            billingKey,
+            orderName,
+            amount: { total: amount },
+            currency: 'KRW',
+          },
+          apiSecret,
+        })
+        if (!called.ok) return called
+        // mock 과 같은 규약 — 우리가 만든 id 로 조회·환불한다 (V2 도 paymentId 기준이다)
+        return { ok: true, providerTxId: paymentId, paidAt: readDateField(called.body, 'paidAt') } as const
+      })
+    },
+
+    refund({ providerTxId, amount }) {
+      return normalizeFailure('refund', async () => {
+        if (!isChargeableAmount(amount)) {
+          return { ok: false, reason: '환불 금액이 올바르지 않습니다' } as const
+        }
+        const { apiSecret } = getPortOneRealConfig()
+        const called = await callPortOneApi({
+          method: 'POST',
+          path: `/payments/${encodeURIComponent(providerTxId)}/cancel`,
+          body: { amount, reason: '선물 요청 취소' },
+          apiSecret,
+        })
+        if (!called.ok) return called
+        return { ok: true, refundedAt: readDateField(called.body, 'cancelledAt') } as const
+      })
+    },
+  }
+}
+
 /**
  * `PORTONE_MODE` 로 mock/실연동을 고른다 (기본 mock).
  * 매 호출마다 모드를 읽는다 — 캐시하면 테스트·운영 전환이 프로세스 재시작에 묶인다.
@@ -170,8 +298,10 @@ function createMockClient(): PortOneClient {
 export function getPortOneClient(): PortOneClient {
   const mode = getPortOneMode()
   if (mode === 'real') {
-    // 조용히 mock 으로 떨어뜨리지 않는다 — 실연동 스모크(T058)가 거짓 성공한다
-    throw new Error('PORTONE_MODE=real 실연동 구현은 아직 없다 (T058에서 이 시그니처 뒤에 붙인다)')
+    // 필수 설정 3종을 관문에서 먼저 검증한다 — 비어 있으면 여기서 던져 원인이 바로 드러난다.
+    // (조용히 mock 으로 떨어뜨리지 않는다 — 실연동 스모크가 거짓 성공한다)
+    getPortOneRealConfig()
+    return createRealClient()
   }
   return createMockClient()
 }

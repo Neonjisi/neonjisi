@@ -99,6 +99,40 @@ export function getPortOneMode(): PortOneMode {
   return mode
 }
 
+export type PortOneRealConfig = {
+  /** `store-` 로 시작 — PortOne 콘솔 → 결제 연동 → 연동 정보 */
+  storeId: string
+  /** `channel-key-` 로 시작 — 테스트 채널의 키. 실 채널 키는 실청구를 만든다 */
+  channelKey: string
+  /** V2 API Secret — 서버 전용. 로그·반환값에 싣지 않는다 */
+  apiSecret: string
+}
+
+/**
+ * 실연동(T058) 필수 설정 3종 — `PORTONE_MODE=real` 일 때만 호출된다.
+ * 비어 있으면 던진다: real 을 켰는데 키가 없으면 스모크가 fetch 단계에서
+ * 알 수 없는 실패로 보이는 대신, 무엇이 비었는지가 바로 드러나야 한다.
+ */
+export function getPortOneRealConfig(): PortOneRealConfig {
+  const storeId = readEnv('PORTONE_STORE_ID')
+  const channelKey = readEnv('PORTONE_CHANNEL_KEY')
+  const apiSecret = readEnv('PORTONE_API_SECRET')
+
+  const missing = [
+    storeId === undefined ? 'PORTONE_STORE_ID' : null,
+    channelKey === undefined ? 'PORTONE_CHANNEL_KEY' : null,
+    apiSecret === undefined ? 'PORTONE_API_SECRET' : null,
+  ].filter((name): name is string => name !== null)
+
+  if (missing.length > 0) {
+    throw new Error(
+      `PORTONE_MODE=real 인데 ${missing.join(' · ')} 가 비어 있다 — .env.local 의 실연동 블록(.env.example T058 참고)을 채운다`,
+    )
+  }
+
+  return { storeId: storeId!, channelKey: channelKey!, apiSecret: apiSecret! }
+}
+
 /**
  * 응답 마감을 **절대 시각으로** 스냅샷한다 (R11) — 운영 중 TTL 을 바꿔도
  * 이미 뜬 요청의 마감은 흔들리지 않는다. 기준 시각은 변형하지 않는다.

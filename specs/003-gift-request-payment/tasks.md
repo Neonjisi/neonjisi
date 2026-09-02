@@ -60,8 +60,8 @@
 ### 공용 기반
 
 - [X] T018 [P] `app/gifts/actions/shared.ts` — `ActionResult`·`guarded` (M2 `app/friends/actions/shared.ts` 이식) + `proxy.ts` matcher에 `/gifts`·`/products`·`/payment-methods`·`/events` 추가
-- [ ] T019 [P] `app/gifts/error.tsx` · `app/products/error.tsx` · `app/payment-methods/error.tsx` · `app/events/error.tsx`
-- [ ] T020 [P] `components/gift/countdown.tsx`(`'use client'`) — **공용 카운트다운 하나**, 서버 시각 보정 (R8). 5분 미만 `ink` · 1분 미만 `alarm` · 모션 금지
+- [X] T019 [P] `app/gifts/error.tsx` · `app/products/error.tsx` · `app/payment-methods/error.tsx` · `app/events/error.tsx`
+- [X] T020 [P] `components/gift/countdown.tsx`(`'use client'`) — **공용 카운트다운 하나**, 서버 시각 보정 (R8). 5분 미만 `ink` · 1분 미만 `alarm` · 모션 금지
 - [ ] T021 `lib/dal/gift.ts` — `getPendingRequestsForMe`·`getSentGifts`·`getReceivedGifts`·`getGiftRequest` — **전부 `evaluateExpiry()` 경유** (R3), View는 스냅샷 필드만 (R5)
 
 **Checkpoint**: T005 초록(CHECK 실재) · T016 초록(mock 결제 왕복) · 시드 주입 완료 —
@@ -109,7 +109,7 @@
 - [X] T031 [US2] `app/payment-methods/actions.ts` — `registerPaymentMethod`(T013 경유 발급 → T011 암호화 저장) · `deletePaymentMethod`(경고 카운트 반환)
 - [X] T032 [US2] `components/payment/billing-key-form.tsx`(`'use client'`) + `app/payment-methods/new/page.tsx` — SCR-M3-06 (mock 카드 선택 폼 · "카드 정보는 넌지시에 저장되지 않습니다" · **강제 진입 시 복귀 경로**)
 - [X] T033 [US2] `app/payment-methods/page.tsx` — SCR-M3-07 관리 + 마이 탭 만료 배지 + `components/payment/method-delete-dialog.tsx`
-- [ ] T034 [US2] T029 초록
+- [X] T034 [US2] T029 초록
 
 **Checkpoint**: US1·US2 각각 독립 동작 — 빌링키 등록 완료
 
@@ -182,7 +182,7 @@
 - [X] T055 [US5] `app/gifts/[id]/recover/page.tsx` — SCR-M3-16 실패 복구 (시도 횟수·기한 · giver 전용 — 수령자에게 실패 진행 비노출)
 - [X] T056 [P] [US5] 알림 목록 확장 — gift 6종의 표시 문구·탭 이동 매핑 (`components/notification/` — M2 파일)
 - [X] T057 [US5] T052 초록 + E2E — `tests/e2e/gift-payment-recovery.spec.ts`: `0000` 카드 실패 → 수단 변경 재시도 → 성공
-- [ ] T058 [US5] (P0-1 실연동 확장 시점) `lib/portone/client.ts`에 실연동 구현 추가 — `PORTONE_MODE=real` 스모크. 실키는 `.env.local`에만, E2E는 여전히 mock
+- [X] T058 [US5] (P0-1 실연동 확장 시점) `lib/portone/client.ts`에 실연동 구현 추가 — `PORTONE_MODE=real` 스모크. 실키는 `.env.local`에만, E2E는 여전히 mock (스모크: `npx tsx scripts/portone-smoke.ts` — 2026-09-01 인증 통과 확인)
 
 **Checkpoint**: **마일스톤 3 완료 판정** — 양쪽 경로 자동 결제 + 실패 → 재시도 복구
 
