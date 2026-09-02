@@ -27,6 +27,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
     getProducts({ query, categoryName, friendUserId: friendUserId || undefined }),
   ])
   const selectedFriend = friends.find(({ userId }) => userId === friendUserId)
+  const productListReturnTo = `/products?${new URLSearchParams({ q: query, category: categoryName, for: friendUserId }).toString()}`
 
   return (
     <>
@@ -65,7 +66,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
         {selectedFriend ? (
           <div className="mt-4 flex items-center justify-between rounded-2xl bg-rose-50 px-4 py-3 text-sm">
             <span><strong>{selectedFriend.displayName}</strong>님에게 맞지 않는 종류는 뺐어요.</span>
-            <Link href={`/products/for/${selectedFriend.userId}`} className="shrink-0 font-semibold text-rose-700">맞춤 추천</Link>
+            <Link href={`/products/for/${selectedFriend.userId}?returnTo=${encodeURIComponent(productListReturnTo)}`} className="shrink-0 font-semibold text-rose-700">맞춤 추천</Link>
           </div>
         ) : null}
 

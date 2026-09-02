@@ -21,7 +21,13 @@ export function Chip({ label, isSelected = false, className = "", ...rest }: Chi
       }
       {...rest}
     >
-      {isSelected && <Check size={16} strokeWidth={2.5} aria-hidden />}
+      {/* 선택 전에도 같은 폭을 예약해 체크가 나타날 때 칩·줄바꿈 위치가 움직이지 않는다. */}
+      <span
+        className={`grid size-4 shrink-0 place-items-center rounded-full border transition-colors ${isSelected ? "border-rose-500 bg-rose-500 text-white" : "border-neutral-300 bg-surface text-transparent"}`}
+        aria-hidden
+      >
+        <Check size={12} strokeWidth={3} />
+      </span>
       {label}
     </button>
   );
