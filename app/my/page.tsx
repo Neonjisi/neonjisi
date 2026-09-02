@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ChevronRight, User } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { BottomNav } from "@/components/ui/bottom-nav";
+import { FriendAvatar } from "@/components/friend/avatar";
 import { getMyPaymentMethods } from "@/lib/dal/payment-method";
-import { MOCK_USER } from "@/lib/mock/taste-data";
+import { getMyProfileSummary } from "@/lib/dal/profile";
 
 /** 마이 탭 (SCR-M1-06). 내 취향 외 메뉴는 해당 마일스톤에서 연결한다. */
 
@@ -47,20 +48,21 @@ function MenuRow({ label, href, badge }: { label: string; href: string; badge?: 
 
 export default async function MyPage() {
   // 만료 배지 점등 판정 (T033). 목록 자체는 /payment-methods 가 보여준다
-  const paymentMethods = await getMyPaymentMethods();
+  const [paymentMethods, profile] = await Promise.all([
+    getMyPaymentMethods(),
+    getMyProfileSummary(),
+  ]);
   const hasExpiredMethod = paymentMethods.some((method) => method.status === "EXPIRED");
 
   return (
     <>
       <main className="flex-1 pb-6">
         <header className="flex items-center gap-3 px-5 pb-4 pt-6">
-          <span className="grid size-12 shrink-0 place-items-center rounded-full bg-apricot-100">
-            <User size={24} className="text-apricot-700" aria-hidden />
-          </span>
+          <FriendAvatar name={profile.displayName} avatarUrl={profile.avatarUrl} />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-base font-bold text-neutral-900">{MOCK_USER.name}</p>
+            <p className="truncate text-base font-bold text-neutral-900">{profile.displayName}</p>
             <p className="text-xs text-neutral-600">
-              취향 {MOCK_USER.tasteCount}개 · 친구 {MOCK_USER.friendCount}명
+              취향 {profile.tasteCount}개 · 친구 {profile.friendCount}명
             </p>
           </div>
           <Link
