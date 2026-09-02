@@ -44,6 +44,34 @@ export async function settleFunding(fundingId: string): Promise<
 
 호출자(조회 DAL·조기 성사·취소·재시도)는 이 함수 뒤에서 상태·환불·정산 알림에 손대지 않는다.
 
+### §2 구현 노트 (T014 확정 — 2026-09-02, D)
+
+계약대로 구현하며 스펙이 비워 둔 자리를 아래처럼 못 박았다. 바꾸려면 `tests/integration/funding-settle.test.ts` 가 먼저 빨개진다.
+
+- **두 번째 인자 `opts?: { retryTopup?: boolean }`** — 시그니처를 뒤로 넓혔다(기존 호출 무변경). topup 실패 뒤
+  **자동 재시도는 없다**: 플래그 없는 재진입(조회·조기 성사·취소)은 주최자 카드를 다시 긁지 않고 현재
+  `TOPUP_FAILED` 상태를 돌려준다. `retryFundingTopup` 만 `{ retryTopup: true }` 로 다음 시도를 쓴다 — 시도 횟수는
+  주최자의 것이다. 상한·기한은 M3 와 같은 env(`GIFT_PAYMENT_MAX_ATTEMPTS` · `GIFT_PAYMENT_RETRY_WINDOW`)를 그대로 읽는다.
+- **차액 결제의 기록은 주최자 명의 `PAID` 참여 행 + `Payment`** — `Payment` 의 C8(대상 정확히 하나)이 펀딩 자체를
+  가리킬 FK 를 허용하지 않아, 스키마를 바꾸지 않고 결제 이력을 잃지 않는 유일한 길이다. 그래서 `SETTLED` 의
+  `paidTotal` 은 정확히 `goalAmount` 다(진행바 100%). 차액 행은 `reservedUntil = paidAt` 로 같은 시각이 박힌다
+  (예약이 없었으므로). ⚠️ **후속(J·H)**: 결과 화면(SCR-M4-07 주최자 변형 "차액 N원")이 차액 금액을 그리려면 DAL 이
+  `topup.amount` 를 내려줘야 한다 — 위 흔적으로 계산하거나, 깔끔하게는 `Funding.topupAmount Int?` 컬럼(J 마이그레이션)을
+  더한 뒤 settle 이 기록한다. `FUNDING_ORGANIZER_TOPUP` payload 의 `amount` 에는 이미 실려 있다.
+- **환불은 건별 선점 → 결제사 → 확정**. 선점은 `refundedAt` 조건부 UPDATE(상태는 그대로 PAID), 결제사가 받아준 뒤에만
+  `PAID→REFUNDED` + `Payment REFUNDED` + `FUNDING_FAILED_REFUNDED` 를 한 트랜잭션으로. 거절되면 선점을 풀어 다음
+  재진입이 다시 집는다(mock 은 항상 성공 — 실연동 환불 실패의 운영 처리는 R5 후행). 대사 쿼리: `PAID AND refundedAt IS NOT NULL`.
+- **차액 결제는 `Funding` 행 잠금(FOR UPDATE) 안에서 끝낸다** — 펀딩엔 M3 `PAYING` 같은 "결제 중" 상태가 없어, 잠금을
+  놓으면 재진입·더블탭이 같은 차액을 두 번 긁는다. 결제사 타임아웃(10초)이 상한이고, 이 시점 펀딩은 OPEN 이 아니라
+  새 예약은 어차피 거절된다. 트랜잭션 timeout 30초 (`lib/dal/funding-settle.ts`).
+- **`SETTLED` 재진입은 잉여 환불** — 성사 뒤 늦게 확정된 결제(④ 대사)로 `paidTotal > goal` 이면, 가장 늦은 결제부터
+  잉여 안에 통째로 들어가는 행만 되돌린다(reason `SURPLUS`). 목표 아래로 내려가는 일은 없다.
+- **`CANCELLED` 의 출처**는 `topupAttemptCount > 0` 이면 차액 상한 초과(`cause: TOPUP_EXHAUSTED`, 전원 고지 — 주최자·수령자는
+  `amount: 0`), 아니면 주최자 취소(`cause: ORGANIZER`). 알림 payload 형태는 `lib/dal/notification.ts` `FundingNotificationPayload`.
+- ⚠️ **후속(J)**: `shouldSettle()`(state.ts)이 `OPEN` 만 보므로, topup 실패 뒤 주최자가 재시도하지 않으면 기한이 지나도
+  아무 조회가 settle 을 부르지 않는다. `status = SUCCEEDED ∧ topupRetryUntil < now` 도 트리거에 넣으면 settle 이 지연
+  취소·환불로 확정한다(이미 그렇게 구현돼 있다 — 트리거만 없다). 현재는 `retryFundingTopup` 호출 시점에만 확정된다.
+
 ## 3. DAL — `lib/dal/funding.ts` (R6)
 
 모든 조회가 **정산 트리거(R1)와 예약 만료 해제(R2)를 경유**한 결과만 반환한다.

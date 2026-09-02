@@ -18,7 +18,7 @@
 
 - [ ] T001 `.env.local`에 M4 env 추가 — `E2E_USER3_EMAIL`/`E2E_USER3_PASSWORD`(Supabase Add user · Auto Confirm) + `FUNDING_RESERVATION_TTL=5m` (전원 각자, **커밋 금지**, `skipped` 함정 주의)
 - [ ] T002 [P] 문구 세트 확정 — 고지 2종("공개됩니다"·"환불됩니다") · 차액 동의 v1(최대 부담액 숫자 템플릿, `FUNDING_CONSENT_VERSION` 시작점) · `FAILED`/`CANCELLED` 구분 문구 · 환불 안내("영업일 3~5일" 고정 — clarify Q4) (S 산출물, 마감: 각 화면 구현 전)
-- [ ] T003 [P] E2E 픽스처 3계정 확장 — `tests/e2e/fixtures/auth.ts`에 세 번째 계정 세션 주입 (M2 T017 방식. **3주체 E2E 전부를 막는 선행 태스크**)
+- [x] T003 [P] E2E 픽스처 3계정 확장 — `tests/e2e/fixtures/auth.ts`에 세 번째 계정 세션 주입 (M2 T017 방식. **3주체 E2E 전부를 막는 선행 태스크**)
 
 ---
 
@@ -41,12 +41,12 @@ M3의 T017(charge)과 같은 자리.
 - [x] T010 [P] `lib/funding/totals.ts` — 총액 단일 모듈 (R3) → T009 초록
 - [x] T011 [P] 단위 테스트 먼저 — `tests/unit/funding-state.test.ts`: 허용·금지 전이 전수 + 예약 만료 판정
 - [x] T012 [P] `lib/funding/state.ts` — 전이 함수 + `evaluateReservationExpiry()`(지연 해제 — R2) → T011 초록
-- [ ] T013 통합 테스트 먼저 — `tests/integration/funding-settle.test.ts`: 성사(마감·조기) / 미달 → 전 PAID 환불 + 알림 / 취소 → 환불 + 구분 문구 / 차액 topup + `FUNDING_ORGANIZER_TOPUP` / **동시 정산 2회 → 실행 1회**(멱등 잠금) / topup 실패 → 재시도 → 상한 초과 CANCELLED
-- [ ] T014 `lib/funding/settle.ts` — `settleFunding()` (contracts §2 소유 경계 전부: 판정 잠금 → 환불(refund 첫 실사용) → 차액(chargeBillingKey) → SETTLED → 알림 3종) → T013 초록. **M4 최우선 선행 태스크**
+- [x] T013 통합 테스트 먼저 — `tests/integration/funding-settle.test.ts`: 성사(마감·조기) / 미달 → 전 PAID 환불 + 알림 / 취소 → 환불 + 구분 문구 / 차액 topup + `FUNDING_ORGANIZER_TOPUP` / **동시 정산 2회 → 실행 1회**(멱등 잠금) / topup 실패 → 재시도 → 상한 초과 CANCELLED
+- [x] T014 `lib/funding/settle.ts` — `settleFunding()` (contracts §2 소유 경계 전부: 판정 잠금 → 환불(refund 첫 실사용) → 차액(chargeBillingKey) → SETTLED → 알림 3종) → T013 초록. **M4 최우선 선행 태스크**
 
 ### 공용 기반
 
-- [ ] T015 [P] `app/fundings/actions/shared.ts`(M3 이식) + `proxy.ts` matcher `/fundings/:path*` + `app/fundings/error.tsx`
+- [x] T015 [P] `app/fundings/actions/shared.ts`(M3 이식) + `proxy.ts` matcher `/fundings/:path*` + `app/fundings/error.tsx`
 - [x] T016 `lib/dal/funding.ts` — `getFunding`(canViewFunding + **지분 3단계 마스킹**) · `getMyFundings` · `getHomeFundings` — **모든 조회가 정산 트리거(R1)·예약 만료 해제(R2) 경유**
 
 **Checkpoint**: T006 초록(CHECK·FK 실재) · T013 초록(정산 왕복·멱등) — 스토리 착수 가능
@@ -95,8 +95,8 @@ M3의 T017(charge)과 같은 자리.
 **Independent Test**: quickstart V4·V5 — 마감을 과거로 만들어 네 갈래 검증.
 
 - [ ] T030 [P] [US3] E2E 먼저 — `tests/e2e/funding-settle.spec.ts`: 마감 후 조회 → 성사 + topup 고지 / 미달 → 환불 고지 / 주최자 취소 → 구분 문구 (3계정, 마감은 DB로 과거 설정)
-- [ ] T031 [US3] `app/fundings/actions/manage.ts` — `cancelFunding`(OPEN 조건부 UPDATE → settle 경유) · `retryFundingTopup`(상한 검사 → 수단 변경 → settle 재진입)
-- [ ] T032 [P] [US3] 알림 목록 확장 — funding 4종 문구·탭 이동 매핑 (`components/notification/` — M2·M3 파일)
+- [x] T031 [US3] `app/fundings/actions/manage.ts` — `cancelFunding`(OPEN 조건부 UPDATE → settle 경유) · `retryFundingTopup`(상한 검사 → 수단 변경 → settle 재진입)
+- [x] T032 [P] [US3] 알림 목록 확장 — funding 4종 문구·탭 이동 매핑 (`components/notification/` — M2·M3 파일)
 - [ ] T033 [US3] T030 초록 — **마일스톤 4 완료 판정**: 달성선 기준 성사·취소, 미달 전액 환불, 차액 자동 결제
 
 **Checkpoint**: 돈의 흐름 완결 — 성사·미달·취소·차액·환불 전부
