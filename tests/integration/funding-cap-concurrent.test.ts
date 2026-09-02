@@ -68,23 +68,7 @@ vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }))
 // D 의 T014 대체 — settle.ts 는 아직 없다. ④는 호출만 하고 실물을 만들지 않는다 (contracts §2).
 vi.mock('@/lib/funding/settle', () => ({ settleFunding: h.settleFunding }))
 
-// D 의 T015 대체 — M3 app/gifts/actions/shared.ts 와 같은 동작(예상 못 한 예외 → STORAGE_FAILED,
-// redirect 예외는 그대로 전파)만 흉내 낸다.
-vi.mock('@/app/fundings/actions/shared', () => ({
-  guarded: async (
-    message: string,
-    run: () => Promise<unknown>,
-  ): Promise<unknown> => {
-    try {
-      return await run()
-    } catch (e) {
-      const digest = (e as { digest?: unknown } | null)?.digest
-      if (typeof digest === 'string' && digest.startsWith('NEXT_REDIRECT;')) throw e
-      console.error('[테스트 guarded] 예상 못 한 예외 — STORAGE_FAILED 로 변환', e)
-      return { ok: false, error: { code: 'STORAGE_FAILED', message } }
-    }
-  },
-}))
+// T015(app/fundings/actions/shared.ts)가 올라 진짜 guarded(STORAGE_FAILED 변환)를 태운다 — 대체 mock 은 걷었다.
 
 // 실물 mock 클라이언트를 그대로 쓰되(R1), 결제 왕복 중간에 경합을 주입할 수 있게 감싼다.
 vi.mock('@/lib/portone/client', async (importOriginal) => {

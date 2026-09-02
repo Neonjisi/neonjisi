@@ -47,20 +47,7 @@ vi.mock('@/lib/supabase/server', () => ({
 
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }))
 
-// D 소유 T015(app/fundings/actions/shared.ts)가 origin/main 에 오르기 전까지 M3
-// gift-request.test.ts(5f66621) 와 같은 모양으로 대체한다 — **파일은 만들지 않는다**.
-// T015 가 실제로 오르면 이 mock 을 지워 진짜 guarded(STORAGE_FAILED 변환)를 태운다.
-vi.mock('@/app/fundings/actions/shared', () => ({
-  failure: (error: { code: string; message: string }) => ({ ok: false, error }),
-  guarded: async (message: string, run: () => Promise<unknown>) => {
-    try {
-      return await run()
-    } catch (e) {
-      console.error('[funding-create.test mock guarded] 예상 못 한 예외 — STORAGE_FAILED 변환', e)
-      return { ok: false, error: { code: 'STORAGE_FAILED', message } }
-    }
-  },
-}))
+// T015(app/fundings/actions/shared.ts)가 올라 진짜 guarded(STORAGE_FAILED 변환)를 태운다 — 대체 mock 은 걷었다.
 
 // 이 머신에서 실 DB 왕복이 느려 기본 5초를 넘는 케이스가 있다(로직 문제 아님) — M3 선례대로 상향
 vi.setConfig({ testTimeout: 30_000 })

@@ -52,5 +52,7 @@ export const config = {
     '/products/:path*',
     '/payment-methods/:path*',
     '/events/:path*',
+    // M4 (T015): 펀딩 개설·상세·참여·결과. 계약 contracts §5. 내역(/my/fundings)은 /my/:path* 가 이미 덮는다.
+    '/fundings/:path*',
   ],
 }

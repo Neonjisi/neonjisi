@@ -17,7 +17,12 @@
  * `E2E_USER2_EMAIL` / `E2E_USER2_PASSWORD` 를 채우면 `friendPage` 가 **별도 브라우저
  * 컨텍스트**에 B 세션을 주입한다 — A(authedPage)와 쿠키가 섞이지 않는다.
  *
- * env 가 없으면 `authedPage`(·`friendPage`) 를 쓰는 테스트는 실패가 아니라 **skip** 된다.
+ * M4 (T003) — 세 번째 계정. 펀딩은 **3주체 구조**다(A=주최자 · B=수령자 · C=참여자 — quickstart
+ * V2~V5). 지분 3단계 뷰(organizer/receiver/contributor/friend)와 정산 고지는 계정 둘로는 검증이
+ * 안 된다. `.env.local` 에 `E2E_USER3_EMAIL` / `E2E_USER3_PASSWORD` 를 채우면 `thirdPage` 가
+ * **또 다른 별도 컨텍스트**에 C 세션을 주입한다. 셋은 전부 서로 다른 계정이어야 한다.
+ *
+ * env 가 없으면 `authedPage`(·`friendPage`·`thirdPage`) 를 쓰는 테스트는 실패가 아니라 **skip** 된다.
  * 테스트 계정의 취향 데이터는 매 테스트마다 UI 로 지우고 다시 만든다 (taste-ui.ts) —
  * e2e 에서는 `@/lib/prisma` · DAL 을 직접 import 하지 않는다.
  *
@@ -28,7 +33,12 @@
  *   - 청크: encodeURIComponent 한 길이가 3180 을 넘으면 `.0`, `.1`, … 접미로 분할
  */
 import { loadEnvConfig } from '@next/env'
-import { test as base, type Page } from '@playwright/test'
+import {
+  test as base,
+  type Browser,
+  type BrowserContextOptions,
+  type Page,
+} from '@playwright/test'
 import { createClient, type Session } from '@supabase/supabase-js'
 
 // Playwright 는 Next 와 달리 .env.local 을 읽지 않는다. @next/env 는 NODE_ENV=test 에서
@@ -45,6 +55,9 @@ export const E2E_SKIP_REASON =
 
 export const E2E_USER2_SKIP_REASON =
   'E2E_USER2_EMAIL/E2E_USER2_PASSWORD 미설정 — 두 계정이 필요한 E2E 를 건너뛴다 (.env.example 참조)'
+
+export const E2E_USER3_SKIP_REASON =
+  'E2E_USER3_EMAIL/E2E_USER3_PASSWORD 미설정 — 세 계정이 필요한 E2E 를 건너뛴다 (.env.example 참조)'
 
 // ── @supabase/ssr 쿠키 직렬화 (cookies.js · utils/chunker.js) ────────────────────
 
@@ -143,6 +156,8 @@ type WorkerFixtures = {
   e2eSession: Session | null
   /** 두 번째 계정(B)의 세션. env 가 없으면 null (→ friendPage 가 skip) */
   e2eSession2: Session | null
+  /** 세 번째 계정(C)의 세션 — M4 3주체 시나리오. env 가 없으면 null (→ thirdPage 가 skip) */
+  e2eSession3: Session | null
 }
 
 type TestFixtures = {
@@ -150,6 +165,8 @@ type TestFixtures = {
   authedPage: Page
   /** B 계정으로 로그인된 **별도 브라우저 컨텍스트**의 page — A(authedPage)와 쿠키가 섞이지 않는다 */
   friendPage: Page
+  /** C 계정(M4 참여자)으로 로그인된 **세 번째 별도 컨텍스트**의 page — A·B 와 쿠키가 섞이지 않는다 */
+  thirdPage: Page
 }
 
 export const test = base.extend<TestFixtures, WorkerFixtures>({
@@ -187,6 +204,26 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
     { scope: 'worker' },
   ],
 
+  e2eSession3: [
+    async ({}, provide) => {
+      const email = process.env.E2E_USER3_EMAIL
+      const password = process.env.E2E_USER3_PASSWORD
+      if (!email || !password) {
+        await provide(null)
+        return
+      }
+      // 3주체가 성립하려면 셋이 전부 달라야 한다 — 주최자·수령자·참여자 중 둘이 같으면
+      // 지분 3단계 뷰(R6)의 역할 판정이 겹쳐 시나리오가 무너진다
+      if (email === process.env.E2E_USER_EMAIL || email === process.env.E2E_USER2_EMAIL) {
+        throw new Error(
+          'E2E_USER3_EMAIL 이 E2E_USER_EMAIL 또는 E2E_USER2_EMAIL 과 같다 — 서로 다른 계정 셋이 필요하다 (.env.example 참조)',
+        )
+      }
+      await provide(await signInTestAccount('세 번째 E2E 테스트 계정(E2E_USER3)', email, password))
+    },
+    { scope: 'worker' },
+  ],
+
   authedPage: async ({ page, context, baseURL, e2eSession }, provide) => {
     if (!e2eSession) {
       test.skip(true, E2E_SKIP_REASON)
@@ -207,19 +244,43 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
       test.skip(true, E2E_USER2_SKIP_REASON)
       return
     }
-    // 프로젝트 설정(뷰포트 등)을 그대로 이어받은 **별도 컨텍스트** — mobile-360 에서도 같은 화면 폭
-    const context = await browser.newContext(contextOptions)
-    await context.addCookies(
-      toSupabaseAuthCookies(
-        e2eSession2,
-        requireEnv('NEXT_PUBLIC_SUPABASE_URL'),
-        baseURL ?? 'http://localhost:3000',
-      ),
-    )
-    const page = await context.newPage()
-    await provide(page)
-    await context.close()
+    await provideIsolatedPage(browser, contextOptions, baseURL, e2eSession2, provide)
+  },
+
+  thirdPage: async ({ browser, contextOptions, baseURL, e2eSession3 }, provide) => {
+    if (!e2eSession3) {
+      test.skip(true, E2E_USER3_SKIP_REASON)
+      return
+    }
+    await provideIsolatedPage(browser, contextOptions, baseURL, e2eSession3, provide)
   },
 })
+
+/**
+ * 세션 하나를 **별도 브라우저 컨텍스트**에 심고 page 를 내준다 — B·C 가 같은 방식이다.
+ * 프로젝트 설정(뷰포트 등)을 그대로 이어받으므로 mobile-360 에서도 같은 화면 폭이다.
+ */
+async function provideIsolatedPage(
+  browser: Browser,
+  contextOptions: BrowserContextOptions,
+  baseURL: string | undefined,
+  session: Session,
+  provide: (page: Page) => Promise<void>,
+): Promise<void> {
+  const context = await browser.newContext(contextOptions)
+  await context.addCookies(
+    toSupabaseAuthCookies(
+      session,
+      requireEnv('NEXT_PUBLIC_SUPABASE_URL'),
+      baseURL ?? 'http://localhost:3000',
+    ),
+  )
+  const page = await context.newPage()
+  try {
+    await provide(page)
+  } finally {
+    await context.close()
+  }
+}
 
 export { expect } from '@playwright/test'
