@@ -59,14 +59,22 @@ export function ProductCard({
 export function ProductGrid({
   products,
   friendUserId,
+  haveCategoryIds = [],
 }: {
   products: ProductView[]
   friendUserId?: string
+  haveCategoryIds?: string[]
 }) {
+  const haveCategories = new Set(haveCategoryIds)
   return (
     <ul aria-label="상품 목록" className="grid grid-cols-2 gap-3">
       {products.map((product) => (
-        <ProductCard key={product.id} product={product} friendUserId={friendUserId} />
+        <ProductCard
+          key={product.id}
+          product={product}
+          friendUserId={friendUserId}
+          badge={haveCategories.has(product.categoryId) ? '이미 갖고 있어요' : undefined}
+        />
       ))}
     </ul>
   )
