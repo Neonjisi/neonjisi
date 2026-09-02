@@ -6,7 +6,7 @@ export type BottomNavTab = "home" | "friends" | "gifts" | "my";
 const TABS: { key: BottomNavTab; label: string; href: string; Icon: typeof Home }[] = [
   { key: "home", label: "홈", href: "#", Icon: Home },
   { key: "friends", label: "친구", href: "/friends", Icon: Users },
-  { key: "gifts", label: "선물", href: "#", Icon: Gift },
+  { key: "gifts", label: "선물", href: "/products", Icon: Gift },
   { key: "my", label: "마이", href: "/my", Icon: User },
 ];
 

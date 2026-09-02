@@ -49,7 +49,9 @@ export const config = {
     // M3 (T018): 선물 · 카탈로그 · 결제수단 · 일정. 계약 contracts §5.
     // 홈(/)은 여기 넣지 않는다 — M1부터 페이지 안에서 세션·온보딩을 판정해 리다이렉트한다.
     '/gifts/:path*',
-    '/products/:path*',
+    // public/products/*.png 와 URL 접두가 겹친다. 정적 이미지는 Proxy 인증에서 제외해야
+    // next/image 의 서버 내부 원본 요청이 /login 으로 리다이렉트되지 않는다.
+    '/products/((?!.*\\.png$).*)',
     '/payment-methods/:path*',
     '/events/:path*',
   ],

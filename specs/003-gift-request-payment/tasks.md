@@ -78,16 +78,16 @@
 
 ### Tests for User Story 1
 
-- [ ] T022 [P] [US1] E2E 먼저 — `tests/e2e/product-catalog.spec.ts`: 검색 / 대상 필터 / `unwanted` 상세 차단(검색 우회 포함) / 추천+제외 안내 / 매칭 배너 3상태 / 친구 아님 접근 거부
+- [x] T022 [P] [US1] E2E 먼저 — `tests/e2e/product-catalog.spec.ts`: 검색 / 대상 필터 / `unwanted` 상세 차단(검색 우회 포함) / 추천+제외 안내 / 매칭 배너 3상태 / 친구 아님 접근 거부
 
 ### Implementation for User Story 1
 
-- [ ] T023 [US1] `lib/dal/product.ts` — `getProducts`(검색·카테고리·대상 필터)·`getProduct`·`getMatchBanner`·`getRecommendations`·**`getProductsUnderAmount`(상한 필터 — US4 T048이 재사용)** (contracts §3, 전부 `requireActiveFriendship` 경유 — R9)
-- [ ] T024 [P] [US1] `components/product/product-card.tsx` 등 목록 컴포넌트 (Server Component — US4 재선택이 재사용)
-- [ ] T025 [US1] `app/products/page.tsx` — SCR-M3-03 선물 탭 (대상 필터 0건 안내 포함)
-- [ ] T026 [US1] `app/products/[id]/page.tsx` — SCR-M3-04 상품 상세 (배너 3상태 · `unwanted`면 선물하기 비활성 · `isActive=false` 차단)
-- [ ] T027 [US1] `app/products/for/[userId]/page.tsx` — SCR-M3-05 맞춤 추천 (제외 안내 · want 0건 처리) + SCR-M2-06의 `이 취향에 맞는 선물 보기` 버튼 노출
-- [ ] T028 [US1] T022 초록 (계정 2 · `skipped` 수 확인)
+- [x] T023 [US1] `lib/dal/product.ts` — `getProducts`(검색·카테고리·대상 필터)·`getProduct`·`getMatchBanner`·`getRecommendations`·**`getProductsUnderAmount`(상한 필터 — US4 T048이 재사용)** (contracts §3, 전부 `requireActiveFriendship` 경유 — R9)
+- [x] T024 [P] [US1] `components/product/product-card.tsx` 등 목록 컴포넌트 (Server Component — US4 재선택이 재사용)
+- [x] T025 [US1] `app/products/page.tsx` — SCR-M3-03 선물 탭 (대상 필터 0건 안내 포함)
+- [x] T026 [US1] `app/products/[id]/page.tsx` — SCR-M3-04 상품 상세 (배너 3상태 · `unwanted`면 선물하기 비활성 · `isActive=false` 차단)
+- [x] T027 [US1] `app/products/for/[userId]/page.tsx` — SCR-M3-05 맞춤 추천 (제외 안내 · want 0건 처리) + SCR-M2-06의 `이 취향에 맞는 선물 보기` 버튼 노출
+- [x] T028 [US1] T022 초록 (계정 2 · `skipped` 수 확인)
 
 **Checkpoint**: US1 단독 시연 가능 — `unwanted` 2중 차단 + 추천
 
