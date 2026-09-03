@@ -23,8 +23,8 @@ sub_dev = origin/main(ffe0732, H 의 M3 Phase 2 UI) + origin/gnuke-dev(a691796) 
 | T015 공용 기반 | ✅ | `app/fundings/actions/shared.ts` · `proxy.ts` `/fundings/:path*` · `app/fundings/error.tsx` · J 테스트의 shared mock 제거 |
 | T031 `cancelFunding`·`retryFundingTopup` | ✅ 12건 초록 | `app/fundings/actions/manage.ts` · `tests/integration/funding-manage.test.ts` |
 | T032 알림 목록 매핑 | ✅ | `lib/notification/display.ts` 펀딩 4종 + 단위 테스트 |
-| **T030 정산 E2E** | ⏳ H 대기 | `tests/e2e/funding-settle.spec.ts` — 펀딩 화면(T026~T029·T035)이 없어 쓸 대상이 없다 |
-| **T033 마일스톤 완료 판정** | ⏳ T030 뒤 | |
+| **T030 정산 E2E** | ✅ 골격 (2026-09-03) | `tests/e2e/funding-settle.spec.ts` V4-1·V5-1·V5-2 3건 + `tests/e2e/fixtures/funding-db.ts`. 화면이 없어 **3건 다 skip** — H 의 T020·T026·T027 이 서면 헬퍼 로케이터만 맞추면 켜진다 |
+| **T033 마일스톤 완료 판정** | ⏳ T030 초록 뒤 | 화면(T020·T026~T029·T035) 대기 |
 
 `npm run test` 53파일·573건 초록 · `npm run lint` 0 에러 · `npm run build` 통과.
 
@@ -39,6 +39,13 @@ sub_dev = origin/main(ffe0732, H 의 M3 Phase 2 UI) + origin/gnuke-dev(a691796) 
 
 ## 다음 세션 참고
 
+- ⚠️ **`E2E_USER3` 계정이 Supabase 에 없다** (2026-09-03 확인 — `Invalid login credentials`. USER1·USER2 는 정상).
+  `.env.local` 에 값은 있는데 계정이 안 만들어졌다. env 가 **비면** skip 이지만 **틀리면 실패**라서
+  (fixtures/auth.ts 의 의도), 지금 `funding-settle.spec.ts` 를 그냥 돌리면 3건이 빨갛다.
+  Supabase → Authentication → Users → Add user → **Auto Confirm** 로 `E2E_USER3_EMAIL`/`PASSWORD` 계정을 만들면 풀린다.
+- T030 의 마감 조작은 `tests/e2e/fixtures/funding-db.ts` 하나로 막아 뒀다 — **쓰는 열은 `deadline` 뿐**이고
+  읽기 헬퍼는 일부러 두지 않았다(정산 결과 판정은 화면·알림으로, 상태 전이는 T013 통합 테스트가).
+  `test.afterAll` 에서 `closeFundingDb()` 를 부르지 않으면 Playwright 가 안 끝난다.
 - E2E 는 실키가 있어도 **영원히 mock** (`PORTONE_MODE=mock`). 3계정 E2E 는 `E2E_USER3_*` 가 비면 skip — `skipped` 수 확인.
 - 빌링키 **발급**은 실연동에서 서버가 못 한다(FR-008) — 결제사 인증 창 위젯은 실서비스 전환 몫.
 - 키 자리: V2 API Secret → `.env.local` `PORTONE_API_SECRET` / 토스 클라이언트·시크릿 키 → PortOne 콘솔 채널 설정.

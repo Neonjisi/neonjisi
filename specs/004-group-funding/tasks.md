@@ -94,7 +94,7 @@ M3의 T017(charge)과 같은 자리.
 
 **Independent Test**: quickstart V4·V5 — 마감을 과거로 만들어 네 갈래 검증.
 
-- [ ] T030 [P] [US3] E2E 먼저 — `tests/e2e/funding-settle.spec.ts`: 마감 후 조회 → 성사 + topup 고지 / 미달 → 환불 고지 / 주최자 취소 → 구분 문구 (3계정, 마감은 DB로 과거 설정)
+- [x] T030 [P] [US3] E2E 먼저 — `tests/e2e/funding-settle.spec.ts`: 마감 후 조회 → 성사 + topup 고지 / 미달 → 환불 고지 / 주최자 취소 → 구분 문구 (3계정, 마감은 DB로 과거 설정)
 - [x] T031 [US3] `app/fundings/actions/manage.ts` — `cancelFunding`(OPEN 조건부 UPDATE → settle 경유) · `retryFundingTopup`(상한 검사 → 수단 변경 → settle 재진입)
 - [x] T032 [P] [US3] 알림 목록 확장 — funding 4종 문구·탭 이동 매핑 (`components/notification/` — M2·M3 파일)
 - [ ] T033 [US3] T030 초록 — **마일스톤 4 완료 판정**: 달성선 기준 성사·취소, 미달 전액 환불, 차액 자동 결제
