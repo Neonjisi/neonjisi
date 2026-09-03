@@ -123,7 +123,7 @@ M3의 T017(charge)과 같은 자리.
 - [x] T040 [P] 360px — `mobile-360`에 M4 화면 8종 추가 후 통과 (SC-010)
 - [x] T041 [P] `'use client'` 예산(4개 — contracts §6) + 500줄 + **totals 모듈 밖 합산 없는지** 점검 (R3)
 - [ ] T042 quickstart V1~V6 수동 검증 (**3계정**) + `skipped` 수 확인 (S 주도)
-- [ ] T043 `npm run lint` · `npm run build` 통과 → main 병합
+- [x] T043 `npm run lint` · `npm run build` 통과 → main 병합
 
 ---
 
