@@ -277,7 +277,7 @@ describe.skipIf(skipReason !== '')('lib/dal/funding — getFunding·getMyFunding
 
     it('organizer 에게만 topup 필드가 보인다', async () => {
       const view = await asUser(organizer, () => getFunding!(fundingId))
-      expect(view!.topup).toEqual({ attemptCount: 0, retryUntil: null })
+      expect(view!.topup).toEqual({ attemptCount: 0, retryUntil: null, amount: null })
 
       const receiverView = await asUser(receiver, () => getFunding!(fundingId))
       expect(receiverView!.topup).toBeNull()

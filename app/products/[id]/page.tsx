@@ -44,6 +44,9 @@ export default async function ProductDetailPage({
   const giftHref = friend
     ? `/gifts/new?productId=${encodeURIComponent(product.id)}&receiverId=${encodeURIComponent(friend.userId)}`
     : '/products'
+  const fundingHref = `/fundings/new?productId=${encodeURIComponent(product.id)}${
+    friend ? `&receiverId=${encodeURIComponent(friend.userId)}` : ''
+  }`
 
   return (
     <>
@@ -69,7 +72,7 @@ export default async function ProductDetailPage({
           )}
         </div>
 
-        <div className="px-5 pt-6">
+        <div className="flex flex-col gap-3 px-5 pt-6">
           {match === 'unwanted' ? (
             <button disabled className={buttonClasses('primary', 'lg')}>선물하기</button>
           ) : (
@@ -77,6 +80,11 @@ export default async function ProductDetailPage({
               {friend ? '선물하기' : '받을 친구 선택하기'}
             </a>
           )}
+          {match !== 'unwanted' ? (
+            <a href={fundingHref} className={buttonClasses('secondary', 'lg')}>
+              여럿이 모아서 선물하기
+            </a>
+          ) : null}
         </div>
       </main>
     </>
