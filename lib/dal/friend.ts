@@ -126,6 +126,7 @@ export const getFriendTaste = cache(async (friendUserId: string): Promise<Friend
               id: true,
               kind: true,
               categoryId: true,
+              productId: true,
               detail: true,
               category: { select: { name: true } },
             },
@@ -144,6 +145,7 @@ export const getFriendTaste = cache(async (friendUserId: string): Promise<Friend
       categoryId: item.categoryId,
       categoryName: item.category.name,
       detail: item.detail,
+      productId: item.productId,
     }
     grouped[item.kind].push(view)
   }

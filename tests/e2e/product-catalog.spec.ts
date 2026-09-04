@@ -10,6 +10,7 @@ import {
 } from './fixtures/taste-ui'
 
 test.describe('US1 — 상품 카탈로그', () => {
+  test.describe.configure({ timeout: 120_000 })
   test.beforeEach(async ({ authedPage, friendPage }) => {
     await ensureOnboarded(authedPage)
     await ensureOnboarded(friendPage)
@@ -48,13 +49,15 @@ test.describe('US1 — 상품 카탈로그', () => {
     await pageA.goto(`/products?for=${bId}&q=송월타올 호텔수건`)
     await pageA.getByRole('link', { name: /송월타올 호텔수건/ }).click()
     await expect(pageA.getByText(/이미 갖고 있어요/)).toBeVisible()
-    await expect(pageA.getByRole('link', { name: '선물하기' })).toBeVisible()
+    await expect(pageA.getByRole('link', { name: '선물하기', exact: true })).toBeVisible()
 
     // 목록 검색을 우회해 향수 상세 URL로 직접 들어가도 서버 배너가 마지막으로 막는다.
     await pageA.goto(`/products?category=향수`)
     const blockedHref = await pageA.getByRole('link', { name: /조 말론 런던/ }).getAttribute('href')
     expect(blockedHref).toBeTruthy()
-    await pageA.goto(`${blockedHref}?for=${bId}`)
+    const blockedUrl = new URL(blockedHref!, pageA.url())
+    blockedUrl.searchParams.set('for', bId)
+    await pageA.goto(blockedUrl.toString())
     await expect(pageA.getByText(/관심 없다고 한 종류예요/)).toBeVisible()
     await expect(pageA.getByRole('button', { name: '선물하기' })).toBeDisabled()
   })

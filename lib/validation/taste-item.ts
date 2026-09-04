@@ -24,6 +24,7 @@ export type TasteKindInput = z.infer<typeof tasteKindSchema>
 export const tasteItemInputSchema = z.object({
   kind: tasteKindSchema,
   categoryId: z.uuid(),
+  productId: z.uuid().nullable().optional(),
   detail: z
     .string()
     .trim()

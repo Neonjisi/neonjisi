@@ -15,7 +15,7 @@ import { BrandLogo } from "@/components/ui/brand-logo";
 const MAIN_MENU: { label: string; href: string }[] = [
   { label: "내 취향", href: "/taste" },
   { label: "알림", href: "/notifications" },
-  { label: "선물 내역", href: "#" },
+  { label: "선물 내역", href: "/my/gifts" },
   { label: "펀딩 내역", href: "/my/fundings" },
   { label: "결제수단", href: "/payment-methods" },
   { label: "초대 링크 관리", href: "/friends/invite/manage?from=my" },

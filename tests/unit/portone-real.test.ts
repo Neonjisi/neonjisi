@@ -30,7 +30,10 @@ afterEach(() => {
 })
 
 function stubFetch(status: number, body: unknown) {
-  const fetchStub = vi.fn(async (..._args: [string, RequestInit]) => new Response(JSON.stringify(body), { status }))
+  const fetchStub = vi.fn(async (...args: [string, RequestInit]) => {
+    void args
+    return new Response(JSON.stringify(body), { status })
+  })
   vi.stubGlobal('fetch', fetchStub)
   return fetchStub
 }

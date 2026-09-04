@@ -16,13 +16,16 @@
  * ⚠️ E2E 는 **항상 mock 이다** (PORTONE_MODE=mock, 협업 규칙 §6). 실키로 돌리면 테스트가
  *    실결제를 만든다. 뒷자리 `0000` 은 결제가 항상 실패하는 mock 규약이라(R1) 등록 자체는 된다.
  *
- * 화면 의존은 probe 로 건너뛴다 (R12):
- *  - "진행 중 N건 경고"는 US3(요청 생성)이 있어야 만들 수 있다 — 경고가 없으면 skip
- *  - EXPIRED 표시는 만료된 수단이 있어야 한다 — UI 로는 만들 수 없으므로 없으면 skip
+ * 진행 중 요청은 제품 UI로 만들고, EXPIRED만 결제사 통지를 기다릴 수 없어 제한된 DB
+ * 픽스처로 준비한다. 따라서 구현 완료 뒤에는 probe skip 없이 전 상태를 검증한다.
  */
 import type { Page } from '@playwright/test'
 import { expect, test } from './fixtures/auth'
+import { becomeFriends, ensureOnboarded } from './fixtures/friend-ui'
+import { closeGiftDb, expireLatestActivePaymentMethod } from './fixtures/gift-db'
 import { expectNoHorizontalScroll } from './fixtures/taste-ui'
+
+test.afterAll(closeGiftDb)
 
 const CARD_BRAND = '신한'
 const CARD_LAST4 = '4821'
@@ -75,7 +78,18 @@ async function deleteAllCards(page: Page): Promise<void> {
   throw new Error('결제수단 정리가 10회 안에 끝나지 않았다')
 }
 
+async function createPendingGift(page: Page, receiverId: string): Promise<void> {
+  await page.goto(`/products/for/${receiverId}`)
+  await page.locator('a[href^="/products/"]:not([href*="/for/"])').first().click()
+  await page.getByRole('link', { name: '선물하기', exact: true }).click()
+  await page.getByRole('link', { name: '다음', exact: true }).click()
+  await page.getByRole('checkbox', { name: /동의/ }).check()
+  await page.getByRole('button', { name: /선물 요청 보내기/ }).click()
+  await expect(page.getByText('요청을 보냈습니다')).toBeVisible({ timeout: 15_000 })
+}
+
 test.describe('US2 — 결제수단', () => {
+  test.describe.configure({ timeout: 180_000 })
   test.beforeEach(async ({ authedPage }) => {
     await deleteAllCards(authedPage)
   })
@@ -137,31 +151,31 @@ test.describe('US2 — 결제수단', () => {
 
   test('US2-3(경고) · 진행 중 요청이 이 카드를 쓰면 건수를 경고한다 (FR-011)', async ({
     authedPage,
+    friendPage,
   }) => {
+    await ensureOnboarded(authedPage)
+    await ensureOnboarded(friendPage)
+    const { bId } = await becomeFriends(authedPage, friendPage)
     await registerCard(authedPage)
+    await createPendingGift(authedPage, bId)
+    await authedPage.goto('/payment-methods')
     await authedPage.getByRole('button', { name: '삭제' }).click()
 
     const warning = authedPage.getByText(/진행 중인 선물 요청 \d+건이 이 카드를 사용합니다/)
-    // 진행 중 요청은 US3(T038) 이 있어야 만들 수 있다 — 없으면 이 단계는 아직 검증 대상이 아니다
-    test.skip(
-      (await warning.count()) === 0,
-      '진행 중인 요청이 없다 — US3(요청 생성) 완료 후 이 시나리오가 켜진다 (R12 probe skip)',
-    )
     await expect(warning).toBeVisible()
     // 삭제는 막지 않는다. 결제 실패 경로로 이어짐을 고지할 뿐이다 (SCR-M3-07)
     await expect(authedPage.getByRole('alertdialog').getByRole('button', { name: '삭제' })).toBeEnabled()
   })
 
-  test('US2-4 · 만료된 수단은 붉은 라벨과 재등록 안내를 단다', async ({ authedPage }) => {
+  test('US2-4 · 만료된 수단은 붉은 라벨과 재등록 안내를 단다', async ({ authedPage, friendPage }) => {
+    await ensureOnboarded(authedPage)
+    await ensureOnboarded(friendPage)
+    const { aId } = await becomeFriends(authedPage, friendPage)
     await registerCard(authedPage)
+    await expireLatestActivePaymentMethod(aId)
     await authedPage.goto('/payment-methods')
 
     const expiredLabel = authedPage.getByText('만료됨')
-    // EXPIRED 는 UI 로 만들 수 없다 (결제사 통지·배치의 결과다) — 있을 때만 표시를 검증한다
-    test.skip(
-      (await expiredLabel.count()) === 0,
-      '만료된 결제수단이 없다 — status=EXPIRED 행이 있을 때 켜진다 (R12 probe skip)',
-    )
     await expect(expiredLabel).toBeVisible()
     await expect(authedPage.getByText('다시 등록해주세요')).toBeVisible()
   })

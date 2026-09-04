@@ -62,7 +62,7 @@ function messageAndHref(view: NotificationView): { message: string; href: string
   switch (view.type) {
     case 'GIFT_REQUEST_RECEIVED':
       return {
-        message: `${counterpartDisplayName}님이 ${productName} 선물을 보내려고 해요`,
+        message: `${counterpartDisplayName}님의 ${productName} 선물 요청이 도착했습니다`,
         href: giftHref,
       }
     case 'GIFT_COUNTERED':

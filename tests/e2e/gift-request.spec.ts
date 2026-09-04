@@ -51,11 +51,12 @@ const WON_AMOUNT = /[0-9][0-9,]*원/
  * A 계정에 활성 결제수단이 있게 만든다 (요청 진입 차단 FR-013 ② 해소).
  * 이미 있으면 그대로 둔다 — 빌링키는 사용자당 재사용이 원칙이다 (FR-009).
  */
-async function ensurePaymentMethod(page: Page): Promise<void> {
+export async function ensurePaymentMethod(page: Page): Promise<void> {
   await page.goto('/payment-methods')
-  if (await page.getByText(CARD_MASK_TEXT).first().isVisible().catch(() => false)) return
+  const cards = page.getByText(CARD_MASK_TEXT)
+  if (await cards.filter({ hasNotText: '0000' }).first().isVisible().catch(() => false)) return
 
-  await page.getByRole('link', { name: /등록/ }).or(page.getByRole('button', { name: /등록/ })).first().click()
+  await page.goto('/payment-methods/new')
   // mock 폼 — contracts §1: cardBrand 는 선택, cardLast4 는 입력. '0000' 은 실패 규약이라 피한다
   const last4 = page.getByLabel(/마지막 4자리|뒷 ?4자리|카드 번호/).first()
   await last4.fill('4821')
@@ -64,7 +65,7 @@ async function ensurePaymentMethod(page: Page): Promise<void> {
 }
 
 /** 친구(bId)용 카탈로그에서 첫 상품 상세로 들어가 [ 선물하기 ] 를 누른다 → SCR-M3-08 */
-async function startGiftRequest(page: Page, bId: string): Promise<void> {
+export async function startGiftRequest(page: Page, bId: string): Promise<void> {
   // 대상 필터가 걸린 목록(SCR-M3-05) — unwanted 카테고리는 이미 걸러져 있다 (FR-003)
   await page.goto(`/products/for/${bId}`)
   await page.locator('a[href^="/products/"]:not([href*="/for/"])').first().click()
@@ -74,15 +75,21 @@ async function startGiftRequest(page: Page, bId: string): Promise<void> {
   await giftButton.first().click()
 }
 
-function consentCheckbox(page: Page): Locator {
+export function consentCheckbox(page: Page): Locator {
   return page.getByRole('checkbox', { name: /동의/ })
 }
 
-function sendButton(page: Page): Locator {
+export function sendButton(page: Page): Locator {
   return page.getByRole('button', { name: /선물 요청 보내기/ })
 }
 
+export function nextButton(page: Page): Locator {
+  return page.getByRole('link', { name: '다음', exact: true })
+    .or(page.getByRole('button', { name: '다음', exact: true }))
+}
+
 test.describe('US3 — 선물 요청을 보낸다', () => {
+  test.describe.configure({ timeout: 180_000 })
   test('요청 생성 → 동의 → 전송 → 수령자 도착 → 취소까지 한 여정', async ({
     authedPage: pageA,
     friendPage: pageB,
@@ -97,7 +104,7 @@ test.describe('US3 — 선물 요청을 보낸다', () => {
     // ── SCR-M3-08 요청 확인 — 금액이 숫자로 보인다
     await startGiftRequest(pageA, bId)
     await expect(pageA.getByText(WON_AMOUNT).first()).toBeVisible()
-    await pageA.getByRole('button', { name: '다음', exact: true }).click()
+    await nextButton(pageA).click()
 
     // ── SCR-M3-09 재결제 동의 — 체크 전 비활성 · 문구에 금액 숫자 (FR-014)
     await expect(pageA.getByText(/이하의 상품으로 결제됩니다/)).toBeVisible()
@@ -121,10 +128,69 @@ test.describe('US3 — 선물 요청을 보낸다', () => {
     // ── SCR-M3-11 주는 사람 상세 — pending 에서만 취소할 수 있다
     await pageA.getByRole('link', { name: /요청 상세 보기/ }).click()
     await expect(pageA.getByText(/응답 기다리는 중/)).toBeVisible()
+    const giftPath = new URL(pageA.url()).pathname
     await pageA.getByRole('button', { name: /요청 취소/ }).click()
     // 확인 다이얼로그가 있으면 거친다 — 없으면 그대로 진행 (화면 확정 전 유연화)
     const confirm = pageA.getByRole('alertdialog').getByRole('button', { name: /취소하기|확인/ })
     if (await confirm.isVisible().catch(() => false)) await confirm.click()
     await expect(pageA.getByText('취소됨')).toBeVisible({ timeout: 15_000 })
+
+    await pageB.goto(giftPath)
+    await expect(pageB.getByText('취소됨')).toBeVisible()
+    await expect(pageB.getByRole('link', { name: '이걸로 받을게요' })).toHaveCount(0)
+    await expect(pageB.getByRole('link', { name: '다른 것도 좋아요' })).toHaveCount(0)
+  })
+
+  test('수령자가 원래 상품을 승인하고 배송지를 입력하면 자동 결제된다', async ({
+    authedPage: pageA,
+    friendPage: pageB,
+  }) => {
+    await ensureOnboarded(pageA)
+    await ensureOnboarded(pageB)
+    const { bId } = await becomeFriends(pageA, pageB)
+    await ensurePaymentMethod(pageA)
+    await startGiftRequest(pageA, bId)
+    await nextButton(pageA).click()
+    await consentCheckbox(pageA).check()
+    await sendButton(pageA).click()
+    await expect(pageA.getByText('요청을 보냈습니다')).toBeVisible({ timeout: 15_000 })
+
+    await pageB.goto('/')
+    await pageB.getByRole('link', { name: /응답 기다리는 중/ }).click()
+    await pageB.getByRole('link', { name: '이걸로 받을게요' }).click()
+    await pageB.getByLabel('받는 분').fill('테스트 수령자')
+    await pageB.getByLabel('연락처').fill('01012345678')
+    await pageB.getByLabel('주소', { exact: true }).fill('서울시 테스트로 1')
+    await pageB.getByLabel('상세 주소').fill('101호')
+    await pageB.getByRole('button', { name: '완료' }).click()
+    await expect(pageB).toHaveURL(/\/gifts\/[0-9a-f-]{36}\/result$/)
+    await expect(pageB.getByText(/선물이 확정됐어요|결제가 완료됐어요/)).toBeVisible()
+  })
+
+  test('수령자가 요청 금액 이하의 다른 상품을 골라 자동 결제한다', async ({
+    authedPage: pageA,
+    friendPage: pageB,
+  }) => {
+    await ensureOnboarded(pageA)
+    await ensureOnboarded(pageB)
+    const { bId } = await becomeFriends(pageA, pageB)
+    await ensurePaymentMethod(pageA)
+    await startGiftRequest(pageA, bId)
+    await nextButton(pageA).click()
+    await consentCheckbox(pageA).check()
+    await sendButton(pageA).click()
+    await expect(pageA.getByText('요청을 보냈습니다')).toBeVisible({ timeout: 15_000 })
+
+    await pageB.goto('/')
+    await pageB.getByRole('link', { name: /응답 기다리는 중/ }).click()
+    await pageB.getByRole('link', { name: '다른 것도 좋아요' }).click()
+    await expect(pageB.getByText(/이하에서 골라주세요/)).toBeVisible()
+    await pageB.getByRole('list', { name: '선택할 수 있는 상품' }).getByRole('link').first().click()
+    await expect(pageB.getByText(/다른 상품을 골랐다고 알려집니다/)).toBeVisible()
+    await pageB.getByLabel('받는 분').fill('테스트 수령자')
+    await pageB.getByLabel('연락처').fill('01012345678')
+    await pageB.getByLabel('주소', { exact: true }).fill('서울시 테스트로 1')
+    await pageB.getByRole('button', { name: '완료' }).click()
+    await expect(pageB).toHaveURL(/\/gifts\/[0-9a-f-]{36}\/result$/)
   })
 })
