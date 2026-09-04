@@ -7,15 +7,11 @@ type TopBarProps = {
   title?: string;
   backHref?: string;
   action?: ReactNode;
-  /** 배경을 화면 배경색과 맞출 때 사용 (기본은 흰색 surface) */
-  isTransparent?: boolean;
 };
 
-export function TopBar({ title, backHref, action, isTransparent = false }: TopBarProps) {
+export function TopBar({ title, backHref, action }: TopBarProps) {
   return (
-    <header
-      className={`flex h-14 shrink-0 items-center gap-1 px-2 ${isTransparent ? "" : "bg-surface"}`}
-    >
+    <header className="flex h-14 shrink-0 items-center gap-1 px-2">
       {backHref ? (
         <Link
           href={backHref}

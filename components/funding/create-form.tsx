@@ -19,6 +19,11 @@ type Props = {
   friends: FriendOption[]
   initialReceiverId?: string
   hasPaymentMethod: boolean
+  initialStep: 1 | 2 | 3
+  initialGoal?: string
+  initialMinimum?: string
+  initialDeadline?: string
+  returnTo: string
 }
 
 function tomorrow(): string {
@@ -37,15 +42,20 @@ export function FundingCreateForm({
   friends,
   initialReceiverId,
   hasPaymentMethod,
+  initialStep,
+  initialGoal,
+  initialMinimum,
+  initialDeadline,
+  returnTo,
 }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
-  const [step, setStep] = useState<1 | 2 | 3>(1)
+  const [step, setStep] = useState<1 | 2 | 3>(initialStep)
   const [target, setTarget] = useState<'self' | 'friend'>(initialReceiverId ? 'friend' : 'self')
   const [receiverId, setReceiverId] = useState(initialReceiverId ?? friends[0]?.userId ?? '')
-  const [goal, setGoal] = useState(String(product.price))
-  const [minimum, setMinimum] = useState(String(Math.max(1, Math.floor(product.price * 0.7))))
-  const [deadline, setDeadline] = useState(tomorrow())
+  const [goal, setGoal] = useState(initialGoal ?? String(product.price))
+  const [minimum, setMinimum] = useState(initialMinimum ?? String(Math.max(1, Math.floor(product.price * 0.7))))
+  const [deadline, setDeadline] = useState(initialDeadline ?? tomorrow())
   const [consent, setConsent] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -78,17 +88,32 @@ export function FundingCreateForm({
         return
       }
       setError(null)
+      if (!isSelf && !hasPaymentMethod) {
+        const returnTo = fundingReturnTo('amount')
+        router.push(`/payment-methods/new?returnTo=${encodeURIComponent(returnTo)}`)
+        return
+      }
       setStep(2)
       return
     }
     if (!validateAmounts()) return
-    if (!isSelf && !hasPaymentMethod) {
-      const returnTo = `/fundings/new?productId=${encodeURIComponent(product.id)}&receiverId=${encodeURIComponent(receiverId)}`
-      router.push(`/payment-methods/new?returnTo=${encodeURIComponent(returnTo)}`)
-      return
-    }
     if (!isSelf) setStep(3)
     else submit()
+  }
+
+  function fundingReturnTo(resume: 'amount' | 'consent'): string {
+    const query = new URLSearchParams({
+      productId: product.id,
+      receiverId,
+      resume,
+      returnTo,
+    })
+    if (resume === 'consent') {
+      query.set('goal', String(goalAmount))
+      query.set('minimum', String(minAmount))
+      query.set('deadline', deadline)
+    }
+    return `/fundings/new?${query.toString()}`
   }
 
   function submit(): void {
@@ -105,7 +130,7 @@ export function FundingCreateForm({
       if (!result.ok) {
         setError(result.error.message)
         if (result.error.code === 'NO_PAYMENT_METHOD') {
-          const returnTo = `/fundings/new?productId=${encodeURIComponent(product.id)}&receiverId=${encodeURIComponent(receiverId)}`
+          const returnTo = fundingReturnTo('consent')
           router.push(`/payment-methods/new?returnTo=${encodeURIComponent(returnTo)}`)
         }
         return

@@ -9,7 +9,7 @@ export default async function FriendsPage() {
   const friends = await getFriends()
   return (
     <>
-      <TopBar title="친구" isTransparent action={<Link href="/friends/invite" aria-label="친구 추가" className="grid size-10 place-items-center rounded-full text-rose-600 active:bg-rose-50"><Plus size={24} aria-hidden /></Link>} />
+      <TopBar title="친구" action={<Link href="/friends/invite" aria-label="친구 추가" className="grid size-10 place-items-center rounded-full text-rose-600 active:bg-rose-50"><Plus size={24} aria-hidden /></Link>} />
       <main className="flex flex-1 flex-col"><FriendList friends={friends} /></main>
       <BottomNav active="friends" />
     </>

@@ -19,6 +19,18 @@ async function ensurePaymentMethod(page: import('@playwright/test').Page): Promi
   await expect(page.getByText(/\*{4}\s*4821/).first()).toBeVisible()
 }
 
+async function deleteAllPaymentMethods(page: import('@playwright/test').Page): Promise<void> {
+  await page.goto('/payment-methods')
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const deleteButton = page.getByRole('button', { name: '삭제' }).first()
+    if (!(await deleteButton.isVisible().catch(() => false))) return
+    await deleteButton.click()
+    await page.getByRole('alertdialog').getByRole('button', { name: '삭제' }).click()
+    await page.reload()
+  }
+  throw new Error('결제수단 정리가 10회 안에 끝나지 않았다')
+}
+
 async function openFirstProduct(page: import('@playwright/test').Page): Promise<void> {
   await page.goto('/products')
   await page.locator('a[href^="/products/"]').first().click()
@@ -31,6 +43,26 @@ test.describe('M4 US1 — 펀딩을 연다', () => {
     await ensureOnboarded(friendPage)
     await removeAllFriends(authedPage)
     await removeAllFriends(friendPage)
+  })
+
+  test('친구 대상은 카드 등록 후 금액 입력 단계부터 이어진다', async ({ authedPage, friendPage }) => {
+    await deleteAllPaymentMethods(authedPage)
+    const { bId } = await becomeFriends(authedPage, friendPage)
+    await openFirstProduct(authedPage)
+
+    await authedPage.getByText('친구에게', { exact: true }).click()
+    await authedPage.getByLabel('받는 사람').selectOption(bId)
+    await authedPage.getByRole('button', { name: '다음' }).click()
+
+    await expect(authedPage).toHaveURL(/\/payment-methods\/new\?returnTo=/)
+    await authedPage.getByText('신한', { exact: true }).click()
+    await authedPage.getByLabel('카드 뒷자리 4자리').fill('4821')
+    await authedPage.getByRole('button', { name: '등록하기' }).click()
+
+    await expect(authedPage).toHaveURL(/\/fundings\/new\?.*resume=amount/)
+    await expect(authedPage.getByText('2 / 3', { exact: true })).toBeVisible()
+    await expect(authedPage.getByLabel('목표 금액')).toBeVisible()
+    await expect(authedPage.getByText('누구에게 줄 선물인가요?')).toBeHidden()
   })
 
   test('친구에게 3단계로 열고 차액 상한에 동의한다', async ({ authedPage, friendPage }) => {

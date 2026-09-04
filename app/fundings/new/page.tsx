@@ -10,7 +10,15 @@ import { safeReturnTo } from '@/lib/navigation/return-to'
 export default async function NewFundingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ productId?: string | string[]; receiverId?: string | string[]; returnTo?: string | string[] }>
+  searchParams: Promise<{
+    productId?: string | string[]
+    receiverId?: string | string[]
+    returnTo?: string | string[]
+    resume?: string | string[]
+    goal?: string | string[]
+    minimum?: string | string[]
+    deadline?: string | string[]
+  }>
 }) {
   const query = await searchParams
   const productId = typeof query.productId === 'string' ? query.productId : query.productId?.[0]
@@ -26,17 +34,39 @@ export default async function NewFundingPage({
 
   const requestedReceiver = typeof query.receiverId === 'string' ? query.receiverId : query.receiverId?.[0]
   const rawReturnTo = typeof query.returnTo === 'string' ? query.returnTo : query.returnTo?.[0]
+  const returnTo = safeReturnTo(rawReturnTo, `/products/${product.id}`)
   const initialReceiverId = friends.some((friend) => friend.userId === requestedReceiver) ? requestedReceiver : undefined
+  const resume = typeof query.resume === 'string' ? query.resume : query.resume?.[0]
+  const goal = typeof query.goal === 'string' ? query.goal : query.goal?.[0]
+  const minimum = typeof query.minimum === 'string' ? query.minimum : query.minimum?.[0]
+  const deadline = typeof query.deadline === 'string' ? query.deadline : query.deadline?.[0]
+  const hasValidDraft = Boolean(
+    goal &&
+    minimum &&
+    deadline &&
+    Number(goal) > 0 &&
+    Number(minimum) > 0 &&
+    Number(minimum) <= Number(goal) &&
+    /^\d{4}-\d{2}-\d{2}$/.test(deadline),
+  )
+  const initialStep = paymentMethod && initialReceiverId
+    ? resume === 'consent' && hasValidDraft ? 3 : resume === 'amount' ? 2 : 1
+    : 1
 
   return (
     <main className="flex min-h-dvh flex-col">
-      <TopBar title="함께 선물하기" backHref={safeReturnTo(rawReturnTo, `/products/${product.id}`)} />
+      <TopBar title="함께 선물하기" backHref={returnTo} />
       <FundingCreateForm
         currentUserId={userId}
         product={product}
         friends={friends}
         initialReceiverId={initialReceiverId}
         hasPaymentMethod={paymentMethod !== null}
+        initialStep={initialStep}
+        initialGoal={initialStep === 3 ? goal : undefined}
+        initialMinimum={initialStep === 3 ? minimum : undefined}
+        initialDeadline={initialStep === 3 ? deadline : undefined}
+        returnTo={returnTo}
       />
     </main>
   )
