@@ -11,15 +11,17 @@ export function ProductCard({
   friendUserId,
   badge,
   returnTo,
+  href: customHref,
 }: {
   product: ProductView
   friendUserId?: string
   badge?: string
   returnTo: string
+  href?: string
 }) {
   const query = new URLSearchParams({ returnTo })
   if (friendUserId) query.set('for', friendUserId)
-  const href = `/products/${product.id}?${query.toString()}`
+  const href = customHref ?? `/products/${product.id}?${query.toString()}`
   return (
     <li className="min-w-0">
       <Link

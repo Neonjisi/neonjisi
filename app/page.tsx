@@ -5,6 +5,9 @@ import { BottomNav } from "@/components/ui/bottom-nav";
 import { getHomeFundings } from "@/lib/dal/funding";
 import { getOptionalSession } from "@/lib/dal/session";
 import { BrandLogo } from "@/components/ui/brand-logo";
+import { GiftCountdown } from "@/components/gift/countdown";
+import { getPendingRequestsForMe } from "@/lib/dal/gift";
+import { getUpcomingEvents } from "@/lib/dal/event";
 
 /**
  * 랜딩 (SCR-M0-01) — 비로그인 첫 화면. 로그인 상태 리다이렉트는 인증 연동 시 proxy.ts가 맡는다.
@@ -17,7 +20,11 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
   const session = await getOptionalSession();
 
   if (session) {
-    const fundings = await getHomeFundings();
+    const [fundings, pendingGifts, upcomingEvents] = await Promise.all([
+      getHomeFundings(),
+      getPendingRequestsForMe(),
+      getUpcomingEvents(),
+    ]);
     return (
       <>
         <main className="flex-1 px-5 pb-8 pt-7">
@@ -26,6 +33,33 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
             <BrandLogo href="/" priority />
             <BrandLogo variant="typo" priority className="-ml-3" />
           </header>
+          {pendingGifts.length ? (
+            <section className="mt-8" aria-labelledby="pending-gifts">
+              <h2 id="pending-gifts" className="text-lg font-bold">확인이 필요한 선물</h2>
+              <ul className="mt-3 space-y-3">
+                {pendingGifts.slice(0, 1).map((gift) => (
+                  <li key={gift.id}>
+                    <LinkButton href={`/gifts/${gift.id}`} variant="secondary" className="h-auto min-h-20 justify-between px-4 py-3 text-left">
+                      <span><strong className="block">{gift.counterpartDisplayName}님이 보낸 선물</strong><span className="mt-1 block text-sm font-normal text-neutral-600">응답 기다리는 중 · {gift.productSnapshot.name}</span></span>
+                      <GiftCountdown respondDueAt={gift.respondDueAt} serverNow={gift.serverNow} className="text-base" />
+                    </LinkButton>
+                  </li>
+                ))}
+                {pendingGifts.slice(1).map((gift) => (
+                  <li key={gift.id}>
+                    <LinkButton href={`/gifts/${gift.id}`} variant="tertiary" className="h-auto min-h-12 justify-between px-4 py-2 text-left">
+                      <span className="min-w-0 truncate text-sm"><strong>{gift.counterpartDisplayName}님</strong> · {gift.productSnapshot.name}</span>
+                      <GiftCountdown respondDueAt={gift.respondDueAt} serverNow={gift.serverNow} className="ml-3 shrink-0 text-sm" />
+                    </LinkButton>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+          <section className="mt-8" aria-labelledby="upcoming-events">
+            <div className="flex items-center justify-between"><h2 id="upcoming-events" className="text-lg font-bold">다가오는 일정</h2><LinkButton href="/events" variant="tertiary">관리</LinkButton></div>
+            {upcomingEvents.length ? <ul className="mt-3 space-y-2">{upcomingEvents.slice(0, 3).map((event) => <li key={event.id} className="rounded-[20px] bg-surface p-4"><strong>{event.title}</strong><p className="mt-1 text-sm text-neutral-600">{event.isMine ? '내 일정' : `${event.ownerDisplayName}님`} · {event.nextDate.toISOString().slice(0, 10)}</p></li>)}</ul> : <p className="mt-3 rounded-[20px] bg-surface p-5 text-sm text-neutral-600">다가오는 일정이 없어요.</p>}
+          </section>
           <section className="mt-8" aria-labelledby="home-fundings">
             <div className="flex items-center justify-between">
               <h2 id="home-fundings" className="text-lg font-bold">진행 중인 펀딩</h2>

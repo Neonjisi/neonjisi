@@ -1,6 +1,7 @@
 'use server'
 
 import { z } from 'zod'
+import { redirect } from 'next/navigation'
 import {
   cancelOwnPendingGiftRequest,
   createGiftRequestTransaction,
@@ -186,4 +187,14 @@ export async function cancelGiftRequest(input: {
 
     return { ok: true, data: { cancelled: true } }
   })
+}
+
+/** 자바스크립트 없이도 상세 화면에서 취소할 수 있는 form 어댑터. */
+export async function cancelGiftRequestFromForm(formData: FormData): Promise<never> {
+  const giftRequestId = String(formData.get('giftRequestId') ?? '')
+  const result = await cancelGiftRequest({ giftRequestId })
+  if (!result.ok) {
+    redirect(`/gifts/${encodeURIComponent(giftRequestId)}?error=${encodeURIComponent(result.error.message)}`)
+  }
+  redirect(`/gifts/${encodeURIComponent(giftRequestId)}`)
 }
