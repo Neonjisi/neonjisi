@@ -13,7 +13,8 @@ npx tsx scripts/portone-smoke.ts   # 없는 빌링키 시도 — 비용 0원
 ## ✅ M4 D 몫 8개 전부 완료 — 마일스톤 4 완료 판정 초록 (2026-09-04)
 
 D 의 M4 는 2fc826e 로 main 에 반영했고, 그 위에 H 가 811b062(E2E 안정화 · 계정 4개 재편)를 올렸다.
-**main = sub_dev = 811b062** (2026-09-04). 이 커밋 기준 M4 E2E 12/12 chromium 초록 — 아래 실측.
+그 위에 J 가 da45f6a(`shouldSettle()` 지연 취소 트리거 — D 가 요청한 후속)를 올렸고 sub_dev 에 9745ecc 로 병합했다.
+811b062 기준 M4 E2E 12/12 chromium 초록 — 아래 실측.
 
 | 태스크 | 상태 | 산출물 |
 |---|---|---|
@@ -40,7 +41,9 @@ D 의 M4 는 2fc826e 로 main 에 반영했고, 그 위에 H 가 811b062(E2E 안
   **그 흔적은 이제 두 파일에 걸친 계약이다** — 차액 행의 시각을 건드리면 결과 화면의 "차액 N원" 이 조용히 사라진다.
 - 환불은 건별 선점(refundedAt) → 결제사 → PAID→REFUNDED. 대사 쿼리 `PAID AND refundedAt IS NOT NULL`.
 - 차액 결제는 Funding 행 잠금 안에서 끝낸다 (외부 호출 in tx — 이유는 코드 헤더).
-- **J 후속**: `shouldSettle()` 에 `SUCCEEDED ∧ topupRetryUntil < now` 트리거 추가 권장 (settle 은 이미 처리한다).
+- ✅ **J 후속 완료 (da45f6a)**: `shouldSettle()` 이 `SUCCEEDED ∧ topupRetryUntil < now` 갈래를 가진다 — 경계는 settle 의
+  `isExhausted` 와 같은 엄격 초과, `null` 가드, `fundingCardSelect` 에 열 포함(빼면 트리거가 조용히 사라진다 — contracts §2).
+  이제 topup 실패 뒤 주최자가 재시도를 안 눌러도 아무 조회나 지연 취소·전액 환불을 확정한다.
 
 ## 다음 세션 참고
 
@@ -55,6 +58,15 @@ D 의 M4 는 2fc826e 로 main 에 반영했고, 그 위에 H 가 811b062(E2E 안
 - E2E 는 실키가 있어도 **영원히 mock** (`PORTONE_MODE=mock`). 다계정 E2E 는 `E2E_USER4_*`/`E2E_USER5_*` 가 비면 skip — `skipped` 수 확인.
 - H 의 `funding-history.spec.ts` 재실행 실패(오전 실측 7 passed · 1 failed)는 **811b062 에서 고쳐졌다** — `afterEach` 가
   만든 펀딩·Payment 를 지우고, "참여한 것" 단언을 빈 상태 대신 해당 펀딩 링크 0개로. 공유 DB 재실행에서 9/9 확인.
+- ⚠️ **`npm run test` 전체 실행에서 `tests/integration/ownership.test.ts` 2건이 간헐 실패한다 (da45f6a 병합 뒤 실측 3/3 실패,
+  격리 실행은 3/3 통과).** 에러는 Prisma `Transaction API error: Transaction not found` — 인터랙티브 트랜잭션의 **기본
+  5초 타임아웃**이다. `lib/dal/taste.ts` 의 `$transaction` 3곳(updateTasteItem·deleteTasteItem·create)이 `timeout`
+  미지정인데, **격리 실행에서도 그 두 테스트가 3.9초**라 원격 Supabase 풀러 위에서 원래 여유가 1초뿐이었다. J 의
+  통합 테스트 11건이 얹은 누적 풀러 압력이 그 1초를 먹었다 — J 코드 결함이 아니라 M1 의 잠재 취약점이 드러난 것.
+  실험: J 테스트 직후 ownership 만 → 통과 / `--no-file-parallelism` 전체 → 1건 실패 (병렬 문제 아님).
+  **제품 리스크이기도 하다**: 같은 트랜잭션을 `updateTasteItem`·`deleteTasteItem` 서버 액션이 쓰므로 실사용 부하에서
+  `STORAGE_FAILED` 가 난다. 권고(owner: taste.ts 담당 — M1/J): `$transaction(fn, { maxWait: 10_000, timeout: 20_000 })`
+  또는 `syncOnboardedAt` 의 왕복 수 축소. lint·build 는 통과했고 vitest 는 이 2건 외 585/587 초록.
 - ⚠️ **좀비 dev 서버 함정 (2026-09-04, 3시간 잃음).** 내가 띄운 `npm run dev` 를 멈춰도 자식 `next dev` 가 :3000 을
   물고 살아남고, Playwright 는 `reuseExistingServer` 로 그걸 계속 쓴다. 그 사이 `npm run build` 가 `.next/` 를
   갈아엎으면 서버 액션이 예외를 던져(친구 해제 → "해제하지 못했어요") 초록이던 스펙 12건이 한꺼번에 빨갛게 된다.
