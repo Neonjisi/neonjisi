@@ -12,8 +12,8 @@ npx tsx scripts/portone-smoke.ts   # 없는 빌링키 시도 — 비용 0원
 
 ## ✅ M4 D 몫 8개 전부 완료 — 마일스톤 4 완료 판정 초록 (2026-09-04)
 
-J 의 M4(Phase 2~4)와 H 의 M4 UI 8종·E2E 3종이 **둘 다 main 에 올라왔다**.
-sub_dev = origin/main(50a3771) 병합 위에 있다.
+D 의 M4 는 2fc826e 로 main 에 반영했고, 그 위에 H 가 811b062(E2E 안정화 · 계정 4개 재편)를 올렸다.
+**main = sub_dev = 811b062** (2026-09-04). 이 커밋 기준 M4 E2E 12/12 chromium 초록 — 아래 실측.
 
 | 태스크 | 상태 | 산출물 |
 |---|---|---|
@@ -28,6 +28,8 @@ sub_dev = origin/main(50a3771) 병합 위에 있다.
 
 `npm run test` 54파일·576건 초록 · `npm run lint` 0 에러 · `npm run build` 통과.
 `npx playwright test funding-settle` → **6 passed** (chromium 3 · mobile-360 3, 각 ~2.3분).
+811b062 병합 후 재실측(새 서버): `funding-settle` 3/3 (2.6m) + H 의 `funding-create`·`contribute`·`history` 9/9 (4.5m)
+— **M4 E2E 12/12 chromium**, 서버 에러 0. H 의 4계정 비친구 시나리오와 history 재실행까지 포함.
 
 ### 설계 결정 (contracts §2 "구현 노트" 에 정리) — 팀 공유 필요
 
@@ -51,10 +53,13 @@ sub_dev = origin/main(50a3771) 병합 위에 있다.
   읽기 헬퍼는 일부러 두지 않았다(정산 결과 판정은 화면·알림으로, 상태 전이는 T013 통합 테스트가).
   `test.afterAll` 에서 `closeFundingDb()` 를 부르지 않으면 Playwright 가 안 끝난다.
 - E2E 는 실키가 있어도 **영원히 mock** (`PORTONE_MODE=mock`). 다계정 E2E 는 `E2E_USER4_*`/`E2E_USER5_*` 가 비면 skip — `skipped` 수 확인.
-- ⚠️ **H 의 `funding-history.spec.ts` 첫 테스트가 재실행에서 깨진다** (2026-09-04 실측: 7 passed · 1 failed · 1 skipped).
-  `:80` 이 "참여한 것" 탭이 비어 있다고 단언하는데, **같은 파일의 뒤 테스트들**(`:92`·`:106`)이 `paidContribution()`
-  으로 `contributorId = receiverId` 인 PAID 행을 심는다 — 셀프 펀딩이라 그 계정이 곧 참여자가 되고, 그 흔적이
-  계정에 남는다. 깨끗한 DB 에서 한 번은 통과하고 두 번째부터 실패하는 구조다. **H 몫**(T034·T036) 이다.
+- H 의 `funding-history.spec.ts` 재실행 실패(오전 실측 7 passed · 1 failed)는 **811b062 에서 고쳐졌다** — `afterEach` 가
+  만든 펀딩·Payment 를 지우고, "참여한 것" 단언을 빈 상태 대신 해당 펀딩 링크 0개로. 공유 DB 재실행에서 9/9 확인.
+- ⚠️ **좀비 dev 서버 함정 (2026-09-04, 3시간 잃음).** 내가 띄운 `npm run dev` 를 멈춰도 자식 `next dev` 가 :3000 을
+  물고 살아남고, Playwright 는 `reuseExistingServer` 로 그걸 계속 쓴다. 그 사이 `npm run build` 가 `.next/` 를
+  갈아엎으면 서버 액션이 예외를 던져(친구 해제 → "해제하지 못했어요") 초록이던 스펙 12건이 한꺼번에 빨갛게 된다.
+  **E2E 가 대량 실패하면 코드보다 먼저 `netstat -ano | findstr :3000` 과 node.exe 시작 시각을 본다.** 복구는
+  node 전부 종료 → Playwright 가 서버를 직접 띄우게. dev 서버가 떠 있는 동안 build 를 돌리지 않는다.
 - 참고: H 의 M4 E2E 는 참여 행을 `@/lib/prisma` 로 직접 심는다(`funding-history.spec.ts`). 결제·환불 왕복을
   실제로 밟는 3주체 검증은 `funding-settle.spec.ts` 하나뿐이다 — T033 이 그걸 6/6 으로 완주했다.
 - 빌링키 **발급**은 실연동에서 서버가 못 한다(FR-008) — 결제사 인증 창 위젯은 실서비스 전환 몫.
