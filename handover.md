@@ -10,7 +10,7 @@ T058까지 닫혔다 — V2 API Secret 발급·교체 후 스모크 **인증 통
 npx tsx scripts/portone-smoke.ts   # 없는 빌링키 시도 — 비용 0원
 ```
 
-## 🟢 M4 D 몫 — 8개 중 7개 완료, T033 은 계정 대기 (2026-09-04)
+## ✅ M4 D 몫 8개 전부 완료 — 마일스톤 4 완료 판정 초록 (2026-09-04)
 
 J 의 M4(Phase 2~4)와 H 의 M4 UI 8종·E2E 3종이 **둘 다 main 에 올라왔다**.
 sub_dev = origin/main(50a3771) 병합 위에 있다.
@@ -24,10 +24,10 @@ sub_dev = origin/main(50a3771) 병합 위에 있다.
 | T031 `cancelFunding`·`retryFundingTopup` | ✅ 12건 초록 | `app/fundings/actions/manage.ts` · `tests/integration/funding-manage.test.ts` |
 | T032 알림 목록 매핑 | ✅ | `lib/notification/display.ts` 펀딩 4종 + 단위 테스트 |
 | **T030 정산 E2E** | ✅ | `tests/e2e/funding-settle.spec.ts` V4-1·V5-1·V5-2 3건 + `tests/e2e/fixtures/funding-db.ts` |
-| **T033 마일스톤 완료 판정** | ⏳ 계정만 남음 | H 의 화면이 서서 **probe 를 전부 단언으로 교체**했다 (2026-09-04). `E2E_USER5_*` 가 채워지면 바로 돈다 — 지금은 3건 skip |
+| **T033 마일스톤 완료 판정** | ✅ **6/6 초록** | `funding-settle.spec.ts` chromium 3건 + mobile-360 3건. probe 를 전부 단언으로 바꿔 화면 부재는 이제 실패다. 정산 경로(mock 결제 → 마감 → 판정 → 환불·차액 → 알림 → 결과 화면)가 E2E 로 처음 완주했다 (2026-09-04) |
 
 `npm run test` 54파일·576건 초록 · `npm run lint` 0 에러 · `npm run build` 통과.
-`npx playwright test funding-settle --project=chromium` → **3 skipped** (계정 미설정).
+`npx playwright test funding-settle` → **6 passed** (chromium 3 · mobile-360 3, 각 ~2.3분).
 
 ### 설계 결정 (contracts §2 "구현 노트" 에 정리) — 팀 공유 필요
 
@@ -42,12 +42,12 @@ sub_dev = origin/main(50a3771) 병합 위에 있다.
 
 ## 다음 세션 참고
 
-- ⚠️ **세 번째 계정 env 는 이제 `E2E_USER5_*` 다** (H 가 2026-09-03 에 옮겼다. 픽스처 이름 `thirdPage`·
-  `e2eSession3` 은 주체 순번이라 3 그대로 — 축이 다르다). `E2E_USER3_*` 슬롯은 **폐기했다**: 계정 없이 값만
-  채워 돌아다니다 3계정 E2E 를 skip 이 아니라 `Invalid login credentials` 로 죽였다 (비면 skip · 틀리면 실패).
-  `.env.local` 에 `E2E_USER5_EMAIL`/`E2E_USER5_PASSWORD` 를 넣으면 T033 이 돈다 —
-  Supabase → Authentication → Users → Add user → **Auto Confirm**, USER1·USER2 와 다른 계정이어야 한다.
-  (계정 실측: `E2E_USER` OK · `E2E_USER2` OK · `E2E_USER3` FAIL(계정 없음) — 2026-09-04)
+- **세 번째 계정 env 는 `E2E_USER5_*` 다.** USER3 슬롯은 계정 없이 값만 채워져 3계정 E2E 를 skip 이 아니라
+  `Invalid login credentials` 로 죽여서 폐기했고(비면 skip · 틀리면 실패), USER4 는 H 가 쓴다. 이름은 슬롯일
+  뿐이고 어떤 계정을 가리킬지는 각자 `.env.local` 몫이다 (픽스처 이름 `thirdPage`·`e2eSession3` 은 주체 순번).
+- ⚠️ **비밀번호에 `#` 이 있으면 따옴표로 감싼다.** dotenv 가 `#` 뒤를 주석으로 잘라 15자가 13자로 들어갔고,
+  증상은 계정 문제와 똑같은 `Invalid login credentials` 였다 — 콘솔 확인·Auto Confirm·재생성을 다 의심한 뒤에야
+  찾았다 (2026-09-04). `$이름` 도 dotenv-expand 가 치환한다. .env.example 에 적어 뒀다.
 - T030 의 마감 조작은 `tests/e2e/fixtures/funding-db.ts` 하나로 막아 뒀다 — **쓰는 열은 `deadline` 뿐**이고
   읽기 헬퍼는 일부러 두지 않았다(정산 결과 판정은 화면·알림으로, 상태 전이는 T013 통합 테스트가).
   `test.afterAll` 에서 `closeFundingDb()` 를 부르지 않으면 Playwright 가 안 끝난다.
@@ -57,7 +57,6 @@ sub_dev = origin/main(50a3771) 병합 위에 있다.
   으로 `contributorId = receiverId` 인 PAID 행을 심는다 — 셀프 펀딩이라 그 계정이 곧 참여자가 되고, 그 흔적이
   계정에 남는다. 깨끗한 DB 에서 한 번은 통과하고 두 번째부터 실패하는 구조다. **H 몫**(T034·T036) 이다.
 - 참고: H 의 M4 E2E 는 참여 행을 `@/lib/prisma` 로 직접 심는다(`funding-history.spec.ts`). 결제·환불 왕복을
-  실제로 밟는 3주체 검증은 `funding-settle.spec.ts` 하나뿐이라, T033 이 초록이 되기 전에는 정산 경로가
-  **E2E 로는 한 번도 안 돌아본 상태**다 (통합 테스트 T013 은 별개로 초록).
+  실제로 밟는 3주체 검증은 `funding-settle.spec.ts` 하나뿐이다 — T033 이 그걸 6/6 으로 완주했다.
 - 빌링키 **발급**은 실연동에서 서버가 못 한다(FR-008) — 결제사 인증 창 위젯은 실서비스 전환 몫.
 - 키 자리: V2 API Secret → `.env.local` `PORTONE_API_SECRET` / 토스 클라이언트·시크릿 키 → PortOne 콘솔 채널 설정.

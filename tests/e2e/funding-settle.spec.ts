@@ -168,7 +168,8 @@ async function openFunding(page: Page, minAmount: number): Promise<string> {
   await page.getByRole('button', { name: '다음' }).click()
 
   // 3스텝 — 차액 동의. 최대 부담액은 숫자로 보이고, 체크 전에는 개설 버튼이 비활성이다 (FR-004)
-  await expect(page.getByText(`최대 ${won(GOAL - minAmount)}`)).toBeVisible()
+  // 동의 문장에도 같은 금액이 "…최대 N원까지…" 로 들어 있어 exact 로 굵은 금액 줄만 잡는다
+  await expect(page.getByText(`최대 ${won(GOAL - minAmount)}`, { exact: true })).toBeVisible()
   const start = page.getByRole('button', { name: '펀딩 시작하기' })
   await expect(start).toBeDisabled()
   await page.getByRole('checkbox', { name: /동의/ }).check()
