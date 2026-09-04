@@ -19,7 +19,7 @@
  *
  * M4 (T003) — 세 번째 계정. 펀딩은 **3주체 구조**다(A=주최자 · B=수령자 · C=참여자 — quickstart
  * V2~V5). 지분 3단계 뷰(organizer/receiver/contributor/friend)와 정산 고지는 계정 둘로는 검증이
- * 안 된다. `.env.local` 에 `E2E_USER3_EMAIL` / `E2E_USER3_PASSWORD` 를 채우면 `thirdPage` 가
+ * 안 된다. `.env.local` 에 `E2E_USER4_EMAIL` / `E2E_USER4_PASSWORD` 를 채우면 `thirdPage` 가
  * **또 다른 별도 컨텍스트**에 C 세션을 주입한다. 셋은 전부 서로 다른 계정이어야 한다.
  *
  * env 가 없으면 `authedPage`(·`friendPage`·`thirdPage`) 를 쓰는 테스트는 실패가 아니라 **skip** 된다.
@@ -57,7 +57,7 @@ export const E2E_USER2_SKIP_REASON =
   'E2E_USER2_EMAIL/E2E_USER2_PASSWORD 미설정 — 두 계정이 필요한 E2E 를 건너뛴다 (.env.example 참조)'
 
 export const E2E_USER3_SKIP_REASON =
-  'E2E_USER3_EMAIL/E2E_USER3_PASSWORD 미설정 — 세 계정이 필요한 E2E 를 건너뛴다 (.env.example 참조)'
+  'E2E_USER4_EMAIL/E2E_USER4_PASSWORD 미설정 — 세 계정이 필요한 E2E 를 건너뛴다 (.env.example 참조)'
 
 // ── @supabase/ssr 쿠키 직렬화 (cookies.js · utils/chunker.js) ────────────────────
 
@@ -206,8 +206,8 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
 
   e2eSession3: [
     async ({}, provide) => {
-      const email = process.env.E2E_USER3_EMAIL
-      const password = process.env.E2E_USER3_PASSWORD
+      const email = process.env.E2E_USER4_EMAIL
+      const password = process.env.E2E_USER4_PASSWORD
       if (!email || !password) {
         await provide(null)
         return
@@ -216,10 +216,10 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
       // 지분 3단계 뷰(R6)의 역할 판정이 겹쳐 시나리오가 무너진다
       if (email === process.env.E2E_USER_EMAIL || email === process.env.E2E_USER2_EMAIL) {
         throw new Error(
-          'E2E_USER3_EMAIL 이 E2E_USER_EMAIL 또는 E2E_USER2_EMAIL 과 같다 — 서로 다른 계정 셋이 필요하다 (.env.example 참조)',
+          'E2E_USER4_EMAIL 이 E2E_USER_EMAIL 또는 E2E_USER2_EMAIL 과 같다 — 서로 다른 계정 셋이 필요하다 (.env.example 참조)',
         )
       }
-      await provide(await signInTestAccount('세 번째 E2E 테스트 계정(E2E_USER3)', email, password))
+      await provide(await signInTestAccount('세 번째 E2E 테스트 계정(E2E_USER4)', email, password))
     },
     { scope: 'worker' },
   ],

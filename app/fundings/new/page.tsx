@@ -1,0 +1,41 @@
+import { notFound } from 'next/navigation'
+import { FundingCreateForm } from '@/components/funding/create-form'
+import { TopBar } from '@/components/ui/top-bar'
+import { getFriends } from '@/lib/dal/friend'
+import { getActivePaymentMethod } from '@/lib/dal/payment-method'
+import { getProduct } from '@/lib/dal/product'
+import { verifySession } from '@/lib/dal/session'
+
+export default async function NewFundingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ productId?: string | string[]; receiverId?: string | string[] }>
+}) {
+  const query = await searchParams
+  const productId = typeof query.productId === 'string' ? query.productId : query.productId?.[0]
+  if (!productId) notFound()
+
+  const [{ userId }, product, friends, paymentMethod] = await Promise.all([
+    verifySession(),
+    getProduct(productId),
+    getFriends(),
+    getActivePaymentMethod(),
+  ])
+  if (!product) notFound()
+
+  const requestedReceiver = typeof query.receiverId === 'string' ? query.receiverId : query.receiverId?.[0]
+  const initialReceiverId = friends.some((friend) => friend.userId === requestedReceiver) ? requestedReceiver : undefined
+
+  return (
+    <main className="flex min-h-dvh flex-col">
+      <TopBar title="함께 선물하기" backHref={`/products/${product.id}`} />
+      <FundingCreateForm
+        currentUserId={userId}
+        product={product}
+        friends={friends}
+        initialReceiverId={initialReceiverId}
+        hasPaymentMethod={paymentMethod !== null}
+      />
+    </main>
+  )
+}
