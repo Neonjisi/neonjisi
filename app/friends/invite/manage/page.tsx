@@ -72,7 +72,10 @@ function LinkSection({
   );
 }
 
-export default async function InviteLinkManagePage() {
+export default async function InviteLinkManagePage({
+  searchParams,
+}: PageProps<"/friends/invite/manage">) {
+  const { from } = await searchParams;
   const links = await getMyInviteLinks();
   // 한 화면 안의 판정 기준을 하나로 고정한다 — 카드마다 now 가 달라 상태가 엇갈리지 않게
   const now = new Date();
@@ -81,7 +84,7 @@ export default async function InviteLinkManagePage() {
 
   return (
     <>
-      <TopBar title="초대 링크" backHref="/friends/invite" />
+      <TopBar title="초대 링크" backHref={from === "my" ? "/my" : "/friends/invite"} />
       <main className="flex-1 pb-10">
         <LinkSection
           title="사용 중"

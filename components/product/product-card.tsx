@@ -10,12 +10,16 @@ export function ProductCard({
   product,
   friendUserId,
   badge,
+  returnTo,
 }: {
   product: ProductView
   friendUserId?: string
   badge?: string
+  returnTo: string
 }) {
-  const href = `/products/${product.id}${friendUserId ? `?for=${encodeURIComponent(friendUserId)}` : ''}`
+  const query = new URLSearchParams({ returnTo })
+  if (friendUserId) query.set('for', friendUserId)
+  const href = `/products/${product.id}?${query.toString()}`
   return (
     <li className="min-w-0">
       <Link
@@ -60,10 +64,12 @@ export function ProductGrid({
   products,
   friendUserId,
   haveCategoryIds = [],
+  returnTo,
 }: {
   products: ProductView[]
   friendUserId?: string
   haveCategoryIds?: string[]
+  returnTo: string
 }) {
   const haveCategories = new Set(haveCategoryIds)
   return (
@@ -74,6 +80,7 @@ export function ProductGrid({
           product={product}
           friendUserId={friendUserId}
           badge={haveCategories.has(product.categoryId) ? '이미 갖고 있어요' : undefined}
+          returnTo={returnTo}
         />
       ))}
     </ul>

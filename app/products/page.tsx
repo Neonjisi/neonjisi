@@ -75,7 +75,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
             <h2 className="text-lg font-bold">상품 {products.length}개</h2>
           </div>
           {products.length ? (
-            <ProductGrid products={products} friendUserId={friendUserId || undefined} />
+            <ProductGrid products={products} friendUserId={friendUserId || undefined} returnTo={productListReturnTo} />
           ) : (
             <div className="rounded-2xl border border-neutral-200 bg-surface px-5 py-10 text-center">
               <p className="font-semibold">조건에 맞는 상품이 없어요</p>

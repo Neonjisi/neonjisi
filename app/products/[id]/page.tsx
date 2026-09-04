@@ -6,6 +6,7 @@ import { buttonClasses } from '@/components/ui/button'
 import { TopBar } from '@/components/ui/top-bar'
 import { getFriendTaste } from '@/lib/dal/friend'
 import { getMatchBanner, getProduct, type MatchBanner } from '@/lib/dal/product'
+import { safeReturnTo } from '@/lib/navigation/return-to'
 
 const BANNERS: Record<Exclude<MatchBanner, null>, { className: string; text: string; Icon: typeof Info }> = {
   want: {
@@ -30,10 +31,12 @@ export default async function ProductDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ for?: string | string[] }>
+  searchParams: Promise<{ for?: string | string[]; returnTo?: string | string[] }>
 }) {
   const [{ id }, query] = await Promise.all([params, searchParams])
   const friendUserId = typeof query.for === 'string' ? query.for : query.for?.[0]
+  const rawReturnTo = typeof query.returnTo === 'string' ? query.returnTo : query.returnTo?.[0]
+  const backHref = safeReturnTo(rawReturnTo, '/products')
   const product = await getProduct(id)
   if (!product) notFound()
 
@@ -43,14 +46,15 @@ export default async function ProductDetailPage({
   const banner = match ? BANNERS[match] : null
   const giftHref = friend
     ? `/gifts/new?productId=${encodeURIComponent(product.id)}&receiverId=${encodeURIComponent(friend.userId)}`
-    : '/products'
-  const fundingHref = `/fundings/new?productId=${encodeURIComponent(product.id)}${
+    : `/products/${product.id}/receiver?returnTo=${encodeURIComponent(backHref)}`
+  const detailHref = `/products/${product.id}${friend ? `?for=${encodeURIComponent(friend.userId)}` : ''}`
+  const fundingHref = `/fundings/new?productId=${encodeURIComponent(product.id)}&returnTo=${encodeURIComponent(detailHref)}${
     friend ? `&receiverId=${encodeURIComponent(friend.userId)}` : ''
   }`
 
   return (
     <>
-      <TopBar title="상품 상세" backHref={friend ? `/products?for=${friend.userId}` : '/products'} />
+      <TopBar title="상품 상세" backHref={backHref} />
       <main className="flex flex-1 flex-col pb-5">
         <div className="relative aspect-square w-full overflow-hidden bg-neutral-100">
           {product.imageUrl ? <Image src={product.imageUrl} alt="" fill priority sizes="430px" className="object-cover" /> : null}

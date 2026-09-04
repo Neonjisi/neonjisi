@@ -6,6 +6,7 @@ import { formatPrice } from '@/components/product/product-card'
 import { buttonClasses } from '@/components/ui/button'
 import { TopBar } from '@/components/ui/top-bar'
 import { getFunding, type FundingDetailView } from '@/lib/dal/funding'
+import { safeReturnTo } from '@/lib/navigation/return-to'
 
 const STATUS_COPY: Record<FundingDetailView['status'], string> = {
   OPEN: '함께 채우고 있어요',
@@ -20,8 +21,9 @@ function dDay(deadline: Date, now: Date): string {
   return days === 0 ? '오늘 마감' : `D-${days}`
 }
 
-export default async function FundingDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+export default async function FundingDetailPage({ params, searchParams }: PageProps<'/fundings/[id]'>) {
+  const [{ id }, query] = await Promise.all([params, searchParams])
+  const rawReturnTo = typeof query.returnTo === 'string' ? query.returnTo : query.returnTo?.[0]
   const funding = await getFunding(id)
   if (!funding) notFound()
 
@@ -35,7 +37,7 @@ export default async function FundingDetailPage({ params }: { params: Promise<{ 
     <main className="flex min-h-dvh flex-col pb-6">
       <TopBar
         title={`${funding.receiverDisplayName}님 선물`}
-        backHref="/"
+        backHref={safeReturnTo(rawReturnTo, '/')}
         action={funding.role === 'organizer' && funding.status === 'OPEN' ? <FundingDetailActions fundingId={funding.id} /> : null}
       />
       <div className="flex flex-col gap-6 px-5 pt-4">

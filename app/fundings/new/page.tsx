@@ -5,11 +5,12 @@ import { getFriends } from '@/lib/dal/friend'
 import { getActivePaymentMethod } from '@/lib/dal/payment-method'
 import { getProduct } from '@/lib/dal/product'
 import { verifySession } from '@/lib/dal/session'
+import { safeReturnTo } from '@/lib/navigation/return-to'
 
 export default async function NewFundingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ productId?: string | string[]; receiverId?: string | string[] }>
+  searchParams: Promise<{ productId?: string | string[]; receiverId?: string | string[]; returnTo?: string | string[] }>
 }) {
   const query = await searchParams
   const productId = typeof query.productId === 'string' ? query.productId : query.productId?.[0]
@@ -24,11 +25,12 @@ export default async function NewFundingPage({
   if (!product) notFound()
 
   const requestedReceiver = typeof query.receiverId === 'string' ? query.receiverId : query.receiverId?.[0]
+  const rawReturnTo = typeof query.returnTo === 'string' ? query.returnTo : query.returnTo?.[0]
   const initialReceiverId = friends.some((friend) => friend.userId === requestedReceiver) ? requestedReceiver : undefined
 
   return (
     <main className="flex min-h-dvh flex-col">
-      <TopBar title="함께 선물하기" backHref={`/products/${product.id}`} />
+      <TopBar title="함께 선물하기" backHref={safeReturnTo(rawReturnTo, `/products/${product.id}`)} />
       <FundingCreateForm
         currentUserId={userId}
         product={product}

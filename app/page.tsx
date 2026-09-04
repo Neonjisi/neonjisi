@@ -31,7 +31,7 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
               <h2 id="home-fundings" className="text-lg font-bold">진행 중인 펀딩</h2>
               <LinkButton href="/my/fundings" variant="tertiary">전체 보기</LinkButton>
             </div>
-            {fundings.length ? <ul className="mt-3 space-y-3">{fundings.map((funding) => <FundingCard key={funding.id} funding={funding} />)}</ul> : <div className="mt-3 rounded-[20px] bg-surface p-5"><p className="font-semibold">지금은 조용하네요</p><p className="mt-1 text-sm text-neutral-600">함께 준비할 선물을 찾아보세요.</p><LinkButton href="/products" variant="secondary" className="mt-4">선물 둘러보기</LinkButton></div>}
+            {fundings.length ? <ul className="mt-3 space-y-3">{fundings.map((funding) => <FundingCard key={funding.id} funding={funding} returnTo="/" />)}</ul> : <div className="mt-3 rounded-[20px] bg-surface p-5"><p className="font-semibold">지금은 조용하네요</p><p className="mt-1 text-sm text-neutral-600">함께 준비할 선물을 찾아보세요.</p><LinkButton href="/products" variant="secondary" className="mt-4">선물 둘러보기</LinkButton></div>}
           </section>
         </main>
         <BottomNav active="home" />

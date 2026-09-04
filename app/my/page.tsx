@@ -18,7 +18,7 @@ const MAIN_MENU: { label: string; href: string }[] = [
   { label: "선물 내역", href: "#" },
   { label: "펀딩 내역", href: "/my/fundings" },
   { label: "결제수단", href: "/payment-methods" },
-  { label: "초대 링크 관리", href: "/friends/invite/manage" },
+  { label: "초대 링크 관리", href: "/friends/invite/manage?from=my" },
 ];
 
 const SUB_MENU: { label: string; href: string }[] = [
@@ -70,7 +70,7 @@ export default async function MyPage() {
             </p>
           </div>
           <Link
-            href="/signup/profile"
+            href="/signup/profile?returnTo=%2Fmy"
             className="shrink-0 rounded-full border border-rose-200 bg-rose-50 px-4 py-1.5 text-sm font-semibold text-rose-700 active:bg-rose-100"
           >
             편집
