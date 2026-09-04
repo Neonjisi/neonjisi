@@ -59,12 +59,12 @@ M3의 T017(charge)과 같은 자리.
 
 **Independent Test**: quickstart V1 — 참여 없이 개설·저장 값 검증.
 
-- [ ] T017 [P] [US1] E2E 먼저 — `tests/e2e/funding-create.spec.ts`: 친구에게 3스텝(차액 동의 숫자·체크 전 비활성) / 나에게 2스텝(달성선 잠금) / 금액·마감 검증 오류
+- [x] T017 [P] [US1] E2E 먼저 — `tests/e2e/funding-create.spec.ts`: 친구에게 3스텝(차액 동의 숫자·체크 전 비활성) / 나에게 2스텝(달성선 잠금) / 금액·마감 검증 오류
 - [x] T018 [US1] `lib/funding/consent.ts` — 차액 동의 문구(T002 확정분) + `FUNDING_CONSENT_VERSION = '1'` (M3 gift 동의와 **독립 버전**)
 - [x] T019 [US1] `app/fundings/actions/create.ts` — `createFunding` (contracts §4 검사 순서 · 스냅샷 2종 · 개설자=수령자면 `min := goal` 강제)
-- [ ] T020 [US1] `components/funding/create-form.tsx`(`'use client'`) + `app/fundings/new/page.tsx` — SCR-M4-01~03 (달성선 **잠금이지 숨김 아님** · 최대 부담액 숫자 · 결제수단 없으면 SCR-M3-06 강제 진입 복귀)
-- [ ] T021 [P] [US1] SCR-M3-04 상품 상세의 `( 여럿이 모아서 선물하기 )` 진입점 활성화
-- [ ] T022 [US1] T017 초록
+- [x] T020 [US1] `components/funding/create-form.tsx`(`'use client'`) + `app/fundings/new/page.tsx` — SCR-M4-01~03 (달성선 **잠금이지 숨김 아님** · 최대 부담액 숫자 · 결제수단 없으면 SCR-M3-06 강제 진입 복귀)
+- [x] T021 [P] [US1] SCR-M3-04 상품 상세의 `( 여럿이 모아서 선물하기 )` 진입점 활성화
+- [x] T022 [US1] T017 초록
 
 **Checkpoint**: 두 분기 개설 시연 가능 — R3(PRD) 해소가 화면으로 보인다
 
@@ -76,13 +76,13 @@ M3의 T017(charge)과 같은 자리.
 
 **Independent Test**: quickstart V2·V3 — 3계정으로 참여·캡·지분 뷰 검증.
 
-- [ ] T023 [P] [US2] E2E 먼저 — `tests/e2e/funding-contribute.spec.ts`: 상세 게이지·남은 금액·"결제 중 N원" / 참여 성공 + 주최자 알림 / 잔여 초과 거부 / **지분 3단계 뷰** / 비친구 접근 거부 (**3계정**)
+- [x] T023 [P] [US2] E2E 먼저 — `tests/e2e/funding-contribute.spec.ts`: 상세 게이지·남은 금액·"결제 중 N원" / 참여 성공 + 주최자 알림 / 잔여 초과 거부 / **지분 3단계 뷰** / 비친구 접근 거부 (**3계정**)
 - [x] T024 [P] [US2] 통합 테스트 먼저 — `tests/integration/funding-cap-concurrent.test.ts`: **동시 참여 2건 → 합계 ≤ 목표** (FOR UPDATE) / 예약 만료 지연 해제 / 결제 실패 → 예약 해제 / 추가 참여 허용 · RESERVED 취소
 - [x] T025 [US2] `app/fundings/actions/contribute.ts` — `contributeToFunding` (contracts §4 2단계: FOR UPDATE 예약 → 결제 → 확정/해제 + `FUNDING_CONTRIBUTION_RECEIVED` + **조기 성사 시 `settleFunding()` 즉시 호출**) · `cancelReservation`
-- [ ] T026 [US2] `app/fundings/[id]/page.tsx` — SCR-M4-04 상세 (상태 7변형 · 진행바=paid·남은=cap · 게이지 CSS 400ms 1회 · 주최자 취소 메뉴 · `share-button`)
-- [ ] T027 [US2] `components/funding/contribute-form.tsx` + `app/fundings/[id]/contribute/page.tsx` — SCR-M4-05 (**고지 2종 나란히** · 빠른 칩 "전액" · 잔여 검증)
-- [ ] T028 [US2] SCR-M4-06 참여 결과 3변형 (처리 중 / 완료 / 실패 — 예약 해제 안내)
-- [ ] T029 [US2] T023·T024 초록 — **캡 동시성 통과가 Phase 4 완료 판정**
+- [x] T026 [US2] `app/fundings/[id]/page.tsx` — SCR-M4-04 상세 (상태 7변형 · 진행바=paid·남은=cap · 게이지 CSS 400ms 1회 · 주최자 취소 메뉴 · `share-button`)
+- [x] T027 [US2] `components/funding/contribute-form.tsx` + `app/fundings/[id]/contribute/page.tsx` — SCR-M4-05 (**고지 2종 나란히** · 빠른 칩 "전액" · 잔여 검증)
+- [x] T028 [US2] SCR-M4-06 참여 결과 3변형 (처리 중 / 완료 / 실패 — 예약 해제 안내)
+- [x] T029 [US2] T023·T024 초록 — **캡 동시성 통과가 Phase 4 완료 판정**
 
 **Checkpoint**: 3계정 참여 시연 + 목표 초과 0건
 
@@ -109,21 +109,21 @@ M3의 T017(charge)과 같은 자리.
 
 **Independent Test**: quickstart V6.
 
-- [ ] T034 [P] [US4] E2E 먼저 — `tests/e2e/funding-history.spec.ts`: 결과 3변형 / 내역 탭·라벨 / 홈 섹션 임박순
-- [ ] T035 [US4] `app/fundings/[id]/result/page.tsx` — SCR-M4-07 3변형 (성사 / **차액 주최자 변형** — "차액 N원이 결제되었습니다" / 미달 — 환불 안내 고정 문구)
-- [ ] T036 [US4] `app/my/fundings/page.tsx` — SCR-M4-08 (내가 연 것/참여한 것 · 진행 중/끝난 · 결과 라벨) + 마이 탭 펀딩 내역 메뉴 노출
-- [ ] T037 [US4] `app/page.tsx` 홈 펀딩 섹션 활성화 — M3에서 숨긴 자리 (주최·참여·수령 중 OPEN, 마감 임박순)
-- [ ] T038 [US4] T034 초록
+- [x] T034 [P] [US4] E2E 먼저 — `tests/e2e/funding-history.spec.ts`: 결과 3변형 / 내역 탭·라벨 / 홈 섹션 임박순
+- [x] T035 [US4] `app/fundings/[id]/result/page.tsx` — SCR-M4-07 3변형 (성사 / **차액 주최자 변형** — "차액 N원이 결제되었습니다" / 미달 — 환불 안내 고정 문구)
+- [x] T036 [US4] `app/my/fundings/page.tsx` — SCR-M4-08 (내가 연 것/참여한 것 · 진행 중/끝난 · 결과 라벨) + 마이 탭 펀딩 내역 메뉴 노출
+- [x] T037 [US4] `app/page.tsx` 홈 펀딩 섹션 활성화 — M3에서 숨긴 자리 (주최·참여·수령 중 OPEN, 마감 임박순)
+- [x] T038 [US4] T034 초록
 
 ---
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
 - [x] T039 [P] 제약 확인 — `pg_constraint`에서 C9·C10·FK 3행 (quickstart SQL)
-- [ ] T040 [P] 360px — `mobile-360`에 M4 화면 8종 추가 후 통과 (SC-010)
-- [ ] T041 [P] `'use client'` 예산(4개 — contracts §6) + 500줄 + **totals 모듈 밖 합산 없는지** 점검 (R3)
+- [x] T040 [P] 360px — `mobile-360`에 M4 화면 8종 추가 후 통과 (SC-010)
+- [x] T041 [P] `'use client'` 예산(4개 — contracts §6) + 500줄 + **totals 모듈 밖 합산 없는지** 점검 (R3)
 - [ ] T042 quickstart V1~V6 수동 검증 (**3계정**) + `skipped` 수 확인 (S 주도)
-- [ ] T043 `npm run lint` · `npm run build` 통과 → main 병합
+- [x] T043 `npm run lint` · `npm run build` 통과 → main 병합
 
 ---
 

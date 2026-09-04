@@ -44,7 +44,7 @@ export type FundingDetailView = {
     amount: number | null // organizer·receiver: 전부 / contributor: 자기 것만 / friend: 전부 null
   }>
   myContribution: { amount: number; status: ContributionStatus } | null
-  topup: { attemptCount: number; retryUntil: Date | null } | null // organizer 에게만
+  topup: { attemptCount: number; retryUntil: Date | null; amount: number | null } | null // organizer 에게만
 }
 
 export type FundingCardView = {
@@ -179,6 +179,8 @@ const fundingDetailSelect = {
       contributorId: true,
       amount: true,
       status: true,
+      reservedUntil: true,
+      paidAt: true,
       contributor: { select: { displayName: true } },
     },
     orderBy: { createdAt: 'asc' as const },
@@ -197,7 +199,11 @@ type FundingDetailRow = {
   minAmount: number
   topupAttemptCount: number
   topupRetryUntil: Date | null
-  contributions: Array<ContributionRow & { contributor: { displayName: string } }>
+  contributions: Array<ContributionRow & {
+    reservedUntil: Date
+    paidAt: Date | null
+    contributor: { displayName: string }
+  }>
 }
 
 /**
@@ -250,6 +256,15 @@ export const getFunding = cache(async (fundingId: string): Promise<FundingDetail
     status: c.status,
     displayName: c.contributor.displayName,
   }))
+  // 정산 차액은 예약 없이 만든 주최자 명의 PAID 행이라 reservedUntil=paidAt 흔적을 갖는다.
+  // 일반 참여는 reservedUntil이 결제 시각보다 뒤이므로 이 조건과 겹치지 않는다.
+  const topupContribution = found.contributions.find(
+    (c) =>
+      c.contributorId === found.organizerId &&
+      c.status === 'PAID' &&
+      c.paidAt !== null &&
+      c.reservedUntil.getTime() === c.paidAt.getTime(),
+  )
 
   return {
     id: found.id,
@@ -268,7 +283,11 @@ export const getFunding = cache(async (fundingId: string): Promise<FundingDetail
     myContribution: resolveMyContribution(found.contributions, userId),
     topup:
       role === 'organizer'
-        ? { attemptCount: found.topupAttemptCount, retryUntil: found.topupRetryUntil }
+        ? {
+            attemptCount: found.topupAttemptCount,
+            retryUntil: found.topupRetryUntil,
+            amount: topupContribution?.amount ?? null,
+          }
         : null,
   }
 })
