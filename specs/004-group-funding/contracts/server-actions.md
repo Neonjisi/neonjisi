@@ -68,9 +68,11 @@ export async function settleFunding(fundingId: string): Promise<
   잉여 안에 통째로 들어가는 행만 되돌린다(reason `SURPLUS`). 목표 아래로 내려가는 일은 없다.
 - **`CANCELLED` 의 출처**는 `topupAttemptCount > 0` 이면 차액 상한 초과(`cause: TOPUP_EXHAUSTED`, 전원 고지 — 주최자·수령자는
   `amount: 0`), 아니면 주최자 취소(`cause: ORGANIZER`). 알림 payload 형태는 `lib/dal/notification.ts` `FundingNotificationPayload`.
-- ⚠️ **후속(J)**: `shouldSettle()`(state.ts)이 `OPEN` 만 보므로, topup 실패 뒤 주최자가 재시도하지 않으면 기한이 지나도
-  아무 조회가 settle 을 부르지 않는다. `status = SUCCEEDED ∧ topupRetryUntil < now` 도 트리거에 넣으면 settle 이 지연
-  취소·환불로 확정한다(이미 그렇게 구현돼 있다 — 트리거만 없다). 현재는 `retryFundingTopup` 호출 시점에만 확정된다.
+- ✅ **지연 취소 트리거 (후속(J) 완료)**: `shouldSettle()`(state.ts)이 갈래를 둘 가진다 — 마감 지난 `OPEN`, 그리고
+  `SUCCEEDED ∧ topupRetryUntil < now`. topup 실패 뒤 주최자가 재시도하지 않아도 **아무 조회나** settle 을 불러 지연
+  취소·전액 환불로 확정한다(경계는 settle 의 `isExhausted` 와 같은 엄격 초과). `retryFundingTopup` 은 이제 그 확정을
+  앞당기는 수단일 뿐이다. ⚠️ 판정이 `topupRetryUntil` 을 읽으므로 **조회 select 에서 그 열을 빼면 트리거가 조용히
+  사라진다** — `lib/dal/funding.ts` 의 `fundingDetailSelect`·`fundingCardSelect` 둘 다 이 열을 포함한다.
 
 ## 3. DAL — `lib/dal/funding.ts` (R6)
 

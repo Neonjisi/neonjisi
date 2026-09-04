@@ -5,7 +5,8 @@
  * 검증 대상 셋:
  *  ① 지분 3단계 마스킹(R6) — organizer·receiver: 전원 이름+금액 / contributor: 자기 것만 /
  *     friend: 이름만(금액 전부 null). canViewFunding 밖(비친구·무관 사용자)은 null.
- *  ② 정산 트리거(R1) — 마감 지난 OPEN 을 지나는 조회가 `settleFunding()` 을 정확히 1회
+ *  ② 정산 트리거(R1) — 마감 지난 OPEN, 그리고 재시도 기한이 지난 SUCCEEDED 를 지나는 조회가
+ *     `settleFunding()` 을 정확히 1회
  *     호출하고, 그 뒤 최신 상태를 반영한다. 마감 전·이미 종착 상태는 호출하지 않는다.
  *  ③ 예약 만료 지연 해제(R2) — 만료된 RESERVED 행이 조회 시점에 삭제되고 잔여가 즉시 풀린다.
  *
@@ -363,6 +364,48 @@ describe.skipIf(skipReason !== '')('lib/dal/funding — getFunding·getMyFunding
       expect(h.settleFunding).not.toHaveBeenCalled()
       expect(view!.status).toBe('OPEN')
     })
+
+    // 두 번째 갈래 (contracts §2 후속(J)) — topup 실패 뒤 주최자가 재시도를 누르지 않으면
+    // 기한이 지나도 아무 조회가 settle 을 부르지 않아 참여자 돈이 SUCCEEDED 로 묶였다.
+    it('재시도 기한이 지난 SUCCEEDED 도 settleFunding() 을 부른다 — 재시도를 안 눌러도 지연 취소가 확정된다', async () => {
+      const fundingId = await createFunding({
+        organizerId: organizer,
+        receiverId: receiver,
+        deadline: past(1 * DAY),
+        status: 'SUCCEEDED',
+        topupAttemptCount: 1,
+        topupRetryUntil: past(1 * MIN), // 기한 지남
+      })
+      h.settleFunding.mockImplementation(async (id: string) => {
+        await prisma.funding.update({
+          where: { id },
+          data: { status: 'CANCELLED', cancelledAt: new Date() },
+        })
+        return { outcome: 'CANCELLED' }
+      })
+
+      const view = await asUser(organizer, () => getFunding!(fundingId))
+
+      expect(h.settleFunding).toHaveBeenCalledTimes(1)
+      expect(h.settleFunding).toHaveBeenCalledWith(fundingId)
+      expect(view!.status).toBe('CANCELLED')
+    })
+
+    it('재시도 기한이 남은 SUCCEEDED 는 호출하지 않는다 — 주최자가 아직 재시도할 수 있다', async () => {
+      const fundingId = await createFunding({
+        organizerId: organizer,
+        receiverId: receiver,
+        deadline: past(1 * DAY),
+        status: 'SUCCEEDED',
+        topupAttemptCount: 1,
+        topupRetryUntil: future(1 * DAY),
+      })
+
+      const view = await asUser(organizer, () => getFunding!(fundingId))
+
+      expect(h.settleFunding).not.toHaveBeenCalled()
+      expect(view!.status).toBe('SUCCEEDED')
+    })
   })
 
   describe('getMyFundings — 내역 탭 2종 (FR-022)', () => {
@@ -424,6 +467,31 @@ describe.skipIf(skipReason !== '')('lib/dal/funding — getFunding·getMyFunding
       // 목록이 트리거 이전 상태(OPEN)가 아니라 settle 뒤 최신 상태를 보여준다 — 재조회 확인
       expect(result.organized.find((f) => f.id === overdueOrganized)?.status).toBe('FAILED')
       expect(result.contributed.find((f) => f.id === overdueContributed)?.status).toBe('FAILED')
+    })
+
+    it('R1 — 재시도 기한이 지난 SUCCEEDED 는 목록 조회로도 지연 취소가 확정된다 (카드 조회가 기한을 읽어야 한다)', async () => {
+      const me = await createUser('내역R1지연')
+      const stuck = await createFunding({
+        organizerId: me,
+        receiverId: receiver,
+        deadline: past(1 * DAY),
+        status: 'SUCCEEDED',
+        topupAttemptCount: 1,
+        topupRetryUntil: past(1 * MIN), // 기한 지남
+      })
+
+      h.settleFunding.mockImplementation(async (id: string) => {
+        await prisma.funding.update({
+          where: { id },
+          data: { status: 'CANCELLED', cancelledAt: new Date() },
+        })
+        return { outcome: 'CANCELLED' }
+      })
+
+      const result = await asUser(me, () => getMyFundings!())
+
+      expect(h.settleFunding).toHaveBeenCalledWith(stuck)
+      expect(result.organized.find((f) => f.id === stuck)?.status).toBe('CANCELLED')
     })
 
     it('R2 — 만료된 RESERVED 는 목록 조회로 해제되고 잔여가 풀린다 (organized·contributed 둘 다)', async () => {

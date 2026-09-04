@@ -300,6 +300,9 @@ const fundingCardSelect = {
   receiverDisplayName: true,
   goalAmount: true,
   minAmount: true,
+  // 카드에 그리지는 않지만 R1 판정이 읽는다 — 빼면 재시도 기한이 지난 SUCCEEDED 가
+  // 목록 경로에서 영영 트리거되지 않는다 (lib/funding/state.ts shouldSettle 두 번째 갈래)
+  topupRetryUntil: true,
 } as const
 
 type FundingCardRow = {
@@ -310,23 +313,25 @@ type FundingCardRow = {
   receiverDisplayName: string
   goalAmount: number
   minAmount: number
+  topupRetryUntil: Date | null
 }
 
-/** getMyFundings·getHomeFundings 공용 — 행 하나에 정산 트리거(R1)·예약 만료 해제(R2)를 지나게 한다 */
+/**
+ * getMyFundings·getHomeFundings 공용 — 행 하나에 정산 트리거(R1)·예약 만료 해제(R2)를 지나게 한다.
+ * 판정에 필요한 열을 빠짐없이 넘기려고 행을 통째로 받는다 (`fundingCardSelect` 와 한 짝).
+ */
 async function settleAndTotals(
-  fundingId: string,
-  status: FundingStatus,
-  deadline: Date,
+  row: Pick<FundingCardRow, 'id' | 'status' | 'deadline' | 'topupRetryUntil'>,
   now: Date,
 ): Promise<{ status: FundingStatus; paid: number; cap: number }> {
-  let currentStatus = status
-  if (shouldSettle({ status, deadline }, now)) {
-    await settleFunding(fundingId)
-    const fresh = await prisma.funding.findUnique({ where: { id: fundingId }, select: { status: true } })
+  let currentStatus = row.status
+  if (shouldSettle(row, now)) {
+    await settleFunding(row.id)
+    const fresh = await prisma.funding.findUnique({ where: { id: row.id }, select: { status: true } })
     if (fresh) currentStatus = fresh.status
   }
-  await evaluateReservationExpiry(fundingId, now)
-  const [paid, cap] = await Promise.all([paidTotal(prisma, fundingId), capTotal(prisma, fundingId)])
+  await evaluateReservationExpiry(row.id, now)
+  const [paid, cap] = await Promise.all([paidTotal(prisma, row.id), capTotal(prisma, row.id)])
   return { status: currentStatus, paid, cap }
 }
 
@@ -334,7 +339,7 @@ async function settleAndTotals(
 async function toCardViews(rows: readonly FundingCardRow[], now: Date): Promise<FundingCardView[]> {
   const views: FundingCardView[] = []
   for (const row of rows) {
-    const { status, paid, cap } = await settleAndTotals(row.id, row.status, row.deadline, now)
+    const { status, paid, cap } = await settleAndTotals(row, now)
     const productSnapshot = parseProductSnapshot(row.productSnapshot, row.id)
     if (!productSnapshot) continue
     views.push({
