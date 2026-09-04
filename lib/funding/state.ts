@@ -79,14 +79,26 @@ export async function transitionFunding(
 }
 
 /**
- * 정산 트리거 판정 (R1) — 마감 지난 OPEN 펀딩만 참이다. DAL(T016)의 모든 조회가 이 판정으로
- * `settleFunding()` 호출 여부를 결정한다. 판정만 여기 두고 실행은 settle.ts(D) 소유다.
+ * 정산 트리거 판정 (R1) — 갈래가 둘이다. DAL(T016)의 모든 조회가 이 판정으로 `settleFunding()`
+ * 호출 여부를 결정한다. 판정만 여기 두고 실행은 settle.ts(D) 소유다.
+ *
+ *  ① **마감 지난 OPEN** — 성사·미달 판정 (research R1).
+ *  ② **차액 재시도 기한이 지난 SUCCEEDED** — 지연 취소 (contracts §2). topup 실패 뒤 주최자가
+ *     재시도를 누르지 않으면 기한이 지나도 아무 조회가 settle 을 부르지 않아 참여자 돈이
+ *     SUCCEEDED 로 묶인다. settle 은 이 경우를 이미 취소·전액 환불로 확정한다(`isExhausted`) —
+ *     없던 것은 트리거뿐이었다. 경계는 그 `isExhausted` 와 같은 **엄격 초과(>)** 로 맞춘다.
+ *
+ * 기한이 `null` 인 SUCCEEDED 는 대상이 아니다 — 기한은 topup 실패를 기록할 때만 채워진다.
  */
 export function shouldSettle(
-  funding: Pick<{ status: FundingStatus; deadline: Date }, 'status' | 'deadline'>,
+  funding: { status: FundingStatus; deadline: Date; topupRetryUntil?: Date | null },
   now: Date = new Date(),
 ): boolean {
-  return funding.status === 'OPEN' && funding.deadline.getTime() < now.getTime()
+  if (funding.status === 'OPEN') return funding.deadline.getTime() < now.getTime()
+  if (funding.status === 'SUCCEEDED') {
+    return funding.topupRetryUntil != null && now.getTime() > funding.topupRetryUntil.getTime()
+  }
+  return false
 }
 
 // ── Contribution FSM ─────────────────────────────────────────────────────────

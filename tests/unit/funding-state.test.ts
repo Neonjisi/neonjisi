@@ -7,7 +7,7 @@
  *  - Funding: OPEN→{SUCCEEDED,FAILED,CANCELLED} · SUCCEEDED→{SETTLED,CANCELLED} 만 허용.
  *    나머지(자기 자신 포함)는 전부 거부 — 전수 검사
  *  - Contribution: RESERVED→PAID · PAID→REFUNDED 만 허용. 나머지 전부 거부 — 전수 검사
- *  - `shouldSettle`: status=OPEN 이고 deadline < now 일 때만 참 (R1 트리거 판정)
+ *  - `shouldSettle`: 마감 지난 OPEN, 그리고 차액 재시도 기한이 지난 SUCCEEDED 일 때 참 (R1 트리거 판정)
  *  - `isReservationExpired`: status=RESERVED 이고 reservedUntil < now 일 때만 참 (R2 판정)
  *  - `transitionFunding`/`transitionContribution`: 조건부 UPDATE(where 에 from 상태) —
  *    검사와 갱신 사이 경합이 없다. 종착 상태로 갈 때 종착 시각을 함수가 채운다
@@ -200,7 +200,7 @@ describe('transitionFunding — 조건부 UPDATE 단일 관문 (R1 잠금과 같
   })
 })
 
-describe('shouldSettle — R1 트리거 판정 (status=OPEN 이고 deadline < now 일 때만)', () => {
+describe('shouldSettle — R1 트리거 판정 (마감 지난 OPEN · 재시도 기한 지난 SUCCEEDED)', () => {
   it('OPEN + 마감 경과 → 참', () => {
     expect(shouldSettle({ status: 'OPEN', deadline: at(-1 * MIN) }, NOW)).toBe(true)
   })
@@ -214,10 +214,50 @@ describe('shouldSettle — R1 트리거 판정 (status=OPEN 이고 deadline < no
   })
 
   it.each(['SUCCEEDED', 'SETTLED', 'FAILED', 'CANCELLED'])(
-    '%s 는 마감이 지나도 트리거하지 않는다 — OPEN 에서만',
+    '%s 는 마감이 지나도 트리거하지 않는다 — deadline 은 OPEN 에서만 본다',
     (status) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect(shouldSettle({ status: status as any, deadline: at(-1 * MIN) }, NOW)).toBe(false)
+    },
+  )
+
+  // 차액 재시도 기한이 지난 SUCCEEDED 도 트리거다 (contracts §2 "후속(J)"). settle.ts 는 이미
+  // isExhausted 로 지연 취소·전액 환불을 확정한다 — 트리거가 없으면 주최자가 재시도를 누를
+  // 때까지 아무 조회도 settle 을 부르지 않아 참여자 돈이 SUCCEEDED 로 묶인다.
+  it('SUCCEEDED + 재시도 기한 경과 → 참 — 어느 조회든 지연 취소를 확정시킨다', () => {
+    expect(
+      shouldSettle({ status: 'SUCCEEDED', deadline: at(-1 * MIN), topupRetryUntil: at(-1 * MIN) }, NOW),
+    ).toBe(true)
+  })
+
+  it('SUCCEEDED + 재시도 기한 남음 → 거짓 — 주최자가 아직 재시도할 수 있다', () => {
+    expect(
+      shouldSettle({ status: 'SUCCEEDED', deadline: at(-1 * MIN), topupRetryUntil: at(+1 * MIN) }, NOW),
+    ).toBe(false)
+  })
+
+  it('재시도 기한 정각(===) → 거짓 — settle.ts isExhausted 와 같은 엄격 초과(>)', () => {
+    expect(
+      shouldSettle({ status: 'SUCCEEDED', deadline: at(-1 * MIN), topupRetryUntil: NOW }, NOW),
+    ).toBe(false)
+  })
+
+  it('SUCCEEDED + topupRetryUntil = null → 거짓 — 기한이 없으면 지연 취소 대상이 아니다', () => {
+    expect(
+      shouldSettle({ status: 'SUCCEEDED', deadline: at(-1 * MIN), topupRetryUntil: null }, NOW),
+    ).toBe(false)
+  })
+
+  it.each(['OPEN', 'SETTLED', 'FAILED', 'CANCELLED'])(
+    '%s 는 재시도 기한이 지나도 트리거하지 않는다 — topupRetryUntil 은 SUCCEEDED 에서만 본다',
+    (status) => {
+      expect(
+        shouldSettle(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          { status: status as any, deadline: at(+1 * MIN), topupRetryUntil: at(-1 * MIN) },
+          NOW,
+        ),
+      ).toBe(false)
     },
   )
 })
