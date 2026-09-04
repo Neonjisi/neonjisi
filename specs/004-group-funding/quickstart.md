@@ -12,15 +12,15 @@
 
 | 항목 | 값 |
 |---|---|
-| **테스트 계정 3개** | 주최자 A · 수령자 B · 참여자 C — `E2E_USER4_*` 신설 (R7) |
+| **테스트 계정 3개** | 주최자 A · 수령자 B · 참여자 C — `E2E_USER5_*` 신설 (R7) |
 | 결제 모드 | `PORTONE_MODE=mock` — 실패 유도는 `0000` 카드 (M3 규약) |
 | 포트 | `:3000` 고정 |
 
 `.env.local`에 추가:
 
 ```
-E2E_USER4_EMAIL=
-E2E_USER4_PASSWORD=
+E2E_USER5_EMAIL=
+E2E_USER5_PASSWORD=
 FUNDING_RESERVATION_TTL=5m
 ```
 

@@ -14,7 +14,7 @@
  *
  * T030 은 화면이 없어 probe 로 전부 skip 하던 골격이었다. H 의 화면(T020~T021·T026~T028·T035)이
  * 서면서 **probe 를 단언으로 바꿨다** — 화면이 없으면 이제 skip 이 아니라 실패다. 시나리오와
- * 판정 기준은 골격 그대로다. 남은 skip 경로는 계정뿐이다: `E2E_USER4_*` 가 비면 `thirdPage`
+ * 판정 기준은 골격 그대로다. 남은 skip 경로는 계정뿐이다: `E2E_USER5_*` 가 비면 `thirdPage`
  * 픽스처가 skip 한다 (fixtures/auth.ts). **`skipped` 수를 반드시 확인한다.**
  *
  * 마감은 화면으로 못 당기므로 DB 로 한다 (tasks.md T030 · fixtures/funding-db.ts — 쓰는 열은

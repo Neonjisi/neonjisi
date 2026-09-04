@@ -37,7 +37,7 @@ Phase 7  마무리        전원
 
 ## 1. 공통 — 전원 (T001)
 
-`.env.local`에 `E2E_USER4_*`(Supabase Add user · Auto Confirm) + `FUNDING_RESERVATION_TTL`.
+`.env.local`에 `E2E_USER5_*`(Supabase Add user · Auto Confirm) + `FUNDING_RESERVATION_TTL`.
 **펀딩은 3주체 구조라 계정 3개가 필요하다** — 비면 3계정 E2E가 실패 대신 skip (M1·M2와
 같은 함정, `skipped` 수 확인).
 
