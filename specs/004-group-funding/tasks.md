@@ -16,7 +16,7 @@
 
 ## Phase 1: Setup
 
-- [ ] T001 `.env.local`에 M4 env 추가 — `E2E_USER3_EMAIL`/`E2E_USER3_PASSWORD`(Supabase Add user · Auto Confirm) + `FUNDING_RESERVATION_TTL=5m` (전원 각자, **커밋 금지**, `skipped` 함정 주의)
+- [ ] T001 `.env.local`에 M4 env 추가 — `E2E_USER4_EMAIL`/`E2E_USER4_PASSWORD`(Supabase Add user · Auto Confirm) + `FUNDING_RESERVATION_TTL=5m` (전원 각자, **커밋 금지**, `skipped` 함정 주의)
 - [ ] T002 [P] 문구 세트 확정 — 고지 2종("공개됩니다"·"환불됩니다") · 차액 동의 v1(최대 부담액 숫자 템플릿, `FUNDING_CONSENT_VERSION` 시작점) · `FAILED`/`CANCELLED` 구분 문구 · 환불 안내("영업일 3~5일" 고정 — clarify Q4) (S 산출물, 마감: 각 화면 구현 전)
 - [x] T003 [P] E2E 픽스처 3계정 확장 — `tests/e2e/fixtures/auth.ts`에 세 번째 계정 세션 주입 (M2 T017 방식. **3주체 E2E 전부를 막는 선행 태스크**)
 

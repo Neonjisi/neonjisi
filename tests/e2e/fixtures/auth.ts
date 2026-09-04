@@ -22,6 +22,11 @@
  * 안 된다. `.env.local` 에 `E2E_USER4_EMAIL` / `E2E_USER4_PASSWORD` 를 채우면 `thirdPage` 가
  * **또 다른 별도 컨텍스트**에 C 세션을 주입한다. 셋은 전부 서로 다른 계정이어야 한다.
  *
+ * 세 번째 주체인데 env 이름이 `USER4` 인 이유: `E2E_USER3_*` 슬롯을 한 번 태워 먹었다. 계정 없이
+ * 값만 채운 `.env.local` 이 돌아다녀 3계정 E2E 가 skip 이 아니라 `Invalid login credentials` 로
+ * 죽었다. 슬롯을 되살리지 않는다 (.env.example 에 같은 경위를 적어 뒀다). 픽스처 이름
+ * (`thirdPage` · `e2eSession3`)은 **주체 순번**이라 그대로 3 이다 — env 이름과 다른 축이다.
+ *
  * env 가 없으면 `authedPage`(·`friendPage`·`thirdPage`) 를 쓰는 테스트는 실패가 아니라 **skip** 된다.
  * 테스트 계정의 취향 데이터는 매 테스트마다 UI 로 지우고 다시 만든다 (taste-ui.ts) —
  * e2e 에서는 `@/lib/prisma` · DAL 을 직접 import 하지 않는다.
@@ -56,7 +61,7 @@ export const E2E_SKIP_REASON =
 export const E2E_USER2_SKIP_REASON =
   'E2E_USER2_EMAIL/E2E_USER2_PASSWORD 미설정 — 두 계정이 필요한 E2E 를 건너뛴다 (.env.example 참조)'
 
-export const E2E_USER3_SKIP_REASON =
+export const E2E_USER4_SKIP_REASON =
   'E2E_USER4_EMAIL/E2E_USER4_PASSWORD 미설정 — 세 계정이 필요한 E2E 를 건너뛴다 (.env.example 참조)'
 
 // ── @supabase/ssr 쿠키 직렬화 (cookies.js · utils/chunker.js) ────────────────────
@@ -249,7 +254,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
 
   thirdPage: async ({ browser, contextOptions, baseURL, e2eSession3 }, provide) => {
     if (!e2eSession3) {
-      test.skip(true, E2E_USER3_SKIP_REASON)
+      test.skip(true, E2E_USER4_SKIP_REASON)
       return
     }
     await provideIsolatedPage(browser, contextOptions, baseURL, e2eSession3, provide)
