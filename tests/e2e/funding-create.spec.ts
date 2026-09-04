@@ -3,7 +3,7 @@
  * 친구 대상은 3단계(차액 동의), 본인 대상은 달성선을 잠근 2단계다.
  */
 import { expect, test } from './fixtures/auth'
-import { becomeFriends, ensureOnboarded } from './fixtures/friend-ui'
+import { becomeFriends, ensureOnboarded, removeAllFriends } from './fixtures/friend-ui'
 
 const WON = /[0-9][0-9,]*원/
 
@@ -26,6 +26,13 @@ async function openFirstProduct(page: import('@playwright/test').Page): Promise<
 }
 
 test.describe('M4 US1 — 펀딩을 연다', () => {
+  test.beforeEach(async ({ authedPage, friendPage }) => {
+    await ensureOnboarded(authedPage)
+    await ensureOnboarded(friendPage)
+    await removeAllFriends(authedPage)
+    await removeAllFriends(friendPage)
+  })
+
   test('친구에게 3단계로 열고 차액 상한에 동의한다', async ({ authedPage, friendPage }) => {
     await ensurePaymentMethod(authedPage)
     await ensureOnboarded(authedPage)

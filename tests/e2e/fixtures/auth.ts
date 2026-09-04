@@ -19,14 +19,11 @@
  *
  * M4 (T003) — 세 번째 계정. 펀딩은 **3주체 구조**다(A=주최자 · B=수령자 · C=참여자 — quickstart
  * V2~V5). 지분 3단계 뷰(organizer/receiver/contributor/friend)와 정산 고지는 계정 둘로는 검증이
- * 안 된다. `.env.local` 에 `E2E_USER5_EMAIL` / `E2E_USER5_PASSWORD` 를 채우면 `thirdPage` 가
+ * 안 된다. `.env.local` 에 `E2E_USER4_EMAIL` / `E2E_USER4_PASSWORD` 를 채우면 `thirdPage` 가
  * **또 다른 별도 컨텍스트**에 C 세션을 주입한다. 셋은 전부 서로 다른 계정이어야 한다.
  *
- * 세 번째 주체인데 env 이름이 `USER5` 인 이유: 앞 슬롯 둘을 못 쓴다. `E2E_USER3_*` 는 계정 없이
- * 값만 채운 `.env.local` 이 돌아다녀 3계정 E2E 를 skip 이 아니라 `Invalid login credentials` 로
- * 죽였고(비면 skip · 틀리면 실패), `E2E_USER4_*` 는 팀의 다른 계정이 선점했다. 픽스처 이름
- * (`thirdPage` · `e2eSession3`)은 **주체 순번**이라 그대로 3 이다 — env 이름과 다른 축이다.
- * env 이름은 슬롯일 뿐이고 어떤 계정을 가리킬지는 각자의 `.env.local` 이 정한다.
+ * `E2E_USER5_*` 는 비친구 접근 거부를 검증하는 D 세션(`fourthPage`)에 쓴다. 계정 없이 값만
+ * 들어 있던 `E2E_USER3_*` 는 사용하지 않는다.
  *
  * env 가 없으면 `authedPage`(·`friendPage`·`thirdPage`) 를 쓰는 테스트는 실패가 아니라 **skip** 된다.
  * 테스트 계정의 취향 데이터는 매 테스트마다 UI 로 지우고 다시 만든다 (taste-ui.ts) —
@@ -62,8 +59,11 @@ export const E2E_SKIP_REASON =
 export const E2E_USER2_SKIP_REASON =
   'E2E_USER2_EMAIL/E2E_USER2_PASSWORD 미설정 — 두 계정이 필요한 E2E 를 건너뛴다 (.env.example 참조)'
 
+export const E2E_USER4_SKIP_REASON =
+  'E2E_USER4_EMAIL/E2E_USER4_PASSWORD 미설정 — 세 계정이 필요한 E2E 를 건너뛴다 (.env.example 참조)'
+
 export const E2E_USER5_SKIP_REASON =
-  'E2E_USER5_EMAIL/E2E_USER5_PASSWORD 미설정 — 세 계정이 필요한 E2E 를 건너뛴다 (.env.example 참조)'
+  'E2E_USER5_EMAIL/E2E_USER5_PASSWORD 미설정 — 비친구 계정이 필요한 E2E 를 건너뛴다 (.env.example 참조)'
 
 // ── @supabase/ssr 쿠키 직렬화 (cookies.js · utils/chunker.js) ────────────────────
 
@@ -164,6 +164,8 @@ type WorkerFixtures = {
   e2eSession2: Session | null
   /** 세 번째 계정(C)의 세션 — M4 3주체 시나리오. env 가 없으면 null (→ thirdPage 가 skip) */
   e2eSession3: Session | null
+  /** 네 번째 계정(D)의 세션 — M4 비친구 접근 거부 시나리오 */
+  e2eSession4: Session | null
 }
 
 type TestFixtures = {
@@ -173,6 +175,8 @@ type TestFixtures = {
   friendPage: Page
   /** C 계정(M4 참여자)으로 로그인된 **세 번째 별도 컨텍스트**의 page — A·B 와 쿠키가 섞이지 않는다 */
   thirdPage: Page
+  /** D 계정(M4 비친구)으로 로그인된 **네 번째 별도 컨텍스트**의 page */
+  fourthPage: Page
 }
 
 export const test = base.extend<TestFixtures, WorkerFixtures>({
@@ -212,8 +216,8 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
 
   e2eSession3: [
     async ({}, provide) => {
-      const email = process.env.E2E_USER5_EMAIL
-      const password = process.env.E2E_USER5_PASSWORD
+      const email = process.env.E2E_USER4_EMAIL
+      const password = process.env.E2E_USER4_PASSWORD
       if (!email || !password) {
         await provide(null)
         return
@@ -222,10 +226,30 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
       // 지분 3단계 뷰(R6)의 역할 판정이 겹쳐 시나리오가 무너진다
       if (email === process.env.E2E_USER_EMAIL || email === process.env.E2E_USER2_EMAIL) {
         throw new Error(
-          'E2E_USER5_EMAIL 이 E2E_USER_EMAIL 또는 E2E_USER2_EMAIL 과 같다 — 서로 다른 계정 셋이 필요하다 (.env.example 참조)',
+          'E2E_USER4_EMAIL 이 E2E_USER_EMAIL 또는 E2E_USER2_EMAIL 과 같다 — 서로 다른 계정 셋이 필요하다 (.env.example 참조)',
         )
       }
-      await provide(await signInTestAccount('세 번째 E2E 테스트 계정(E2E_USER5)', email, password))
+      await provide(await signInTestAccount('세 번째 E2E 테스트 계정(E2E_USER4)', email, password))
+    },
+    { scope: 'worker' },
+  ],
+
+  e2eSession4: [
+    async ({}, provide) => {
+      const email = process.env.E2E_USER5_EMAIL
+      const password = process.env.E2E_USER5_PASSWORD
+      if (!email || !password) {
+        await provide(null)
+        return
+      }
+      if (
+        email === process.env.E2E_USER_EMAIL ||
+        email === process.env.E2E_USER2_EMAIL ||
+        email === process.env.E2E_USER4_EMAIL
+      ) {
+        throw new Error('E2E_USER5_EMAIL 은 E2E_USER_EMAIL/USER2/USER4 와 달라야 한다')
+      }
+      await provide(await signInTestAccount('네 번째 E2E 테스트 계정(E2E_USER5)', email, password))
     },
     { scope: 'worker' },
   ],
@@ -255,10 +279,18 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
 
   thirdPage: async ({ browser, contextOptions, baseURL, e2eSession3 }, provide) => {
     if (!e2eSession3) {
-      test.skip(true, E2E_USER5_SKIP_REASON)
+      test.skip(true, E2E_USER4_SKIP_REASON)
       return
     }
     await provideIsolatedPage(browser, contextOptions, baseURL, e2eSession3, provide)
+  },
+
+  fourthPage: async ({ browser, contextOptions, baseURL, e2eSession4 }, provide) => {
+    if (!e2eSession4) {
+      test.skip(true, E2E_USER5_SKIP_REASON)
+      return
+    }
+    await provideIsolatedPage(browser, contextOptions, baseURL, e2eSession4, provide)
   },
 })
 

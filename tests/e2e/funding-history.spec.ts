@@ -1,8 +1,17 @@
 /** M4 T034 — 내역·홈·종료 결과를 실제 UI 여정으로 검증한다. */
 import type { Page } from '@playwright/test'
 import { expect, test } from './fixtures/auth'
-import { becomeFriends, ensureOnboarded } from './fixtures/friend-ui'
+import { becomeFriends, ensureOnboarded, removeAllFriends } from './fixtures/friend-ui'
 import { prisma } from '@/lib/prisma'
+
+const createdFundingIds = new Set<string>()
+
+function rememberFunding(url: string): string {
+  const fundingId = url.split('/').at(-1)
+  if (!fundingId) throw new Error('펀딩 id를 읽지 못했습니다')
+  createdFundingIds.add(fundingId)
+  return fundingId
+}
 
 async function createSelfFunding(page: Page): Promise<{ url: string; productName: string }> {
   await page.goto('/products')
@@ -17,6 +26,7 @@ async function createSelfFunding(page: Page): Promise<{ url: string; productName
   await page.getByLabel('마감일').fill(deadline)
   await page.getByRole('button', { name: '펀딩 시작하기' }).click()
   await expect(page).toHaveURL(/\/fundings\/[0-9a-f-]{36}$/)
+  rememberFunding(page.url())
   return { url: page.url(), productName }
 }
 
@@ -32,10 +42,11 @@ async function ensurePaymentMethod(page: Page): Promise<void> {
 
 async function createFriendFunding(page: Page, receiverId: string): Promise<string> {
   await page.goto('/products')
-  await page.locator('a[href^="/products/"]').first().click()
-  await page.getByRole('link', { name: '여럿이 모아서 선물하기' }).click()
-  await page.getByText('친구에게', { exact: true }).click()
-  await page.getByLabel('받는 사람').selectOption(receiverId)
+  const productHref = await page.locator('a[href^="/products/"]').first().getAttribute('href')
+  const productId = productHref?.match(/^\/products\/([0-9a-f-]{36})/)?.[1]
+  if (!productId) throw new Error(`상품 상세 href에서 id를 읽지 못했습니다: ${productHref}`)
+  await page.goto(`/fundings/new?productId=${productId}&receiverId=${receiverId}`)
+  await expect(page.getByLabel('받는 사람')).toHaveValue(receiverId)
   await page.getByRole('button', { name: '다음' }).click()
   await page.getByLabel('목표 금액').fill('100000')
   await page.getByLabel('최소 달성선').fill('50000')
@@ -45,6 +56,7 @@ async function createFriendFunding(page: Page, receiverId: string): Promise<stri
   await page.getByRole('checkbox', { name: /동의/ }).check()
   await page.getByRole('button', { name: '펀딩 시작하기' }).click()
   await expect(page).toHaveURL(/\/fundings\/[0-9a-f-]{36}$/)
+  rememberFunding(page.url())
   return page.url()
 }
 
@@ -65,6 +77,21 @@ async function paidContribution(fundingId: string, amount: number): Promise<void
 }
 
 test.describe('M4 US4 — 결과·내역·홈', () => {
+  test.afterEach(async () => {
+    const fundingIds = [...createdFundingIds]
+    createdFundingIds.clear()
+    if (fundingIds.length === 0) return
+
+    const contributions = await prisma.fundingContribution.findMany({
+      where: { fundingId: { in: fundingIds } },
+      select: { id: true },
+    })
+    await prisma.payment.deleteMany({
+      where: { fundingContributionId: { in: contributions.map(({ id }) => id) } },
+    })
+    await prisma.funding.deleteMany({ where: { id: { in: fundingIds } } })
+  })
+
   test('진행 중 펀딩이 홈과 내역에 나오고 취소 결과가 구분된다', async ({ authedPage: page }) => {
     await ensureOnboarded(page)
     const { url, productName } = await createSelfFunding(page)
@@ -76,8 +103,11 @@ test.describe('M4 US4 — 결과·내역·홈', () => {
     await page.goto('/my/fundings')
     await expect(page.getByRole('navigation', { name: '펀딩 내역 구분' })).toBeVisible()
     await expect(page.getByText(productName).first()).toBeVisible()
-    await page.getByRole('link', { name: '참여한 것' }).click()
-    await expect(page.getByText('진행 중인 펀딩이 없어요')).toBeVisible()
+    await page.goto('/my/fundings?tab=contributed')
+    await expect(page).toHaveURL(/\/my\/fundings\?tab=contributed$/)
+    await expect(page.getByRole('link', { name: '참여한 것' })).toHaveAttribute('aria-current', 'page')
+    const fundingPath = new URL(url).pathname
+    await expect(page.locator(`a[href="${fundingPath}"]`)).toHaveCount(0)
 
     await page.goto(url)
     page.once('dialog', (dialog) => dialog.accept())
@@ -118,6 +148,8 @@ test.describe('M4 US4 — 결과·내역·홈', () => {
     await ensurePaymentMethod(organizer)
     await ensureOnboarded(organizer)
     await ensureOnboarded(receiver)
+    await removeAllFriends(organizer)
+    await removeAllFriends(receiver)
     const { bId } = await becomeFriends(organizer, receiver)
     const url = await createFriendFunding(organizer, bId)
     const fundingId = url.split('/').at(-1)

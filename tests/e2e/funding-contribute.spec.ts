@@ -73,15 +73,22 @@ test.describe('M4 US2 — 펀딩에 참여한다', () => {
     await expect(receiver.getByText('내 참여 금액 30,000원')).toBeVisible()
   })
 
-  test('3계정 지분 공개와 잔여 상한을 지킨다', async ({ authedPage: organizer, friendPage: receiver, thirdPage: contributor }) => {
+  test('3계정 지분 공개·잔여 상한과 비친구 접근 거부를 지킨다', async ({
+    authedPage: organizer,
+    friendPage: receiver,
+    thirdPage: contributor,
+    fourthPage: stranger,
+  }) => {
     await ensurePaymentMethod(organizer, '4821')
     await ensurePaymentMethod(contributor, '7314')
     await ensureOnboarded(organizer)
     await ensureOnboarded(receiver)
     await ensureOnboarded(contributor)
+    await ensureOnboarded(stranger)
     await removeAllFriends(organizer)
     await removeAllFriends(receiver)
     await removeAllFriends(contributor)
+    await removeAllFriends(stranger)
 
     const { bId } = await becomeFriends(organizer, receiver)
     // C는 수령자 B의 친구여야 공유 링크를 볼 수 있다. 이미 친구여도 초대 링크는 상세로 보낸다.
@@ -90,6 +97,9 @@ test.describe('M4 US2 — 펀딩에 참여한다', () => {
 
     const productId = await firstProductId(organizer)
     const fundingUrl = await createFunding(organizer, productId, bId)
+
+    const forbiddenResponse = await stranger.goto(fundingUrl)
+    expect(forbiddenResponse?.status()).toBe(404)
 
     // 주최자도 참여할 수 있다. C가 참여하기 전에는 이름만 보이고 금액은 숨겨진다.
     await contribute(organizer, fundingUrl, 20_000)

@@ -12,19 +12,21 @@
 
 | 항목 | 값 |
 |---|---|
-| **테스트 계정 3개** | 주최자 A · 수령자 B · 참여자 C — `E2E_USER5_*` 신설 (R7) |
+| **테스트 계정 4개** | 주최자 A=`USER1` · 수령자 B=`USER2` · 참여자 C=`USER4` · 비친구 D=`USER5` |
 | 결제 모드 | `PORTONE_MODE=mock` — 실패 유도는 `0000` 카드 (M3 규약) |
 | 포트 | `:3000` 고정 |
 
 `.env.local`에 추가:
 
 ```
+E2E_USER4_EMAIL=
+E2E_USER4_PASSWORD=
 E2E_USER5_EMAIL=
 E2E_USER5_PASSWORD=
 FUNDING_RESERVATION_TTL=5m
 ```
 
-> Supabase → Add user → **Auto Confirm** (M2 T001과 동일). ⚠️ 비어 있으면 3계정 E2E가
+> Supabase → Add user → **Auto Confirm** (M2 T001과 동일). ⚠️ 비어 있으면 다계정 E2E가
 > **실패 대신 skip** — `skipped` 수를 반드시 본다. **틀리면 skip 이 아니라 실패다**:
 > `E2E_USER3_*` 슬롯은 계정 없이 값만 채워 돌아다니다 이 함정을 밟아서 폐기했다.
 

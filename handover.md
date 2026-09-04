@@ -17,7 +17,7 @@ sub_dev = origin/main(50a3771) 병합 위에 있다.
 
 | 태스크 | 상태 | 산출물 |
 |---|---|---|
-| T003 3계정 픽스처 | ✅ | `tests/e2e/fixtures/auth.ts` `thirdPage`/`e2eSession3`/`E2E_USER5_SKIP_REASON` · `.env.example` M4 블록 |
+| T003 다계정 픽스처 | ✅ | 계정 1·2·4는 `thirdPage`까지의 3주체, 계정 5는 `fourthPage` 비친구 검증 · `.env.example` M4 블록 |
 | T013 정산 통합 테스트 | ✅ 16건 초록 | `tests/integration/funding-settle.test.ts` |
 | T014 `settleFunding()` | ✅ | `lib/funding/settle.ts` + `lib/dal/funding-settle.ts` + `lib/dal/notification.ts`(펀딩 4종) |
 | T015 공용 기반 | ✅ | `app/fundings/actions/shared.ts` · `proxy.ts` `/fundings/:path*` · `app/fundings/error.tsx` · J 테스트의 shared mock 제거 |
@@ -42,16 +42,15 @@ sub_dev = origin/main(50a3771) 병합 위에 있다.
 
 ## 다음 세션 참고
 
-- **세 번째 계정 env 는 `E2E_USER5_*` 다.** USER3 슬롯은 계정 없이 값만 채워져 3계정 E2E 를 skip 이 아니라
-  `Invalid login credentials` 로 죽여서 폐기했고(비면 skip · 틀리면 실패), USER4 는 H 가 쓴다. 이름은 슬롯일
-  뿐이고 어떤 계정을 가리킬지는 각자 `.env.local` 몫이다 (픽스처 이름 `thirdPage`·`e2eSession3` 은 주체 순번).
+- **계정 1·2·4를 주최자·수령자·참여자에, 계정 5를 비친구 접근 검증에 쓴다.** USER3 슬롯은 계정 없이
+  값만 채워져 `Invalid login credentials` 를 내므로 폐기했다(비면 skip · 틀리면 실패).
 - ⚠️ **비밀번호에 `#` 이 있으면 따옴표로 감싼다.** dotenv 가 `#` 뒤를 주석으로 잘라 15자가 13자로 들어갔고,
   증상은 계정 문제와 똑같은 `Invalid login credentials` 였다 — 콘솔 확인·Auto Confirm·재생성을 다 의심한 뒤에야
   찾았다 (2026-09-04). `$이름` 도 dotenv-expand 가 치환한다. .env.example 에 적어 뒀다.
 - T030 의 마감 조작은 `tests/e2e/fixtures/funding-db.ts` 하나로 막아 뒀다 — **쓰는 열은 `deadline` 뿐**이고
   읽기 헬퍼는 일부러 두지 않았다(정산 결과 판정은 화면·알림으로, 상태 전이는 T013 통합 테스트가).
   `test.afterAll` 에서 `closeFundingDb()` 를 부르지 않으면 Playwright 가 안 끝난다.
-- E2E 는 실키가 있어도 **영원히 mock** (`PORTONE_MODE=mock`). 3계정 E2E 는 `E2E_USER5_*` 가 비면 skip — `skipped` 수 확인.
+- E2E 는 실키가 있어도 **영원히 mock** (`PORTONE_MODE=mock`). 다계정 E2E 는 `E2E_USER4_*`/`E2E_USER5_*` 가 비면 skip — `skipped` 수 확인.
 - ⚠️ **H 의 `funding-history.spec.ts` 첫 테스트가 재실행에서 깨진다** (2026-09-04 실측: 7 passed · 1 failed · 1 skipped).
   `:80` 이 "참여한 것" 탭이 비어 있다고 단언하는데, **같은 파일의 뒤 테스트들**(`:92`·`:106`)이 `paidContribution()`
   으로 `contributorId = receiverId` 인 PAID 행을 심는다 — 셀프 펀딩이라 그 계정이 곧 참여자가 되고, 그 흔적이
