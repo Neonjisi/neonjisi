@@ -5,6 +5,7 @@ import { BottomNav } from "@/components/ui/bottom-nav";
 import { FriendAvatar } from "@/components/friend/avatar";
 import { getMyPaymentMethods } from "@/lib/dal/payment-method";
 import { getMyProfileSummary } from "@/lib/dal/profile";
+import { BrandLogo } from "@/components/ui/brand-logo";
 
 /** 마이 탭 (SCR-M1-06). 내 취향 외 메뉴는 해당 마일스톤에서 연결한다. */
 
@@ -57,6 +58,9 @@ export default async function MyPage() {
   return (
     <>
       <main className="flex-1 pb-6">
+        <div className="px-3 pt-2">
+          <BrandLogo href="/" />
+        </div>
         <header className="flex items-center gap-3 px-5 pb-4 pt-6">
           <FriendAvatar name={profile.displayName} avatarUrl={profile.avatarUrl} />
           <div className="min-w-0 flex-1">

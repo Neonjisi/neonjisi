@@ -11,6 +11,7 @@ import { RadioOption } from "@/components/ui/radio-option";
 import { TextField, TextareaField } from "@/components/ui/text-field";
 import { callAction } from "@/lib/actions/call-action";
 import type { CategoryView } from "@/lib/dal/taste";
+import { BrandLogo } from "@/components/ui/brand-logo";
 
 /*
  * 온보딩 플로우 (SCR-M1-01~05 · T030).
@@ -138,6 +139,7 @@ export function OnboardingFlow({ categories }: OnboardingFlowProps) {
   if (step === "intro") {
     return (
       <main className="flex flex-1 flex-col px-5 pb-8 pt-8">
+        <BrandLogo variant="korean" size="md" priority className="mb-5" />
         <h1 className="text-[28px] font-bold leading-[1.3] text-neutral-900">
           선물이 어긋나는 건 몰라서입니다.
         </h1>

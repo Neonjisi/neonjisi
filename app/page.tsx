@@ -4,6 +4,7 @@ import { FundingCard } from "@/components/funding/funding-card";
 import { BottomNav } from "@/components/ui/bottom-nav";
 import { getHomeFundings } from "@/lib/dal/funding";
 import { getOptionalSession } from "@/lib/dal/session";
+import { BrandLogo } from "@/components/ui/brand-logo";
 
 /**
  * 랜딩 (SCR-M0-01) — 비로그인 첫 화면. 로그인 상태 리다이렉트는 인증 연동 시 proxy.ts가 맡는다.
@@ -20,9 +21,10 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
     return (
       <>
         <main className="flex-1 px-5 pb-8 pt-7">
-          <header>
-            <p className="text-sm text-neutral-600">나를 아는 선물</p>
-            <h1 className="mt-1 text-2xl font-extrabold text-rose-500">넌지시</h1>
+          <header className="flex items-center gap-1">
+            <h1 className="sr-only">넌지시</h1>
+            <BrandLogo href="/" priority />
+            <BrandLogo variant="typo" priority className="-ml-3" />
           </header>
           <section className="mt-8" aria-labelledby="home-fundings">
             <div className="flex items-center justify-between">
@@ -40,7 +42,8 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
   return (
     <main className="flex flex-1 flex-col px-5 pb-10 pt-8">
       <div className="flex flex-1 flex-col items-center justify-center gap-3 pb-16">
-        <h1 className="text-[40px] font-bold tracking-[-0.03em] text-rose-500">넌지시</h1>
+        <h1 className="sr-only">넌지시</h1>
+        <BrandLogo variant="korean" size="lg" priority />
         <p className="text-base text-neutral-600">나를 아는 선물.</p>
       </div>
       <div className="flex flex-col items-center gap-3">

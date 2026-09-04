@@ -31,7 +31,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
 
   return (
     <>
-      <TopBar title="선물" />
+      <TopBar title="선물" isTransparent />
       <main className="flex-1 px-5 pb-8">
         <form action="/products" className="space-y-3" aria-label="상품 검색과 필터">
           <label className="flex h-12 items-center gap-2 rounded-2xl border border-neutral-200 bg-surface px-4 focus-within:border-rose-400">
