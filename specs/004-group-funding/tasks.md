@@ -124,7 +124,7 @@ M3의 T017(charge)과 같은 자리.
 - [x] T041 [P] `'use client'` 예산(4개 — contracts §6) + 500줄 + **totals 모듈 밖 합산 없는지** 점검 (R3)
 - [ ] T042 quickstart V1~V6 수동 검증 (**3계정**) + `skipped` 수 확인 (S 주도)
 - [x] T043 `npm run lint` · `npm run build` 통과 → main 병합
-- [ ] T044 T002 확정문 반영 — `copy.md` §6 의 27건. **T042 수동 검증 전에 끝나야 한다** (검증이 옛 문구를 보면 의미가 없다). 딸린 코드 변경 3가지: ① `fundingConsentSentences` 인자에 `minAmount`·`goalAmount` 추가 + `FUNDING_CONSENT_VERSION = '2'` ② `FundingContributeForm` props 에 `minAmount` 추가 ③ `REFUND_NOTICE` 를 `display.ts` 밖 공용 위치로 빼서 결과 화면도 import (문자열 중복이 두 문구로 갈린 원인). 반영 뒤 `npm run lint` · `npm run build` 재통과
+- [x] T044 T002 확정문 반영 — `copy.md` §6 의 27건. **T042 수동 검증 전에 끝나야 한다** (검증이 옛 문구를 보면 의미가 없다). 딸린 코드 변경 3가지: ① `fundingConsentSentences` 인자에 `minAmount`·`goalAmount` 추가 + `FUNDING_CONSENT_VERSION = '2'` ② `FundingContributeForm` props 에 `minAmount` 추가 ③ `REFUND_NOTICE` 를 `display.ts` 밖 공용 위치로 빼서 결과 화면도 import (문자열 중복이 두 문구로 갈린 원인). 반영 뒤 `npm run lint` · `npm run build` 재통과 — ✅ **2026-09-05 완료.** 27건 전부 반영 · 단위 401개 통과 · lint·build 통과. `REFUND_NOTICE` 는 `lib/funding/refund-notice.ts` 로 뺐다
 
 ---
 

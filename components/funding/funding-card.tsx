@@ -7,7 +7,8 @@ const LABEL = {
   SUCCEEDED: '성사 · 정산 중',
   SETTLED: '성사',
   FAILED: '미달 취소 · 환불 완료',
-  CANCELLED: '주최자 취소 · 환불 완료',
+  // 카드에는 topup 이 없다(FundingCardView) — 사유를 가를 수 없으므로 중립으로 둔다 (copy.md §4)
+  CANCELLED: '취소 · 환불 완료',
 } as const
 
 function dDay(deadline: Date, now: Date): string {

@@ -1,5 +1,6 @@
 import type { FundingNotificationView, NotificationView } from '@/lib/dal/notification'
 import { formatRelativeTime } from '@/lib/format/time'
+import { REFUND_NOTICE } from '@/lib/funding/refund-notice'
 
 /**
  * 알림 표시 매핑 (T056 · M4 T032) — 계약: 003 data-model "NotificationType — 6종 추가" · 004 data-model "4종 추가"
@@ -13,7 +14,8 @@ import { formatRelativeTime } from '@/lib/format/time'
  *
  * ⚠️ 최종 문안은 S 몫이다 (분담표 §4-S②). 여기 있는 것은 계약을 만족하는 초안이다 —
  *    특히 만료 문구는 **수령자를 탓하지 않는 사실 서술**이어야 한다.
- *    M4 환불 안내는 "영업일 3~5일" 로 고정한다 (004 clarify Q4 · T002) — 종류마다 달라지면 안 된다.
+ *    M4 환불 안내는 lib/funding/refund-notice.ts 의 REFUND_NOTICE 하나만 쓴다 (004 clarify Q4 · T002)
+ *    — 종류마다 달라지면 안 되고, 화면과도 같아야 해서 문자열을 여기 적어두지 않는다.
  */
 
 export type NotificationItem = {
@@ -32,8 +34,6 @@ function won(amount: number): string {
   return `${amount.toLocaleString('ko-KR')}원`
 }
 
-/** 환불 안내는 한 문장으로 고정한다 (clarify Q4) — 미달·취소·잉여 어느 경로든 같은 말이어야 한다 */
-const REFUND_NOTICE = '영업일 3~5일이 걸릴 수 있어요'
 
 const FUNDING_TYPES: ReadonlySet<string> = new Set([
   'FUNDING_CONTRIBUTION_RECEIVED',
@@ -140,8 +140,8 @@ function fundingMessageAndHref(view: FundingNotificationView): { message: string
         // 주최자 취소 — 미달과 다른 문구 (FR-018 · quickstart V5-2)
         return { message: `주최자가 ${productName} 펀딩을 취소했어요.${refundTail}`, href: resultHref }
       }
-      // 미달 — 달성선을 탓하지 않는 사실 서술
-      return { message: `${productName} 펀딩이 달성선에 못 미쳤어요.${refundTail}`, href: resultHref }
+      // 미달 — 수령자·참여자를 탓하지 않는 사실 서술
+      return { message: `${productName} 펀딩이 최소 달성 금액을 채우지 못했어요.${refundTail}`, href: resultHref }
     }
   }
 }

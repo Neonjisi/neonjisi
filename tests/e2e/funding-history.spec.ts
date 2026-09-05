@@ -128,7 +128,7 @@ test.describe('M4 US4 — 결과·내역·홈', () => {
 
     await page.goto(url)
     await page.getByRole('link', { name: '환불 내역' }).click()
-    await expect(page.getByRole('heading', { name: '달성선에 못 미쳤어요' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: '최소 달성 금액을 채우지 못했어요' })).toBeVisible()
     await expect(page.getByText('최소 달성선')).toBeVisible()
     await expect(page.getByText(/전액 환불됩니다/)).toBeVisible()
   })

@@ -117,7 +117,7 @@ describe('선물 알림 6종 (M3)', () => {
 //
 // 판정하는 것 둘: ① 4종 모두 문구와 갈 곳을 가진다 — 참여 발생은 상세, 나머지는 결과 화면.
 // ② 같은 종류(FUNDING_FAILED_REFUNDED)라도 미달·주최자 취소·차액 상한 초과·잉여가 문구에서 갈린다 (FR-018).
-// 환불 안내는 "영업일 3~5일" 로 고정한다 (clarify Q4).
+// 환불 안내는 lib/funding/refund-notice.ts 의 REFUND_NOTICE 하나로 고정한다 (clarify Q4 · T002).
 // ---------------------------------------------------------------------------
 
 const FUNDING_ID = '66666666-6666-4666-8666-666666666666'
@@ -184,14 +184,14 @@ describe('펀딩 알림 4종 (M4)', () => {
     ).message
     const surplus = toNotificationItem(fundingView('FUNDING_FAILED_REFUNDED', { reason: 'SURPLUS' }), NOW).message
 
-    expect(failed).toContain('달성선에 못 미쳤어요')
+    expect(failed).toContain('최소 달성 금액을 채우지 못했어요')
     expect(byOrganizer).toContain('주최자가 무선 이어폰 펀딩을 취소했어요')
     expect(byTopup).toContain('차액 결제가 완료되지 않아')
     expect(surplus).toContain('이미 목표를 채워')
 
     for (const message of [failed, byOrganizer, byTopup, surplus]) {
       expect(message).toContain('30,000원이 환불돼요')
-      expect(message).toContain('영업일 3~5일')
+      expect(message).toContain('영업일 기준 3~5일')
     }
     expect(new Set([failed, byOrganizer, byTopup, surplus]).size).toBe(4)
   })

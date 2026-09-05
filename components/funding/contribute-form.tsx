@@ -12,12 +12,15 @@ export function FundingContributeForm({
   receiverDisplayName,
   productName,
   remaining,
+  minAmount,
   cardLabel,
 }: {
   fundingId: string
   receiverDisplayName: string
   productName: string
   remaining: number
+  /** 최소 달성 금액 — 환불 고지에 숫자로 박는다 (FR-010 · copy.md §2②) */
+  minAmount: number
   cardLabel: string
 }) {
   const [amount, setAmount] = useState('')
@@ -56,8 +59,8 @@ export function FundingContributeForm({
       </div>
 
       <div className="mt-6 grid gap-2 sm:grid-cols-2">
-        <p className="py-1 text-sm text-info-700">참여 금액은 {receiverDisplayName}님과 주최자에게 공개됩니다.</p>
-        <p className="py-1 text-sm text-warning-700">달성선에 못 미치면 전액 환불됩니다.</p>
+        <p className="py-1 text-sm text-info-700">참여 금액은 {receiverDisplayName}님과 주최자에게만 공개됩니다.</p>
+        <p className="py-1 text-sm text-warning-700">모인 금액이 최소 달성 금액({formatPrice(minAmount)})에 못 미치면 전액 환불됩니다.</p>
       </div>
       <p className="mt-5 text-sm">결제수단 <strong>{cardLabel}</strong> <Link href={`/payment-methods?returnTo=${encodeURIComponent(`/fundings/${fundingId}/contribute`)}`} className="ml-2 text-rose-700">변경</Link></p>
       {error ? <p role="alert" className="mt-4 text-sm font-semibold text-error-700">{error}</p> : null}

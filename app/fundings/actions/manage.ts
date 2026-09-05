@@ -42,7 +42,7 @@ const uuidSchema = z.string().uuid()
  *   1. 세션 + **주최자 본인** — 부재·남의 펀딩·형식 불량은 같은 NOT_ORGANIZER (존재를 흘리면 id 탐색에 힌트가 된다)
  *   2. status = OPEN — 아니면 NOT_OPEN
  *   3. 마감이 지난 OPEN 은 취소 대상이 아니라 **정산 대상**이다 (R1 — 조회가 트리거). 먼저 정산시키고 NOT_OPEN.
- *      없으면 달성선을 넘긴 펀딩을 주최자가 마감 뒤에 뒤집을 수 있다.
+ *      없으면 최소 달성 금액을 넘긴 펀딩을 주최자가 마감 뒤에 뒤집을 수 있다.
  *   4. OPEN→CANCELLED 조건부 전이 (state.ts 관문) — 0행이면 다른 흐름(정산)이 먼저 지나갔다 → NOT_OPEN
  *   5. settleFunding() — 환불·구분 고지는 전부 그 안 (FR-017·FR-018)
  */

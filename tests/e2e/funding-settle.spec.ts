@@ -53,11 +53,11 @@ const won = (amount: number) => `${amount.toLocaleString('ko-KR')}원`
 const NOTICE = {
   succeeded: /펀딩이 성사되었어요/,
   topup: new RegExp(`차액 ${won(TOPUP)}이 내 결제수단으로 결제되었어요`),
-  shortfall: /펀딩이 달성선에 못 미쳤어요/,
+  shortfall: /펀딩이 최소 달성 금액을 채우지 못했어요/,
   cancelledByOrganizer: /주최자가 .*펀딩을 취소했어요/,
   refunded: new RegExp(`${won(CONTRIBUTION)}이 환불돼요`),
   /** 환불 안내는 미달·취소 어느 경로든 같은 한 문장이다 (clarify Q4 · display.ts REFUND_NOTICE) */
-  refundNotice: '영업일 3~5일이 걸릴 수 있어요',
+  refundNotice: '영업일 기준 3~5일이 걸릴 수 있어요',
 } as const
 
 /** 화면 문구 — SCR-M4-04 상세의 STATUS_COPY · SCR-M4-07 결과 3변형 */
@@ -66,7 +66,7 @@ const SCREEN = {
   failed: '달성선에 못 미쳐 취소됐어요',
   cancelled: '주최자가 취소했어요',
   resultSucceeded: '펀딩이 성사됐어요',
-  resultFailed: '달성선에 못 미쳤어요',
+  resultFailed: '최소 달성 금액을 채우지 못했어요',
   resultCancelled: '주최자가 펀딩을 취소했어요',
   resultRefund: '참여하신 금액은 전액 환불됩니다.',
   resultTopup: new RegExp(`차액 ${won(TOPUP)}이 등록된 카드로 결제되었습니다`),
