@@ -4,7 +4,7 @@
     {
       "type": "frame",
       "id": "HTQkK",
-      "x": 5290.15826389629,
+      "x": 6166.15826389629,
       "y": 9797.591866475492,
       "name": "V2 · Set C Soft Apricot · 친구 상세",
       "theme": {
@@ -531,7 +531,7 @@
     {
       "type": "frame",
       "id": "OkbII",
-      "x": 5728.15826389629,
+      "x": 6604.15826389629,
       "y": 9797.591866475492,
       "name": "V2 · Set C Soft Apricot · 선물 추천",
       "theme": {
@@ -955,7 +955,7 @@
     {
       "type": "frame",
       "id": "iIa5m",
-      "x": 6179,
+      "x": 7055,
       "y": 9798,
       "name": "V2 · Set C Soft Apricot · 선물 승인",
       "theme": {
@@ -21747,24 +21747,25 @@
                   "type": "rectangle",
                   "id": "SYNCLOGOKOR",
                   "name": "넌지시 한글 로고",
-                  "width": 224,
-                  "height": 224,
                   "fill": {
                     "type": "image",
+                    "enabled": true,
                     "url": "../public/brand/trans_neonjisi_logo_kor.png",
                     "mode": "fit"
-                  }
+                  },
+                  "width": 224,
+                  "height": 224
                 },
                 {
                   "type": "text",
                   "id": "SYNC001",
                   "name": "나를 아는 선물.",
-                  "content": "나를 아는 선물.",
                   "fill": "$color-text-secondary",
+                  "content": "나를 아는 선물.",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-16",
-                  "fontWeight": "$font-weight-regular",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-regular"
                 }
               ]
             },
@@ -21874,13 +21875,14 @@
                   "type": "rectangle",
                   "id": "SYNCLOGINLOGO",
                   "name": "넌지시 한글 로고",
-                  "width": 224,
-                  "height": 180,
                   "fill": {
                     "type": "image",
+                    "enabled": true,
                     "url": "../public/brand/trans_neonjisi_logo_kor.png",
                     "mode": "fit"
-                  }
+                  },
+                  "width": 224,
+                  "height": 180
                 },
                 {
                   "id": "B57dA",
@@ -21936,12 +21938,12 @@
                   "type": "text",
                   "id": "SYNC002",
                   "name": "로그인하면 이용약관과 개인정보처리방침에 동의하는 것으로 봅니다.",
-                  "content": "로그인하면 이용약관과 개인정보처리방침에 동의하는 것으로 봅니다.",
                   "fill": "$color-text-tertiary",
+                  "content": "로그인하면 이용약관과 개인정보처리방침에 동의하는 것으로 봅니다.",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-12",
-                  "fontWeight": "$font-weight-regular",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-regular"
                 }
               ]
             }
@@ -23387,7 +23389,7 @@
           "width": "fill_container",
           "height": "fill_container",
           "layout": "vertical",
-          "gap": "$space-16",
+          "gap": "$space-12",
           "padding": [
             "$space-8",
             "$space-20",
@@ -23400,6 +23402,7 @@
               "id": "qLZ3s",
               "name": "Profile",
               "width": "fill_container",
+              "height": 72,
               "gap": "$space-12",
               "alignItems": "center",
               "children": [
@@ -23465,183 +23468,240 @@
             },
             {
               "type": "frame",
-              "id": "M0HHU",
-              "name": "Group",
-              "clip": true,
+              "id": "g09up",
+              "name": "내 정보 섹션",
               "width": "fill_container",
-              "fill": "$color-background-surface",
-              "cornerRadius": 16,
               "layout": "vertical",
-              "padding": [
-                "$space-4",
-                "$space-12"
-              ],
+              "gap": "$space-4",
               "children": [
                 {
-                  "id": "zmYs5",
-                  "type": "ref",
-                  "ref": "Z76GhO",
-                  "name": "내 취향",
-                  "width": "fill_container",
-                  "descendants": {
-                    "T2HnQL": {
-                      "content": "내 취향"
-                    }
-                  }
+                  "type": "text",
+                  "id": "t2daxi",
+                  "name": "내 정보 제목",
+                  "fill": "$color-text-secondary",
+                  "content": "내 정보",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-14",
+                  "fontWeight": "$font-weight-semibold"
                 },
                 {
                   "type": "frame",
-                  "id": "WpWXQ",
-                  "name": "Div",
+                  "id": "M0HHU",
+                  "name": "내 정보 목록",
+                  "clip": true,
                   "width": "fill_container",
-                  "height": 1,
-                  "fill": "$color-border-default"
-                },
-                {
-                  "id": "v0v3x",
-                  "type": "ref",
-                  "ref": "Z76GhO",
-                  "name": "선물 내역",
-                  "width": "fill_container",
-                  "descendants": {
-                    "T2HnQL": {
-                      "content": "선물 내역"
+                  "fill": "$color-background-surface",
+                  "cornerRadius": 16,
+                  "layout": "vertical",
+                  "padding": [
+                    "$space-4",
+                    "$space-12"
+                  ],
+                  "children": [
+                    {
+                      "id": "zmYs5",
+                      "type": "ref",
+                      "ref": "Z76GhO",
+                      "name": "내 취향",
+                      "width": "fill_container",
+                      "descendants": {
+                        "T2HnQL": {
+                          "content": "내 취향"
+                        }
+                      }
+                    },
+                    {
+                      "type": "frame",
+                      "id": "WpWXQ",
+                      "name": "Div",
+                      "width": "fill_container",
+                      "height": 1,
+                      "fill": "$color-border-default"
+                    },
+                    {
+                      "id": "G8Elk",
+                      "type": "ref",
+                      "ref": "Z76GhO",
+                      "name": "결제수단",
+                      "width": "fill_container",
+                      "descendants": {
+                        "T2HnQL": {
+                          "content": "결제수단"
+                        }
+                      }
+                    },
+                    {
+                      "type": "frame",
+                      "id": "gCqS1",
+                      "name": "Div",
+                      "width": "fill_container",
+                      "height": 1,
+                      "fill": "$color-border-default"
+                    },
+                    {
+                      "id": "O5Acz",
+                      "type": "ref",
+                      "ref": "Z76GhO",
+                      "name": "초대 링크 관리",
+                      "width": "fill_container",
+                      "descendants": {
+                        "T2HnQL": {
+                          "content": "초대 링크 관리"
+                        }
+                      }
                     }
-                  }
-                },
-                {
-                  "type": "frame",
-                  "id": "juQ27",
-                  "name": "Div",
-                  "width": "fill_container",
-                  "height": 1,
-                  "fill": "$color-border-default"
-                },
-                {
-                  "id": "Q18rYb",
-                  "type": "ref",
-                  "ref": "Z76GhO",
-                  "name": "펀딩 내역",
-                  "width": "fill_container",
-                  "descendants": {
-                    "T2HnQL": {
-                      "content": "펀딩 내역"
-                    }
-                  }
-                },
-                {
-                  "type": "frame",
-                  "id": "RMTV7",
-                  "name": "Div",
-                  "width": "fill_container",
-                  "height": 1,
-                  "fill": "$color-border-default"
-                },
-                {
-                  "id": "G8Elk",
-                  "type": "ref",
-                  "ref": "Z76GhO",
-                  "name": "결제수단",
-                  "width": "fill_container",
-                  "descendants": {
-                    "T2HnQL": {
-                      "content": "결제수단"
-                    }
-                  }
-                },
-                {
-                  "type": "frame",
-                  "id": "gCqS1",
-                  "name": "Div",
-                  "width": "fill_container",
-                  "height": 1,
-                  "fill": "$color-border-default"
-                },
-                {
-                  "id": "O5Acz",
-                  "type": "ref",
-                  "ref": "Z76GhO",
-                  "name": "초대 링크 관리",
-                  "width": "fill_container",
-                  "descendants": {
-                    "T2HnQL": {
-                      "content": "초대 링크 관리"
-                    }
-                  }
+                  ]
                 }
               ]
             },
             {
               "type": "frame",
-              "id": "YFFgu",
-              "name": "Group",
-              "clip": true,
+              "id": "UTB1X",
+              "name": "선물 관리 섹션",
               "width": "fill_container",
-              "fill": "$color-background-surface",
-              "cornerRadius": 16,
               "layout": "vertical",
-              "padding": [
-                "$space-4",
-                "$space-12"
-              ],
+              "gap": "$space-4",
               "children": [
                 {
-                  "id": "Ku4XK",
-                  "type": "ref",
-                  "ref": "Z76GhO",
-                  "name": "알림 설정",
-                  "width": "fill_container",
-                  "descendants": {
-                    "T2HnQL": {
-                      "content": "알림 설정"
-                    }
-                  }
+                  "type": "text",
+                  "id": "ZglTd",
+                  "name": "선물 관리 제목",
+                  "fill": "$color-text-secondary",
+                  "content": "선물 관리",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-14",
+                  "fontWeight": "$font-weight-semibold"
                 },
                 {
                   "type": "frame",
-                  "id": "QXqbv",
-                  "name": "Div",
+                  "id": "l5NLs",
+                  "name": "선물 관리 목록",
+                  "clip": true,
                   "width": "fill_container",
-                  "height": 1,
-                  "fill": "$color-border-default"
-                },
-                {
-                  "id": "ZSHfj",
-                  "type": "ref",
-                  "ref": "Z76GhO",
-                  "name": "약관 · 개인정보처리방침",
-                  "width": "fill_container",
-                  "descendants": {
-                    "T2HnQL": {
-                      "content": "약관 · 개인정보처리방침"
-                    }
-                  }
-                },
-                {
-                  "type": "frame",
-                  "id": "q9bV4",
-                  "name": "Div",
-                  "width": "fill_container",
-                  "height": 1,
-                  "fill": "$color-border-default"
-                },
-                {
-                  "id": "AfdUl",
-                  "type": "ref",
-                  "ref": "Z76GhO",
-                  "name": "로그아웃",
-                  "width": "fill_container",
-                  "descendants": {
-                    "T2HnQL": {
-                      "content": "로그아웃",
-                      "fill": "$color-text-error"
+                  "fill": "$color-background-surface",
+                  "cornerRadius": 16,
+                  "layout": "vertical",
+                  "padding": [
+                    "$space-4",
+                    "$space-12"
+                  ],
+                  "children": [
+                    {
+                      "id": "v0v3x",
+                      "type": "ref",
+                      "ref": "Z76GhO",
+                      "name": "선물 내역",
+                      "width": "fill_container",
+                      "descendants": {
+                        "T2HnQL": {
+                          "content": "선물 내역"
+                        }
+                      }
                     },
-                    "l92jd": {
-                      "enabled": false
+                    {
+                      "type": "frame",
+                      "id": "juQ27",
+                      "name": "Div",
+                      "width": "fill_container",
+                      "height": 1,
+                      "fill": "$color-border-default"
+                    },
+                    {
+                      "id": "Q18rYb",
+                      "type": "ref",
+                      "ref": "Z76GhO",
+                      "name": "펀딩 내역",
+                      "width": "fill_container",
+                      "descendants": {
+                        "T2HnQL": {
+                          "content": "펀딩 내역"
+                        }
+                      }
                     }
-                  }
+                  ]
                 }
               ]
+            },
+            {
+              "type": "frame",
+              "id": "G8DTtE",
+              "name": "설정 섹션",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": "$space-4",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Jm0iM",
+                  "name": "설정 제목",
+                  "fill": "$color-text-secondary",
+                  "content": "설정",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-14",
+                  "fontWeight": "$font-weight-semibold"
+                },
+                {
+                  "type": "frame",
+                  "id": "YFFgu",
+                  "name": "설정 목록",
+                  "clip": true,
+                  "width": "fill_container",
+                  "fill": "$color-background-surface",
+                  "cornerRadius": 16,
+                  "layout": "vertical",
+                  "padding": [
+                    "$space-4",
+                    "$space-12"
+                  ],
+                  "children": [
+                    {
+                      "id": "Ku4XK",
+                      "type": "ref",
+                      "ref": "Z76GhO",
+                      "name": "알림 설정",
+                      "width": "fill_container",
+                      "descendants": {
+                        "T2HnQL": {
+                          "content": "알림 설정"
+                        }
+                      }
+                    },
+                    {
+                      "type": "frame",
+                      "id": "QXqbv",
+                      "name": "Div",
+                      "width": "fill_container",
+                      "height": 1,
+                      "fill": "$color-border-default"
+                    },
+                    {
+                      "id": "ZSHfj",
+                      "type": "ref",
+                      "ref": "Z76GhO",
+                      "name": "약관 · 개인정보처리방침",
+                      "width": "fill_container",
+                      "descendants": {
+                        "T2HnQL": {
+                          "content": "약관 · 개인정보처리방침"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "qcDme",
+              "type": "ref",
+              "ref": "o829BZ",
+              "name": "로그아웃 버튼",
+              "width": "fill_container",
+              "descendants": {
+                "v9isES": {
+                  "content": "로그아웃",
+                  "fill": "$color-text-error"
+                }
+              }
             }
           ]
         },
@@ -23734,7 +23794,7 @@
               "fill": "$color-background-taste",
               "cornerRadius": 18,
               "layout": "vertical",
-              "gap": "$space-8",
+              "gap": "$space-12",
               "padding": "$space-16",
               "children": [
                 {
@@ -23752,7 +23812,9 @@
                       "content": "취향 서술",
                       "fill": "$color-lavender-700",
                       "width": "fill_container",
-                      "textGrowth": "fixed-width"
+                      "textGrowth": "fixed-width",
+                      "fontSize": 18,
+                      "fontWeight": "$font-weight-bold"
                     },
                     {
                       "id": "bwjeQ",
@@ -23777,7 +23839,10 @@
                   "content": "아침에 혼자 커피 내리는 15분이 좋아요. 산미 있는 원두를 주로 마셔요.",
                   "fill": "$color-text-primary",
                   "width": "fill_container",
-                  "textGrowth": "fixed-width"
+                  "textGrowth": "fixed-width",
+                  "fontSize": "$font-size-16",
+                  "fontWeight": "$font-weight-regular",
+                  "lineHeight": "$line-height-relaxed"
                 }
               ]
             },
@@ -24572,7 +24637,7 @@
     {
       "type": "frame",
       "id": "bQd8J",
-      "x": 6629,
+      "x": 7505,
       "y": 9797.591866475492,
       "name": "V2 · Set C Soft Apricot · 친구 목록",
       "clip": true,
@@ -25303,7 +25368,7 @@
     {
       "type": "frame",
       "id": "gt9gP",
-      "x": 7079,
+      "x": 7955,
       "y": 9797.591866475492,
       "name": "V2 · Set C Soft Apricot · 친구 추가",
       "clip": true,
@@ -25588,7 +25653,7 @@
     {
       "type": "frame",
       "id": "oNiPn",
-      "x": 7529,
+      "x": 8405,
       "y": 9797.591866475492,
       "name": "V2 · Set C Soft Apricot · 초대 미리보기",
       "clip": true,
@@ -25896,7 +25961,7 @@
     {
       "type": "frame",
       "id": "A74wR",
-      "x": 7979,
+      "x": 8855,
       "y": 9797.591866475492,
       "name": "V2 · Set C Soft Apricot · 초대 수락 완료",
       "clip": true,
@@ -26146,32 +26211,34 @@
                   "type": "frame",
                   "id": "SYNCLOGOHOME",
                   "name": "브랜드 로고 락업",
-                  "alignItems": "center",
                   "gap": -12,
+                  "alignItems": "center",
                   "children": [
                     {
                       "type": "rectangle",
                       "id": "SYNCLOGOICON",
                       "name": "아이콘 로고",
-                      "width": 40,
-                      "height": 40,
                       "fill": {
                         "type": "image",
+                        "enabled": true,
                         "url": "../public/brand/trans_neonjisi_logo_icon.png",
                         "mode": "fill"
-                      }
+                      },
+                      "width": 40,
+                      "height": 40
                     },
                     {
                       "type": "rectangle",
                       "id": "SYNCLOGOTYPO",
                       "name": "타이포 로고",
-                      "width": 96,
-                      "height": 40,
                       "fill": {
                         "type": "image",
+                        "enabled": true,
                         "url": "../public/brand/trans_neonjisi_logo_typo.png",
                         "mode": "fill"
-                      }
+                      },
+                      "width": 96,
+                      "height": 40
                     }
                   ]
                 },
@@ -26657,7 +26724,7 @@
     {
       "type": "frame",
       "id": "v2dyL",
-      "x": 5728,
+      "x": 6166,
       "y": 12422,
       "name": "V2 · Set C Soft Apricot · 선물 검색",
       "clip": true,
@@ -27238,7 +27305,7 @@
     {
       "type": "frame",
       "id": "bkvyK",
-      "x": 6166,
+      "x": 6604,
       "y": 12422,
       "name": "V2 · Set C Soft Apricot · 상품 상세",
       "clip": true,
@@ -27431,7 +27498,7 @@
     {
       "type": "frame",
       "id": "g6mJ1K",
-      "x": 6604,
+      "x": 7480,
       "y": 12422,
       "name": "V2 · Set C Soft Apricot · 선물 요청 확인",
       "clip": true,
@@ -27760,7 +27827,7 @@
     {
       "type": "frame",
       "id": "oICzt",
-      "x": 7054,
+      "x": 8368,
       "y": 12422,
       "name": "V2 · Set C Soft Apricot · 결제 사전 동의",
       "clip": true,
@@ -28042,7 +28109,7 @@
     {
       "type": "frame",
       "id": "XWEgZ",
-      "x": 7504,
+      "x": 8818,
       "y": 12422,
       "name": "V2 · Set C Soft Apricot · 대안 상품 선택",
       "clip": true,
@@ -28399,7 +28466,7 @@
     {
       "type": "frame",
       "id": "TZte4",
-      "x": 7954,
+      "x": 9268,
       "y": 12422,
       "name": "V2 · Set C Soft Apricot · 대안 확인",
       "clip": true,
@@ -28613,7 +28680,7 @@
     {
       "type": "frame",
       "id": "DUN1t",
-      "x": 8404,
+      "x": 9718,
       "y": 12422,
       "name": "V2 · Set C Soft Apricot · 요청 만료",
       "clip": true,
@@ -28784,7 +28851,7 @@
     {
       "type": "frame",
       "id": "hFzVB",
-      "x": 8842,
+      "x": 10156,
       "y": 12422,
       "name": "V2 · Set C Soft Apricot · 배송지 입력",
       "clip": true,
@@ -29025,7 +29092,7 @@
     {
       "type": "frame",
       "id": "Ykmf1",
-      "x": 9280,
+      "x": 10594,
       "y": 12422,
       "name": "V2 · Set C Soft Apricot · 결제 완료",
       "clip": true,
@@ -29305,7 +29372,7 @@
     {
       "type": "frame",
       "id": "L5BCG2",
-      "x": 9718,
+      "x": 11032,
       "y": 12422,
       "name": "V2 · Set C Soft Apricot · 결제 실패",
       "clip": true,
@@ -33090,7 +33157,7 @@
     {
       "type": "frame",
       "id": "JTmoE",
-      "x": 6604,
+      "x": 7042,
       "y": 14510,
       "name": "V2 · P5 · D04 친구 요청 상태",
       "clip": true,
@@ -33459,7 +33526,7 @@
     {
       "type": "frame",
       "id": "lgIsO",
-      "x": 7042,
+      "x": 7480,
       "y": 14510,
       "name": "V2 · P5 · D04 친구 요청 상태 (Empty)",
       "clip": true,
@@ -34239,13 +34306,13 @@
       "name": "알림 설정 구현 및 연동 상태",
       "width": 390,
       "height": 400,
-      "content": "[구현 상태] 알림 설정 화면 UI 및 동선 구현 완료\n\n- 동선: 마이 탭 → 알림 설정 → /settings, 뒤로가기 → /my\n- 구현 항목: 선물 요청 알림, 펀딩 소식 알림, 친구 소식 알림, 약관·개인정보처리방침, 오픈소스 라이선스, 버전 정보\n- 현재 알림 설정 저장용 DB 필드와 푸시 시스템은 미구현\n- 가짜 토글은 구현하지 않았으며, 필수 알림은 ‘항상 받음’, 푸시 알림 선택 기능은 ‘준비 중’으로 표시\n- 실제 설정 저장 및 푸시 선택 기능은 서버·DB 연동 후 구현 필요\n- ESLint·TypeScript 검사 및 알림 단위 테스트 21개 통과, 현재 브랜치에서 커밋 전 상태"
+      "content": "현재 DB에는 알림 설정을 저장하는 필드가 없고 푸시 알림 시스템도 구현되지 않았습니다. 실제로 저장되는 것처럼 보이는 가짜 토글은 만들지 않았으며, 서비스 내 필수 알림은 항상 받음, 푸시 알림 선택 기능은 준비 중으로 표시했습니다."
     },
     {
       "type": "frame",
       "id": "SYNC015",
-      "x": 5290,
-      "y": 16880,
+      "x": 5728,
+      "y": 9798,
       "name": "CURRENT · M2 · 일정 관리",
       "theme": {
         "colorDirection": "rose"
@@ -34318,34 +34385,34 @@
                   "type": "text",
                   "id": "SYNC004",
                   "name": "생일",
-                  "content": "생일",
                   "fill": "$color-text-brand",
+                  "content": "생일",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-12",
-                  "fontWeight": "$font-weight-semibold",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-semibold"
                 },
                 {
                   "type": "text",
                   "id": "SYNC005",
                   "name": "민지 생일",
-                  "content": "민지 생일",
                   "fill": "$color-text-primary",
+                  "content": "민지 생일",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-16",
-                  "fontWeight": "$font-weight-bold",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-bold"
                 },
                 {
                   "type": "text",
                   "id": "SYNC006",
                   "name": "2026-09-18 · 매년",
-                  "content": "2026-09-18 · 매년",
                   "fill": "$color-text-secondary",
+                  "content": "2026-09-18 · 매년",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-14",
-                  "fontWeight": "$font-weight-regular",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-regular"
                 }
               ]
             },
@@ -34364,34 +34431,34 @@
                   "type": "text",
                   "id": "SYNC008",
                   "name": "기념일",
-                  "content": "기념일",
                   "fill": "$color-text-brand",
+                  "content": "기념일",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-12",
-                  "fontWeight": "$font-weight-semibold",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-semibold"
                 },
                 {
                   "type": "text",
                   "id": "SYNC009",
                   "name": "부모님 결혼기념일",
-                  "content": "부모님 결혼기념일",
                   "fill": "$color-text-primary",
+                  "content": "부모님 결혼기념일",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-16",
-                  "fontWeight": "$font-weight-bold",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-bold"
                 },
                 {
                   "type": "text",
                   "id": "SYNC010",
                   "name": "2026-10-03 · 매년",
-                  "content": "2026-10-03 · 매년",
                   "fill": "$color-text-secondary",
+                  "content": "2026-10-03 · 매년",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-14",
-                  "fontWeight": "$font-weight-regular",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-regular"
                 }
               ]
             }
@@ -34402,8 +34469,8 @@
     {
       "type": "frame",
       "id": "SYNC028",
-      "x": 5728,
-      "y": 16880,
+      "x": 6604,
+      "y": 14510,
       "name": "CURRENT · M2 · 초대 링크 관리",
       "theme": {
         "colorDirection": "rose"
@@ -34452,12 +34519,12 @@
               "type": "text",
               "id": "SYNC016",
               "name": "사용 중",
-              "content": "사용 중",
               "fill": "$color-text-primary",
+              "content": "사용 중",
+              "lineHeight": "$line-height-normal",
               "fontFamily": "$font-body",
               "fontSize": "$font-size-14",
-              "fontWeight": "$font-weight-semibold",
-              "lineHeight": "$line-height-normal"
+              "fontWeight": "$font-weight-semibold"
             },
             {
               "type": "frame",
@@ -34474,23 +34541,23 @@
                   "type": "text",
                   "id": "SYNC017",
                   "name": "neonjisi.app/i/abc123",
-                  "content": "neonjisi.app/i/abc123",
                   "fill": "$color-text-primary",
+                  "content": "neonjisi.app/i/abc123",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-16",
-                  "fontWeight": "$font-weight-bold",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-bold"
                 },
                 {
                   "type": "text",
                   "id": "SYNC018",
                   "name": "만료 2026-09-11 · 사용 0/1",
-                  "content": "만료 2026-09-11 · 사용 0/1",
                   "fill": "$color-text-secondary",
+                  "content": "만료 2026-09-11 · 사용 0/1",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-14",
-                  "fontWeight": "$font-weight-regular",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-regular"
                 }
               ]
             },
@@ -34511,12 +34578,12 @@
               "type": "text",
               "id": "SYNC021",
               "name": "지난 링크",
-              "content": "지난 링크",
               "fill": "$color-text-primary",
+              "content": "지난 링크",
+              "lineHeight": "$line-height-normal",
               "fontFamily": "$font-body",
               "fontSize": "$font-size-14",
-              "fontWeight": "$font-weight-semibold",
-              "lineHeight": "$line-height-normal"
+              "fontWeight": "$font-weight-semibold"
             },
             {
               "type": "frame",
@@ -34533,23 +34600,23 @@
                   "type": "text",
                   "id": "SYNC022",
                   "name": "만료된 링크",
-                  "content": "만료된 링크",
                   "fill": "$color-text-primary",
+                  "content": "만료된 링크",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-16",
-                  "fontWeight": "$font-weight-bold",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-bold"
                 },
                 {
                   "type": "text",
                   "id": "SYNC023",
                   "name": "2026-08-28 만료",
-                  "content": "2026-08-28 만료",
                   "fill": "$color-text-secondary",
+                  "content": "2026-08-28 만료",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-14",
-                  "fontWeight": "$font-weight-regular",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-regular"
                 }
               ]
             }
@@ -34560,8 +34627,8 @@
     {
       "type": "frame",
       "id": "SYNC043",
-      "x": 6166,
-      "y": 16880,
+      "x": 5728,
+      "y": 12422,
       "name": "CURRENT · M3 · 알림 목록",
       "theme": {
         "colorDirection": "rose"
@@ -34610,12 +34677,12 @@
               "type": "text",
               "id": "SYNC029",
               "name": "모두 읽음",
-              "content": "모두 읽음",
               "fill": "$color-text-brand",
+              "content": "모두 읽음",
+              "lineHeight": "$line-height-normal",
               "fontFamily": "$font-body",
               "fontSize": "$font-size-14",
-              "fontWeight": "$font-weight-semibold",
-              "lineHeight": "$line-height-normal"
+              "fontWeight": "$font-weight-semibold"
             },
             {
               "type": "frame",
@@ -34632,34 +34699,34 @@
                   "type": "text",
                   "id": "SYNC030",
                   "name": "읽지 않음",
-                  "content": "읽지 않음",
                   "fill": "$color-text-brand",
+                  "content": "읽지 않음",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-12",
-                  "fontWeight": "$font-weight-semibold",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-semibold"
                 },
                 {
                   "type": "text",
                   "id": "SYNC031",
                   "name": "민지님이 선물 요청을 확인했어요",
-                  "content": "민지님이 선물 요청을 확인했어요",
                   "fill": "$color-text-primary",
+                  "content": "민지님이 선물 요청을 확인했어요",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-16",
-                  "fontWeight": "$font-weight-bold",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-bold"
                 },
                 {
                   "type": "text",
                   "id": "SYNC032",
                   "name": "방금 전",
-                  "content": "방금 전",
                   "fill": "$color-text-secondary",
+                  "content": "방금 전",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-14",
-                  "fontWeight": "$font-weight-regular",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-regular"
                 }
               ]
             },
@@ -34678,23 +34745,23 @@
                   "type": "text",
                   "id": "SYNC034",
                   "name": "함께 준비한 펀딩이 성사됐어요",
-                  "content": "함께 준비한 펀딩이 성사됐어요",
                   "fill": "$color-text-primary",
+                  "content": "함께 준비한 펀딩이 성사됐어요",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-16",
-                  "fontWeight": "$font-weight-bold",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-bold"
                 },
                 {
                   "type": "text",
                   "id": "SYNC035",
                   "name": "10분 전",
-                  "content": "10분 전",
                   "fill": "$color-text-secondary",
+                  "content": "10분 전",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-14",
-                  "fontWeight": "$font-weight-regular",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-regular"
                 }
               ]
             },
@@ -34713,23 +34780,23 @@
                   "type": "text",
                   "id": "SYNC037",
                   "name": "서연님과 친구가 되었어요",
-                  "content": "서연님과 친구가 되었어요",
                   "fill": "$color-text-primary",
+                  "content": "서연님과 친구가 되었어요",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-16",
-                  "fontWeight": "$font-weight-bold",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-bold"
                 },
                 {
                   "type": "text",
                   "id": "SYNC038",
                   "name": "어제",
-                  "content": "어제",
                   "fill": "$color-text-secondary",
+                  "content": "어제",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-14",
-                  "fontWeight": "$font-weight-regular",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-regular"
                 }
               ]
             }
@@ -34740,8 +34807,8 @@
     {
       "type": "frame",
       "id": "SYNC057",
-      "x": 6604,
-      "y": 16880,
+      "x": 7042,
+      "y": 12422,
       "name": "CURRENT · M3 · 받을 친구 선택",
       "theme": {
         "colorDirection": "rose"
@@ -34790,12 +34857,12 @@
               "type": "text",
               "id": "SYNC044",
               "name": "핸드드립 세트을(를) 받을 친구를 선택해주세요.",
-              "content": "핸드드립 세트을(를) 받을 친구를 선택해주세요.",
               "fill": "$color-text-secondary",
+              "content": "핸드드립 세트을(를) 받을 친구를 선택해주세요.",
+              "lineHeight": "$line-height-normal",
               "fontFamily": "$font-body",
               "fontSize": "$font-size-14",
-              "fontWeight": "$font-weight-regular",
-              "lineHeight": "$line-height-normal"
+              "fontWeight": "$font-weight-regular"
             },
             {
               "type": "frame",
@@ -34812,23 +34879,23 @@
                   "type": "text",
                   "id": "SYNC045",
                   "name": "김민지",
-                  "content": "김민지",
                   "fill": "$color-text-primary",
+                  "content": "김민지",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-16",
-                  "fontWeight": "$font-weight-bold",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-bold"
                 },
                 {
                   "type": "text",
                   "id": "SYNC046",
                   "name": "친구",
-                  "content": "친구",
                   "fill": "$color-text-secondary",
+                  "content": "친구",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-14",
-                  "fontWeight": "$font-weight-regular",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-regular"
                 }
               ]
             },
@@ -34847,23 +34914,23 @@
                   "type": "text",
                   "id": "SYNC048",
                   "name": "이서연",
-                  "content": "이서연",
                   "fill": "$color-text-primary",
+                  "content": "이서연",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-16",
-                  "fontWeight": "$font-weight-bold",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-bold"
                 },
                 {
                   "type": "text",
                   "id": "SYNC049",
                   "name": "친구",
-                  "content": "친구",
                   "fill": "$color-text-secondary",
+                  "content": "친구",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-14",
-                  "fontWeight": "$font-weight-regular",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-regular"
                 }
               ]
             },
@@ -34882,23 +34949,23 @@
                   "type": "text",
                   "id": "SYNC051",
                   "name": "박지훈",
-                  "content": "박지훈",
                   "fill": "$color-text-primary",
+                  "content": "박지훈",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-16",
-                  "fontWeight": "$font-weight-bold",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-bold"
                 },
                 {
                   "type": "text",
                   "id": "SYNC052",
                   "name": "친구",
-                  "content": "친구",
                   "fill": "$color-text-secondary",
+                  "content": "친구",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-14",
-                  "fontWeight": "$font-weight-regular",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-regular"
                 }
               ]
             }
@@ -34909,8 +34976,8 @@
     {
       "type": "frame",
       "id": "SYNC065",
-      "x": 7042,
-      "y": 16880,
+      "x": 7918,
+      "y": 12422,
       "name": "CURRENT · M3 · 선물 전송 완료",
       "theme": {
         "colorDirection": "rose"
@@ -34969,23 +35036,23 @@
               "type": "text",
               "id": "SYNC059",
               "name": "요청을 보냈습니다",
-              "content": "요청을 보냈습니다",
               "fill": "$color-text-primary",
+              "content": "요청을 보냈습니다",
+              "lineHeight": "$line-height-normal",
               "fontFamily": "$font-body",
               "fontSize": "$font-size-20",
-              "fontWeight": "$font-weight-bold",
-              "lineHeight": "$line-height-normal"
+              "fontWeight": "$font-weight-bold"
             },
             {
               "type": "text",
               "id": "SYNC060",
               "name": "친구가 24시간 안에 받을지 선택할 수 있어요.",
-              "content": "친구가 24시간 안에 받을지 선택할 수 있어요.",
               "fill": "$color-text-secondary",
+              "content": "친구가 24시간 안에 받을지 선택할 수 있어요.",
+              "lineHeight": "$line-height-normal",
               "fontFamily": "$font-body",
               "fontSize": "$font-size-14",
-              "fontWeight": "$font-weight-regular",
-              "lineHeight": "$line-height-normal"
+              "fontWeight": "$font-weight-regular"
             },
             {
               "id": "SYNC061",
@@ -35007,8 +35074,8 @@
     {
       "type": "frame",
       "id": "SYNC077",
-      "x": 7480,
-      "y": 16880,
+      "x": 11470,
+      "y": 12422,
       "name": "CURRENT · M3 · 결제 복구",
       "theme": {
         "colorDirection": "rose"
@@ -35067,23 +35134,23 @@
               "type": "text",
               "id": "SYNC067",
               "name": "결제가 되지 않았어요",
-              "content": "결제가 되지 않았어요",
               "fill": "$color-text-primary",
+              "content": "결제가 되지 않았어요",
+              "lineHeight": "$line-height-normal",
               "fontFamily": "$font-body",
               "fontSize": "$font-size-20",
-              "fontWeight": "$font-weight-bold",
-              "lineHeight": "$line-height-normal"
+              "fontWeight": "$font-weight-bold"
             },
             {
               "type": "text",
               "id": "SYNC068",
               "name": "결제수단을 확인하고 다시 시도해주세요.",
-              "content": "결제수단을 확인하고 다시 시도해주세요.",
               "fill": "$color-text-secondary",
+              "content": "결제수단을 확인하고 다시 시도해주세요.",
+              "lineHeight": "$line-height-normal",
               "fontFamily": "$font-body",
               "fontSize": "$font-size-14",
-              "fontWeight": "$font-weight-regular",
-              "lineHeight": "$line-height-normal"
+              "fontWeight": "$font-weight-regular"
             },
             {
               "type": "frame",
@@ -35100,23 +35167,23 @@
                   "type": "text",
                   "id": "SYNC069",
                   "name": "등록 카드",
-                  "content": "등록 카드",
                   "fill": "$color-text-primary",
+                  "content": "등록 카드",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-16",
-                  "fontWeight": "$font-weight-bold",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-bold"
                 },
                 {
                   "type": "text",
                   "id": "SYNC070",
                   "name": "•••• 1234",
-                  "content": "•••• 1234",
                   "fill": "$color-text-secondary",
+                  "content": "•••• 1234",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-14",
-                  "fontWeight": "$font-weight-regular",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-regular"
                 }
               ]
             },
@@ -35153,8 +35220,8 @@
     {
       "type": "frame",
       "id": "SYNC094",
-      "x": 7918,
-      "y": 16880,
+      "x": 10546,
+      "y": 11150,
       "name": "CURRENT · M1 · 원하는 상품 고르기",
       "theme": {
         "colorDirection": "rose"
@@ -35203,12 +35270,12 @@
               "type": "text",
               "id": "SYNC078",
               "name": "원하는 상품을 골라 취향에 추가하세요.",
-              "content": "원하는 상품을 골라 취향에 추가하세요.",
               "fill": "$color-text-secondary",
+              "content": "원하는 상품을 골라 취향에 추가하세요.",
+              "lineHeight": "$line-height-normal",
               "fontFamily": "$font-body",
               "fontSize": "$font-size-14",
-              "fontWeight": "$font-weight-regular",
-              "lineHeight": "$line-height-normal"
+              "fontWeight": "$font-weight-regular"
             },
             {
               "type": "frame",
@@ -35225,34 +35292,34 @@
                   "type": "text",
                   "id": "SYNC079",
                   "name": "커피",
-                  "content": "커피",
                   "fill": "$color-text-brand",
+                  "content": "커피",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-12",
-                  "fontWeight": "$font-weight-semibold",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-semibold"
                 },
                 {
                   "type": "text",
                   "id": "SYNC080",
                   "name": "핸드드립 세트",
-                  "content": "핸드드립 세트",
                   "fill": "$color-text-primary",
+                  "content": "핸드드립 세트",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-16",
-                  "fontWeight": "$font-weight-bold",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-bold"
                 },
                 {
                   "type": "text",
                   "id": "SYNC081",
                   "name": "89,000원",
-                  "content": "89,000원",
                   "fill": "$color-text-secondary",
+                  "content": "89,000원",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-14",
-                  "fontWeight": "$font-weight-regular",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-regular"
                 }
               ]
             },
@@ -35271,34 +35338,34 @@
                   "type": "text",
                   "id": "SYNC083",
                   "name": "운동",
-                  "content": "운동",
                   "fill": "$color-text-brand",
+                  "content": "운동",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-12",
-                  "fontWeight": "$font-weight-semibold",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-semibold"
                 },
                 {
                   "type": "text",
                   "id": "SYNC084",
                   "name": "러닝 벨트",
-                  "content": "러닝 벨트",
                   "fill": "$color-text-primary",
+                  "content": "러닝 벨트",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-16",
-                  "fontWeight": "$font-weight-bold",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-bold"
                 },
                 {
                   "type": "text",
                   "id": "SYNC085",
                   "name": "45,000원",
-                  "content": "45,000원",
                   "fill": "$color-text-secondary",
+                  "content": "45,000원",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-14",
-                  "fontWeight": "$font-weight-regular",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-regular"
                 }
               ]
             },
@@ -35317,34 +35384,34 @@
                   "type": "text",
                   "id": "SYNC087",
                   "name": "향",
-                  "content": "향",
                   "fill": "$color-text-brand",
+                  "content": "향",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-12",
-                  "fontWeight": "$font-weight-semibold",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-semibold"
                 },
                 {
                   "type": "text",
                   "id": "SYNC088",
                   "name": "우디 향 디퓨저",
-                  "content": "우디 향 디퓨저",
                   "fill": "$color-text-primary",
+                  "content": "우디 향 디퓨저",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-16",
-                  "fontWeight": "$font-weight-bold",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-bold"
                 },
                 {
                   "type": "text",
                   "id": "SYNC089",
                   "name": "39,000원",
-                  "content": "39,000원",
                   "fill": "$color-text-secondary",
+                  "content": "39,000원",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-14",
-                  "fontWeight": "$font-weight-regular",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-regular"
                 }
               ]
             }
@@ -35355,8 +35422,8 @@
     {
       "type": "frame",
       "id": "SYNC102",
-      "x": 8356,
-      "y": 16880,
+      "x": 9232,
+      "y": 13466,
       "name": "CURRENT · M4 · 펀딩 취소 결과",
       "theme": {
         "colorDirection": "rose"
@@ -35415,23 +35482,23 @@
               "type": "text",
               "id": "SYNC096",
               "name": "주최자가 펀딩을 취소했어요",
-              "content": "주최자가 펀딩을 취소했어요",
               "fill": "$color-text-primary",
+              "content": "주최자가 펀딩을 취소했어요",
+              "lineHeight": "$line-height-normal",
               "fontFamily": "$font-body",
               "fontSize": "$font-size-20",
-              "fontWeight": "$font-weight-bold",
-              "lineHeight": "$line-height-normal"
+              "fontWeight": "$font-weight-bold"
             },
             {
               "type": "text",
               "id": "SYNC097",
               "name": "참여한 금액은 전액 환불됩니다. 카드사에 따라 영업일 3~5일이 걸릴 수 있어요.",
-              "content": "참여한 금액은 전액 환불됩니다. 카드사에 따라 영업일 3~5일이 걸릴 수 있어요.",
               "fill": "$color-text-secondary",
+              "content": "참여한 금액은 전액 환불됩니다. 카드사에 따라 영업일 3~5일이 걸릴 수 있어요.",
+              "lineHeight": "$line-height-normal",
               "fontFamily": "$font-body",
               "fontSize": "$font-size-14",
-              "fontWeight": "$font-weight-regular",
-              "lineHeight": "$line-height-normal"
+              "fontWeight": "$font-weight-regular"
             },
             {
               "id": "SYNC098",
@@ -35453,8 +35520,8 @@
     {
       "type": "frame",
       "id": "SYNC103",
-      "x": 8794,
-      "y": 16880,
+      "x": 5290,
+      "y": 9798,
       "name": "CURRENT · M2 · 친구 목록",
       "theme": {
         "colorDirection": "rose"
@@ -35488,23 +35555,24 @@
               "type": "rectangle",
               "id": "SYNC106",
               "name": "아이콘 로고",
-              "width": 40,
-              "height": 40,
               "fill": {
                 "type": "image",
+                "enabled": true,
                 "url": "../public/brand/trans_neonjisi_logo_icon.png",
                 "mode": "fill"
-              }
+              },
+              "width": 40,
+              "height": 40
             },
             {
               "type": "text",
               "id": "SYNC107",
               "name": "친구",
-              "content": "친구",
-              "width": "fill_container",
-              "textGrowth": "fixed-width",
-              "textAlign": "center",
               "fill": "$color-text-primary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "친구",
+              "textAlign": "center",
               "fontFamily": "$font-body",
               "fontSize": "$font-size-16",
               "fontWeight": "$font-weight-semibold"
@@ -35551,12 +35619,12 @@
               "type": "text",
               "id": "SYNC111",
               "name": "다가오는 친구 일정",
-              "content": "다가오는 친구 일정",
               "fill": "$color-text-primary",
+              "content": "다가오는 친구 일정",
+              "lineHeight": "$line-height-normal",
               "fontFamily": "$font-body",
               "fontSize": "$font-size-16",
-              "fontWeight": "$font-weight-bold",
-              "lineHeight": "$line-height-normal"
+              "fontWeight": "$font-weight-bold"
             },
             {
               "type": "frame",
@@ -35573,34 +35641,34 @@
                   "type": "text",
                   "id": "SYNC112",
                   "name": "다가오는 일정",
-                  "content": "다가오는 일정",
                   "fill": "$color-text-brand",
+                  "content": "다가오는 일정",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-12",
-                  "fontWeight": "$font-weight-semibold",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-semibold"
                 },
                 {
                   "type": "text",
                   "id": "SYNC113",
                   "name": "민지 생일",
-                  "content": "민지 생일",
                   "fill": "$color-text-primary",
+                  "content": "민지 생일",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-16",
-                  "fontWeight": "$font-weight-bold",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-bold"
                 },
                 {
                   "type": "text",
                   "id": "SYNC114",
                   "name": "2026-09-18 · D-13",
-                  "content": "2026-09-18 · D-13",
                   "fill": "$color-text-secondary",
+                  "content": "2026-09-18 · D-13",
+                  "lineHeight": "$line-height-normal",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-14",
-                  "fontWeight": "$font-weight-regular",
-                  "lineHeight": "$line-height-normal"
+                  "fontWeight": "$font-weight-regular"
                 }
               ]
             },
@@ -35608,12 +35676,12 @@
               "type": "text",
               "id": "SYNC116",
               "name": "친구 3명",
-              "content": "친구 3명",
               "fill": "$color-text-primary",
+              "content": "친구 3명",
+              "lineHeight": "$line-height-normal",
               "fontFamily": "$font-body",
               "fontSize": "$font-size-16",
-              "fontWeight": "$font-weight-bold",
-              "lineHeight": "$line-height-normal"
+              "fontWeight": "$font-weight-bold"
             },
             {
               "type": "frame",
@@ -35643,23 +35711,23 @@
                       "type": "text",
                       "id": "SYNC118",
                       "name": "김민지",
-                      "content": "김민지",
                       "fill": "$color-text-primary",
+                      "content": "김민지",
+                      "lineHeight": "$line-height-normal",
                       "fontFamily": "$font-body",
                       "fontSize": "$font-size-16",
-                      "fontWeight": "$font-weight-bold",
-                      "lineHeight": "$line-height-normal"
+                      "fontWeight": "$font-weight-bold"
                     },
                     {
                       "type": "text",
                       "id": "SYNC119",
                       "name": "커피 · 우디 향 · 러닝",
-                      "content": "커피 · 우디 향 · 러닝",
                       "fill": "$color-text-secondary",
+                      "content": "커피 · 우디 향 · 러닝",
+                      "lineHeight": "$line-height-normal",
                       "fontFamily": "$font-body",
                       "fontSize": "$font-size-14",
-                      "fontWeight": "$font-weight-regular",
-                      "lineHeight": "$line-height-normal"
+                      "fontWeight": "$font-weight-regular"
                     }
                   ]
                 },
@@ -35678,23 +35746,23 @@
                       "type": "text",
                       "id": "SYNC121",
                       "name": "이서연",
-                      "content": "이서연",
                       "fill": "$color-text-primary",
+                      "content": "이서연",
+                      "lineHeight": "$line-height-normal",
                       "fontFamily": "$font-body",
                       "fontSize": "$font-size-16",
-                      "fontWeight": "$font-weight-bold",
-                      "lineHeight": "$line-height-normal"
+                      "fontWeight": "$font-weight-bold"
                     },
                     {
                       "type": "text",
                       "id": "SYNC122",
                       "name": "향수 · 독서",
-                      "content": "향수 · 독서",
                       "fill": "$color-text-secondary",
+                      "content": "향수 · 독서",
+                      "lineHeight": "$line-height-normal",
                       "fontFamily": "$font-body",
                       "fontSize": "$font-size-14",
-                      "fontWeight": "$font-weight-regular",
-                      "lineHeight": "$line-height-normal"
+                      "fontWeight": "$font-weight-regular"
                     }
                   ]
                 },
@@ -35713,23 +35781,23 @@
                       "type": "text",
                       "id": "SYNC124",
                       "name": "박지훈",
-                      "content": "박지훈",
                       "fill": "$color-text-primary",
+                      "content": "박지훈",
+                      "lineHeight": "$line-height-normal",
                       "fontFamily": "$font-body",
                       "fontSize": "$font-size-16",
-                      "fontWeight": "$font-weight-bold",
-                      "lineHeight": "$line-height-normal"
+                      "fontWeight": "$font-weight-bold"
                     },
                     {
                       "type": "text",
                       "id": "SYNC125",
                       "name": "운동 · 게임",
-                      "content": "운동 · 게임",
                       "fill": "$color-text-secondary",
+                      "content": "운동 · 게임",
+                      "lineHeight": "$line-height-normal",
                       "fontFamily": "$font-body",
                       "fontSize": "$font-size-14",
-                      "fontWeight": "$font-weight-regular",
-                      "lineHeight": "$line-height-normal"
+                      "fontWeight": "$font-weight-regular"
                     }
                   ]
                 }
@@ -35745,6 +35813,26 @@
           "width": "fill_container"
         }
       ]
+    },
+    {
+      "type": "note",
+      "id": "R4ex9T",
+      "x": 8855,
+      "y": 10674,
+      "name": "초대 수락 완료 아이콘 검토",
+      "width": 390,
+      "height": 150,
+      "content": "하트 아이콘을 쓰니까 뭔가 연애 앱에서 매칭된 느낌..."
+    },
+    {
+      "type": "note",
+      "id": "PCqPY",
+      "x": 6604,
+      "y": 15814,
+      "name": "결제 연동 상태 및 남은 작업",
+      "width": 620,
+      "height": 844,
+      "content": "### 결제 연동 상태\n현재 결제 화면과 결제 흐름은 구현되어 있지만, 실제 카드 결제가 가능한 운영 환경 연동은 완료되지 않았습니다.\n\n- 기본 실행 모드는 PORTONE_MODE=mock\n- 카드 등록 시 실제 카드번호·유효기간·CVC를 입력하지 않음\n- 카드사와 카드번호 뒷자리 4개만 입력해 테스트용 빌링키 생성\n- 뒷자리 0000은 결제 실패 테스트용\n- 선물 결제, 펀딩 참여, 차액 결제, 환불 흐름은 Mock 결제로 검증\n- 결제 성공·실패 기록과 알림, 재시도 등의 서비스 로직은 구현됨\n- PortOne 실제 결제·환불 API 호출 코드는 준비되어 있음\n- 실제 빌링키를 발급받는 PortOne 브라우저 인증 위젯은 아직 연결되지 않음\n- 따라서 현재 상태에서는 실제 카드 등록부터 결제·환불까지 이어지는 운영 결제가 불가능함\n\n#### 실제 결제를 위해 남은 작업\n1. PortOne 콘솔의 운영 또는 테스트 결제 채널 설정\n2. 카드 등록 화면에 PortOne 브라우저 SDK 및 본인인증 위젯 연결\n3. 위젯에서 발급된 실제 빌링키를 서버에 안전하게 전달\n4. 실결제·실패·취소·환불 시나리오 검증\n5. Webhook 검증과 결제 결과 대사 처리\n6. 운영 키와 환경변수 설정 및 보안 점검"
     }
   ],
   "themes": {
