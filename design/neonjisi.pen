@@ -521,7 +521,8 @@
               "type": "ref",
               "ref": "c8U1g",
               "name": "민지에게 선물 고르기",
-              "width": "fill_container"
+              "width": "fill_container",
+              "height": 48
             }
           ]
         }
@@ -1306,6 +1307,7 @@
                   "ref": "c8U1g",
                   "name": "이 선물로 받을게요",
                   "width": "fill_container",
+                  "height": 48,
                   "descendants": {
                     "xdcYf": {
                       "content": "이 선물로 받을게요"
@@ -1317,7 +1319,8 @@
                   "type": "ref",
                   "ref": "MElPV",
                   "name": "다른 선물이 더 좋아요",
-                  "width": "fill_container"
+                  "width": "fill_container",
+                  "height": 48
                 },
                 {
                   "type": "text",
@@ -3238,6 +3241,7 @@
                           "type": "ref",
                           "ref": "c8U1g",
                           "name": "CTA Instance",
+                          "height": 48,
                           "descendants": {
                             "xdcYf": {
                               "content": "선물 보내기"
@@ -14812,9 +14816,9 @@
       "y": 6186,
       "name": "Button/Primary",
       "reusable": true,
-      "height": 40,
+      "height": 48,
       "fill": "$color-action-primary",
-      "cornerRadius": 14,
+      "cornerRadius": 16,
       "stroke": "$color-action-primary-pressed",
       "strokeWidth": 1.5,
       "effect": {
@@ -14829,7 +14833,7 @@
       "gap": 8,
       "padding": [
         0,
-        20
+        24
       ],
       "justifyContent": "center",
       "alignItems": "center",
@@ -14848,7 +14852,8 @@
           "ref": "hRtFa",
           "name": "primary-Label",
           "content": "민지에게 선물 고르기",
-          "fill": "$color-text-on-brand"
+          "fill": "$color-text-on-brand",
+          "fontSize": 16
         },
         {
           "type": "ellipse",
@@ -14881,15 +14886,15 @@
       "y": 6186,
       "name": "Button/Secondary",
       "reusable": true,
-      "height": 40,
+      "height": 48,
       "fill": "$color-background-brand-subtle",
-      "cornerRadius": 14,
+      "cornerRadius": 16,
       "stroke": "$color-rose-200",
       "strokeWidth": 1,
       "gap": 8,
       "padding": [
         0,
-        20
+        24
       ],
       "justifyContent": "center",
       "alignItems": "center",
@@ -14908,7 +14913,8 @@
           "ref": "hRtFa",
           "name": "secondary-Label",
           "content": "다른 선물이 더 좋아요",
-          "fill": "$color-text-brand"
+          "fill": "$color-text-brand",
+          "fontSize": 16
         },
         {
           "type": "ellipse",
@@ -14941,12 +14947,12 @@
       "y": 6186,
       "name": "Button/Tertiary",
       "reusable": true,
-      "height": 40,
-      "cornerRadius": 14,
+      "height": 48,
+      "cornerRadius": 16,
       "gap": 8,
       "padding": [
         0,
-        20
+        24
       ],
       "justifyContent": "center",
       "alignItems": "center",
@@ -14965,7 +14971,8 @@
           "ref": "hRtFa",
           "name": "tertiary-Label",
           "content": "건너뛰기",
-          "fill": "$color-text-secondary"
+          "fill": "$color-text-secondary",
+          "fontSize": 16
         },
         {
           "type": "ellipse",
@@ -14998,13 +15005,13 @@
       "y": 6186,
       "name": "Button/Destructive",
       "reusable": true,
-      "height": 40,
+      "height": 48,
       "fill": "$color-error-500",
-      "cornerRadius": 14,
+      "cornerRadius": 16,
       "gap": 8,
       "padding": [
         0,
-        20
+        24
       ],
       "justifyContent": "center",
       "alignItems": "center",
@@ -15023,7 +15030,8 @@
           "ref": "hRtFa",
           "name": "destructive-Label",
           "content": "삭제",
-          "fill": "$color-text-on-brand"
+          "fill": "$color-text-on-brand",
+          "fontSize": 16
         },
         {
           "type": "ellipse",
@@ -15226,7 +15234,8 @@
                       "id": "GB9m3",
                       "type": "ref",
                       "ref": "c8U1g",
-                      "name": "primary-default"
+                      "name": "primary-default",
+                      "height": 48
                     }
                   ]
                 },
@@ -15253,7 +15262,8 @@
                           "x": 1,
                           "y": 1
                         }
-                      }
+                      },
+                      "height": 48
                     }
                   ]
                 },
@@ -15274,6 +15284,7 @@
                       "fill": "$color-background-disabled",
                       "strokeWidth": 0,
                       "effect": [],
+                      "height": 48,
                       "descendants": {
                         "xdcYf": {
                           "fill": "$color-text-tertiary"
@@ -15296,6 +15307,7 @@
                       "type": "ref",
                       "ref": "c8U1g",
                       "name": "primary-loading",
+                      "height": 48,
                       "descendants": {
                         "xdcYf": {
                           "enabled": false
@@ -15347,7 +15359,8 @@
                       "id": "F5QWt",
                       "type": "ref",
                       "ref": "MElPV",
-                      "name": "secondary-default"
+                      "name": "secondary-default",
+                      "height": 48
                     }
                   ]
                 },
@@ -15365,7 +15378,8 @@
                       "type": "ref",
                       "ref": "MElPV",
                       "name": "secondary-pressed",
-                      "fill": "$color-rose-100"
+                      "fill": "$color-rose-100",
+                      "height": 48
                     }
                   ]
                 },
@@ -15386,6 +15400,7 @@
                       "fill": "$color-background-disabled",
                       "strokeWidth": 0,
                       "effect": [],
+                      "height": 48,
                       "descendants": {
                         "diCSc": {
                           "fill": "$color-text-tertiary"
@@ -15408,6 +15423,7 @@
                       "type": "ref",
                       "ref": "MElPV",
                       "name": "secondary-loading",
+                      "height": 48,
                       "descendants": {
                         "diCSc": {
                           "enabled": false
@@ -15459,7 +15475,8 @@
                       "id": "L2b3Z0",
                       "type": "ref",
                       "ref": "o829BZ",
-                      "name": "tertiary-default"
+                      "name": "tertiary-default",
+                      "height": 48
                     }
                   ]
                 },
@@ -15478,6 +15495,7 @@
                       "ref": "o829BZ",
                       "name": "tertiary-pressed",
                       "fill": "$color-background-surface-soft",
+                      "height": 48,
                       "descendants": {
                         "v9isES": {
                           "fill": "$color-text-primary"
@@ -15503,6 +15521,7 @@
                       "fill": "$color-background-disabled",
                       "strokeWidth": 0,
                       "effect": [],
+                      "height": 48,
                       "descendants": {
                         "v9isES": {
                           "fill": "$color-text-tertiary"
@@ -15525,6 +15544,7 @@
                       "type": "ref",
                       "ref": "o829BZ",
                       "name": "tertiary-loading",
+                      "height": 48,
                       "descendants": {
                         "v9isES": {
                           "enabled": false
@@ -15576,7 +15596,8 @@
                       "id": "L4v4a",
                       "type": "ref",
                       "ref": "FwfaD",
-                      "name": "destructive-default"
+                      "name": "destructive-default",
+                      "height": 48
                     }
                   ]
                 },
@@ -15594,7 +15615,8 @@
                       "type": "ref",
                       "ref": "FwfaD",
                       "name": "destructive-pressed",
-                      "fill": "$color-error-700"
+                      "fill": "$color-error-700",
+                      "height": 48
                     }
                   ]
                 },
@@ -15615,6 +15637,7 @@
                       "fill": "$color-background-disabled",
                       "strokeWidth": 0,
                       "effect": [],
+                      "height": 48,
                       "descendants": {
                         "ND7Ln": {
                           "fill": "$color-text-tertiary"
@@ -15637,6 +15660,7 @@
                       "type": "ref",
                       "ref": "FwfaD",
                       "name": "destructive-loading",
+                      "height": 48,
                       "descendants": {
                         "ND7Ln": {
                           "enabled": false
@@ -15687,7 +15711,7 @@
                       "type": "ref",
                       "ref": "c8U1g",
                       "name": "Btn-sm 32",
-                      "height": 32,
+                      "height": 48,
                       "cornerRadius": 12,
                       "padding": [
                         0,
@@ -15728,7 +15752,7 @@
                       "type": "ref",
                       "ref": "c8U1g",
                       "name": "Btn-md 40",
-                      "height": 40,
+                      "height": 48,
                       "cornerRadius": 14,
                       "padding": [
                         0,
@@ -15824,6 +15848,7 @@
                   "type": "ref",
                   "ref": "c8U1g",
                   "name": "Left Icon Ex",
+                  "height": 48,
                   "descendants": {
                     "Qkvdw": {
                       "enabled": true
@@ -15838,6 +15863,7 @@
                   "type": "ref",
                   "ref": "MElPV",
                   "name": "Right Icon Ex",
+                  "height": 48,
                   "descendants": {
                     "diCSc": {
                       "content": "직접 찾아보기"
@@ -15852,6 +15878,7 @@
                   "type": "ref",
                   "ref": "o829BZ",
                   "name": "Text Only Ex",
+                  "height": 48,
                   "descendants": {
                     "v9isES": {
                       "content": "취소"
@@ -15902,7 +15929,7 @@
               "id": "q9imG",
               "name": "InputBox",
               "width": "fill_container",
-              "height": 40,
+              "height": 48,
               "fill": "$color-background-surface",
               "cornerRadius": 12,
               "stroke": "$color-border-default",
@@ -15999,7 +16026,7 @@
               "id": "f3V9I",
               "name": "SelectBox",
               "width": "fill_container",
-              "height": 40,
+              "height": 48,
               "fill": "$color-background-surface",
               "cornerRadius": 12,
               "stroke": "$color-border-default",
@@ -16308,6 +16335,9 @@
                         "A8XA7K": {
                           "content": "친구 이름"
                         },
+                        "q9imG": {
+                          "height": 48
+                        },
                         "f7TF6u": {
                           "content": "이름으로 검색"
                         }
@@ -16347,7 +16377,8 @@
                         },
                         "q9imG": {
                           "stroke": "$color-border-brand",
-                          "strokeWidth": 2
+                          "strokeWidth": 2,
+                          "height": 48
                         },
                         "f7TF6u": {
                           "content": "김지은",
@@ -16393,7 +16424,8 @@
                           "fill": "$color-text-tertiary"
                         },
                         "q9imG": {
-                          "fill": "$color-background-disabled"
+                          "fill": "$color-background-disabled",
+                          "height": 48
                         },
                         "f7TF6u": {
                           "content": "이름으로 검색"
@@ -16434,7 +16466,8 @@
                         },
                         "q9imG": {
                           "stroke": "$color-border-error",
-                          "strokeWidth": 1.5
+                          "strokeWidth": 1.5,
+                          "height": 48
                         },
                         "f7TF6u": {
                           "content": "김지은",
@@ -16493,7 +16526,7 @@
                           "content": "sm 32"
                         },
                         "q9imG": {
-                          "height": 32
+                          "height": 48
                         },
                         "f7TF6u": {
                           "content": "입력하세요"
@@ -16511,7 +16544,7 @@
                           "content": "md 40"
                         },
                         "q9imG": {
-                          "height": 40
+                          "height": 48
                         },
                         "f7TF6u": {
                           "content": "입력하세요"
@@ -16568,6 +16601,9 @@
                         "A8XA7K": {
                           "content": "선물 검색"
                         },
+                        "q9imG": {
+                          "height": 48
+                        },
                         "u5AVHe": {
                           "enabled": true
                         },
@@ -16585,6 +16621,9 @@
                       "descendants": {
                         "A8XA7K": {
                           "content": "선물 검색"
+                        },
+                        "q9imG": {
+                          "height": 48
                         },
                         "u5AVHe": {
                           "enabled": true
@@ -17348,6 +17387,9 @@
                         "X1eib": {
                           "content": "관계"
                         },
+                        "f3V9I": {
+                          "height": 48
+                        },
                         "h17tl5": {
                           "content": "선택하세요"
                         }
@@ -17387,7 +17429,8 @@
                         },
                         "f3V9I": {
                           "stroke": "$color-border-brand",
-                          "strokeWidth": 2
+                          "strokeWidth": 2,
+                          "height": 48
                         },
                         "h17tl5": {
                           "content": "커피 · 원두",
@@ -17433,7 +17476,8 @@
                           "fill": "$color-text-tertiary"
                         },
                         "f3V9I": {
-                          "fill": "$color-background-disabled"
+                          "fill": "$color-background-disabled",
+                          "height": 48
                         },
                         "h17tl5": {
                           "content": "선택하세요"
@@ -17474,7 +17518,8 @@
                         },
                         "f3V9I": {
                           "stroke": "$color-border-error",
-                          "strokeWidth": 1.5
+                          "strokeWidth": 1.5,
+                          "height": 48
                         },
                         "h17tl5": {
                           "content": "선택하세요"
@@ -19038,7 +19083,7 @@
       "reusable": true,
       "width": 390,
       "height": 56,
-      "fill": "$color-background-surface",
+      "fill": "$color-background-default",
       "gap": 4,
       "padding": [
         0,
@@ -19770,6 +19815,7 @@
                       "type": "ref",
                       "ref": "c8U1g",
                       "name": "Button Loading",
+                      "height": 48,
                       "descendants": {
                         "xdcYf": {
                           "content": "저장 중"
@@ -20873,6 +20919,7 @@
                           "ref": "c8U1g",
                           "name": "Primary",
                           "width": "fill_container",
+                          "height": 48,
                           "descendants": {
                             "xdcYf": {
                               "content": "취향 추가하기"
@@ -20885,6 +20932,7 @@
                           "ref": "o829BZ",
                           "name": "Secondary",
                           "width": "fill_container",
+                          "height": 48,
                           "descendants": {
                             "v9isES": {
                               "content": "나중에 하기"
@@ -20966,6 +21014,7 @@
                           "ref": "c8U1g",
                           "name": "Primary",
                           "width": "fill_container",
+                          "height": 48,
                           "descendants": {
                             "xdcYf": {
                               "content": "친구 추가하기"
@@ -21118,6 +21167,7 @@
                               "ref": "MElPV",
                               "name": "Cancel",
                               "width": "fill_container",
+                              "height": 48,
                               "descendants": {
                                 "diCSc": {
                                   "content": "취소"
@@ -21130,6 +21180,7 @@
                               "ref": "FwfaD",
                               "name": "Delete",
                               "width": "fill_container",
+                              "height": 48,
                               "descendants": {
                                 "ND7Ln": {
                                   "content": "삭제"
@@ -21693,28 +21744,27 @@
               "alignItems": "center",
               "children": [
                 {
-                  "type": "text",
-                  "id": "X2MDei",
-                  "name": "Wordmark",
-                  "fill": "$color-text-brand",
-                  "content": "넌지시",
-                  "lineHeight": "$line-height-tight",
-                  "fontFamily": "$font-body",
-                  "fontSize": "$font-size-40",
-                  "fontWeight": "$font-weight-bold",
-                  "letterSpacing": -0.8
+                  "type": "rectangle",
+                  "id": "SYNCLOGOKOR",
+                  "name": "넌지시 한글 로고",
+                  "width": 224,
+                  "height": 224,
+                  "fill": {
+                    "type": "image",
+                    "url": "../public/brand/trans_neonjisi_logo_kor.png",
+                    "mode": "fit"
+                  }
                 },
                 {
                   "type": "text",
-                  "id": "KsByW",
-                  "name": "Tagline",
-                  "fill": "$color-text-secondary",
+                  "id": "SYNC001",
+                  "name": "나를 아는 선물.",
                   "content": "나를 아는 선물.",
-                  "lineHeight": "$line-height-normal",
+                  "fill": "$color-text-secondary",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-16",
                   "fontWeight": "$font-weight-regular",
-                  "letterSpacing": -0.3
+                  "lineHeight": "$line-height-normal"
                 }
               ]
             },
@@ -21728,36 +21778,23 @@
               "alignItems": "center",
               "children": [
                 {
-                  "id": "dHOyE",
+                  "id": "SYNCLANDINGGOOGLE",
                   "type": "ref",
                   "ref": "c8U1g",
-                  "name": "CTA Social",
+                  "name": "Google로 시작하기",
                   "width": "fill_container",
                   "height": 52,
                   "descendants": {
                     "xdcYf": {
-                      "content": "소셜 계정으로 시작하기"
+                      "content": "Google로 시작하기"
                     }
                   }
                 },
                 {
-                  "id": "Y2jjY9",
-                  "type": "ref",
-                  "ref": "MElPV",
-                  "name": "CTA Email",
-                  "width": "fill_container",
-                  "height": 52,
-                  "descendants": {
-                    "diCSc": {
-                      "content": "이메일로 시작하기"
-                    }
-                  }
-                },
-                {
-                  "id": "ER4xr",
+                  "id": "SYNCLANDINGLOGIN",
                   "type": "ref",
                   "ref": "o829BZ",
-                  "name": "Login Link",
+                  "name": "이미 계정이 있어요",
                   "width": "fill_container",
                   "height": 44,
                   "descendants": {
@@ -21831,7 +21868,20 @@
               "width": "fill_container",
               "layout": "vertical",
               "gap": "$space-8",
+              "alignItems": "center",
               "children": [
+                {
+                  "type": "rectangle",
+                  "id": "SYNCLOGINLOGO",
+                  "name": "넌지시 한글 로고",
+                  "width": 224,
+                  "height": 180,
+                  "fill": {
+                    "type": "image",
+                    "url": "../public/brand/trans_neonjisi_logo_kor.png",
+                    "mode": "fit"
+                  }
+                },
                 {
                   "id": "B57dA",
                   "type": "ref",
@@ -21870,58 +21920,28 @@
               "gap": "$space-8",
               "children": [
                 {
-                  "id": "Z0znek",
+                  "id": "SYNCLOGINGOOGLE",
                   "type": "ref",
                   "ref": "c8U1g",
-                  "name": "Auth Social",
+                  "name": "Google로 계속하기",
                   "width": "fill_container",
                   "height": 52,
                   "descendants": {
                     "xdcYf": {
-                      "content": "소셜 계정으로 계속하기"
-                    }
-                  }
-                },
-                {
-                  "id": "q3zdHe",
-                  "type": "ref",
-                  "ref": "MElPV",
-                  "name": "Auth Email",
-                  "width": "fill_container",
-                  "height": 52,
-                  "descendants": {
-                    "diCSc": {
-                      "content": "이메일로 계속하기"
-                    }
-                  }
-                },
-                {
-                  "id": "r1viU",
-                  "type": "ref",
-                  "ref": "o829BZ",
-                  "name": "Login",
-                  "width": "fill_container",
-                  "height": 44,
-                  "descendants": {
-                    "v9isES": {
-                      "content": "이미 계정이 있어요"
+                      "content": "Google로 계속하기"
                     }
                   }
                 },
                 {
                   "type": "text",
-                  "id": "ihNOR",
-                  "name": "Auth Note",
+                  "id": "SYNC002",
+                  "name": "로그인하면 이용약관과 개인정보처리방침에 동의하는 것으로 봅니다.",
+                  "content": "로그인하면 이용약관과 개인정보처리방침에 동의하는 것으로 봅니다.",
                   "fill": "$color-text-tertiary",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "인증 방식은 확정 후 연결됩니다 · OPEN QUESTION",
-                  "lineHeight": "$line-height-normal",
-                  "textAlign": "center",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-12",
                   "fontWeight": "$font-weight-regular",
-                  "letterSpacing": -0.2
+                  "lineHeight": "$line-height-normal"
                 }
               ]
             }
@@ -22026,7 +22046,7 @@
                   "type": "ref",
                   "ref": "o829BZ",
                   "name": "Pick Photo",
-                  "height": 40,
+                  "height": 48,
                   "descendants": {
                     "v9isES": {
                       "content": "사진 선택"
@@ -22044,6 +22064,9 @@
               "descendants": {
                 "A8XA7K": {
                   "content": "이름"
+                },
+                "q9imG": {
+                  "height": 48
                 },
                 "f7TF6u": {
                   "content": "이름을 입력하세요"
@@ -22067,7 +22090,7 @@
               "ref": "c8U1g",
               "name": "Next",
               "width": "fill_container",
-              "height": 52,
+              "height": 48,
               "descendants": {
                 "xdcYf": {
                   "content": "다음"
@@ -22303,7 +22326,7 @@
               "ref": "c8U1g",
               "name": "Start",
               "width": "fill_container",
-              "height": 52,
+              "height": 48,
               "descendants": {
                 "xdcYf": {
                   "content": "시작하기"
@@ -22654,7 +22677,7 @@
                   "ref": "c8U1g",
                   "name": "Next",
                   "width": "fill_container",
-                  "height": 52,
+                  "height": 48,
                   "descendants": {
                     "xdcYf": {
                       "content": "다음"
@@ -22876,6 +22899,9 @@
                         "A8XA7K": {
                           "content": "상세 (선택)"
                         },
+                        "q9imG": {
+                          "height": 48
+                        },
                         "f7TF6u": {
                           "content": "예) 스타벅스 텀블러"
                         }
@@ -22974,6 +23000,9 @@
                         "A8XA7K": {
                           "content": "상세 (선택)"
                         },
+                        "q9imG": {
+                          "height": 48
+                        },
                         "f7TF6u": {
                           "content": "예) 최근에 새로 샀어요"
                         }
@@ -22996,7 +23025,7 @@
               "ref": "c8U1g",
               "name": "Next",
               "width": "fill_container",
-              "height": 52,
+              "height": 48,
               "descendants": {
                 "xdcYf": {
                   "content": "다음"
@@ -23173,7 +23202,7 @@
                   "ref": "c8U1g",
                   "name": "Save",
                   "width": "fill_container",
-                  "height": 52,
+                  "height": 48,
                   "descendants": {
                     "xdcYf": {
                       "content": "저장하고 시작하기"
@@ -23186,7 +23215,7 @@
                   "ref": "o829BZ",
                   "name": "Later",
                   "width": "fill_container",
-                  "height": 44,
+                  "height": 48,
                   "descendants": {
                     "v9isES": {
                       "content": "나중에 할게요"
@@ -23260,11 +23289,11 @@
                   "alignItems": "center",
                   "children": [
                     {
-                      "id": "ILTe5",
+                      "id": "wZMr4",
                       "type": "ref",
-                      "ref": "zqFT8",
+                      "ref": "u7BRX",
                       "name": "CheckIcon",
-                      "fill": "$color-text-success"
+                      "fill": "$color-success-700"
                     }
                   ]
                 },
@@ -23303,7 +23332,7 @@
                   "ref": "c8U1g",
                   "name": "SendLink",
                   "width": "fill_container",
-                  "height": 52,
+                  "height": 48,
                   "descendants": {
                     "xdcYf": {
                       "content": "친구에게 링크 보내기"
@@ -23316,7 +23345,7 @@
                   "ref": "o829BZ",
                   "name": "Browse",
                   "width": "fill_container",
-                  "height": 44,
+                  "height": 48,
                   "descendants": {
                     "v9isES": {
                       "content": "둘러볼게요"
@@ -23425,7 +23454,7 @@
                   "type": "ref",
                   "ref": "MElPV",
                   "name": "Edit",
-                  "height": 32,
+                  "height": 48,
                   "descendants": {
                     "diCSc": {
                       "content": "편집"
@@ -23730,7 +23759,7 @@
                       "type": "ref",
                       "ref": "o829BZ",
                       "name": "Edit",
-                      "height": 28,
+                      "height": 48,
                       "descendants": {
                         "v9isES": {
                           "content": "편집",
@@ -24203,6 +24232,9 @@
                 "X1eib": {
                   "content": "어떤 종류인가요?"
                 },
+                "f3V9I": {
+                  "height": 48
+                },
                 "h17tl5": {
                   "content": "카테고리 선택"
                 }
@@ -24302,6 +24334,9 @@
                 "A8XA7K": {
                   "content": "상세 (선택)"
                 },
+                "q9imG": {
+                  "height": 48
+                },
                 "f7TF6u": {
                   "content": "예) 스타벅스 텀블러"
                 }
@@ -24316,6 +24351,9 @@
               "descendants": {
                 "A8XA7K": {
                   "content": "메모 (선택)"
+                },
+                "q9imG": {
+                  "height": 48
                 },
                 "f7TF6u": {
                   "content": "예) 이미 3개 있어요"
@@ -24336,7 +24374,7 @@
                   "ref": "c8U1g",
                   "name": "Save",
                   "width": "fill_container",
-                  "height": 52,
+                  "height": 48,
                   "descendants": {
                     "xdcYf": {
                       "content": "저장"
@@ -24348,7 +24386,7 @@
                   "type": "ref",
                   "ref": "o829BZ",
                   "name": "Delete",
-                  "height": 52,
+                  "height": 48,
                   "descendants": {
                     "v9isES": {
                       "content": "삭제",
@@ -24461,6 +24499,9 @@
                 "X1eib": {
                   "content": "종류"
                 },
+                "f3V9I": {
+                  "height": 48
+                },
                 "h17tl5": {
                   "content": "카테고리 선택"
                 }
@@ -24475,6 +24516,9 @@
               "descendants": {
                 "A8XA7K": {
                   "content": "무엇인가요?"
+                },
+                "q9imG": {
+                  "height": 48
                 },
                 "f7TF6u": {
                   "content": "예) 핸드드립 케틀"
@@ -24491,6 +24535,9 @@
                 "A8XA7K": {
                   "content": "왜 원하는지 (선택)"
                 },
+                "q9imG": {
+                  "height": 48
+                },
                 "f7TF6u": {
                   "content": "예) 요즘 커피에 빠졌어요"
                 }
@@ -24502,7 +24549,7 @@
               "ref": "c8U1g",
               "name": "Save",
               "width": "fill_container",
-              "height": 52,
+              "height": 48,
               "descendants": {
                 "xdcYf": {
                   "content": "저장"
@@ -25325,7 +25372,7 @@
                       "fill": "$color-text-primary",
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
-                      "content": "링크를 보내면\n받은 사람이 바로 친구가 돼요",
+                      "content": "링크를 보내면\n받은 사람이 바로 친구가 됩니다.",
                       "lineHeight": "$line-height-normal",
                       "fontFamily": "$font-body",
                       "fontSize": "$font-size-24",
@@ -25504,6 +25551,7 @@
                   "ref": "c8U1g",
                   "name": "공유하기",
                   "width": "fill_container",
+                  "height": 48,
                   "descendants": {
                     "Qkvdw": {
                       "id": "l7lMy",
@@ -25524,6 +25572,7 @@
                   "ref": "o829BZ",
                   "name": "링크 관리",
                   "width": "fill_container",
+                  "height": 48,
                   "descendants": {
                     "v9isES": {
                       "content": "링크 관리"
@@ -25833,6 +25882,7 @@
               "ref": "c8U1g",
               "name": "넌지시 시작하기",
               "width": "fill_container",
+              "height": 48,
               "descendants": {
                 "xdcYf": {
                   "content": "넌지시 시작하기"
@@ -26023,6 +26073,7 @@
                   "ref": "c8U1g",
                   "name": "취향 보기",
                   "width": "fill_container",
+                  "height": 48,
                   "descendants": {
                     "xdcYf": {
                       "content": "김지은님 취향 보기"
@@ -26035,6 +26086,7 @@
                   "ref": "o829BZ",
                   "name": "홈으로",
                   "width": "fill_container",
+                  "height": 48,
                   "descendants": {
                     "v9isES": {
                       "content": "홈으로"
@@ -26091,14 +26143,37 @@
               "alignItems": "center",
               "children": [
                 {
-                  "type": "text",
-                  "id": "dJ6On",
-                  "name": "페이지 제목",
-                  "fill": "$color-text-primary",
-                  "content": "넌지시",
-                  "fontFamily": "$font-body",
-                  "fontSize": "$font-size-28",
-                  "fontWeight": "$font-weight-bold"
+                  "type": "frame",
+                  "id": "SYNCLOGOHOME",
+                  "name": "브랜드 로고 락업",
+                  "alignItems": "center",
+                  "gap": -12,
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "id": "SYNCLOGOICON",
+                      "name": "아이콘 로고",
+                      "width": 40,
+                      "height": 40,
+                      "fill": {
+                        "type": "image",
+                        "url": "../public/brand/trans_neonjisi_logo_icon.png",
+                        "mode": "fill"
+                      }
+                    },
+                    {
+                      "type": "rectangle",
+                      "id": "SYNCLOGOTYPO",
+                      "name": "타이포 로고",
+                      "width": 96,
+                      "height": 40,
+                      "fill": {
+                        "type": "image",
+                        "url": "../public/brand/trans_neonjisi_logo_typo.png",
+                        "mode": "fill"
+                      }
+                    }
+                  ]
                 },
                 {
                   "type": "frame",
@@ -26162,7 +26237,7 @@
                   "id": "vwFsC",
                   "name": "섹션 제목",
                   "fill": "$color-text-primary",
-                  "content": "응답 기다리는 중",
+                  "content": "확인이 필요한 선물",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-16",
                   "fontWeight": "$font-weight-bold"
@@ -26291,6 +26366,7 @@
                       "ref": "c8U1g",
                       "name": "확인하기 버튼",
                       "width": "fill_container",
+                      "height": 48,
                       "descendants": {
                         "xdcYf": {
                           "content": "확인하기"
@@ -26533,7 +26609,7 @@
                   "id": "OOxsF",
                   "name": "섹션 제목",
                   "fill": "$color-text-primary",
-                  "content": "진행 중 펀딩",
+                  "content": "진행 중인 펀딩",
                   "fontFamily": "$font-body",
                   "fontSize": "$font-size-16",
                   "fontWeight": "$font-weight-bold"
@@ -27326,6 +27402,7 @@
                   "ref": "c8U1g",
                   "name": "선물하기 버튼",
                   "width": "fill_container",
+                  "height": 48,
                   "descendants": {
                     "xdcYf": {
                       "content": "선물하기"
@@ -27338,6 +27415,7 @@
                   "ref": "MElPV",
                   "name": "모아서 선물 버튼",
                   "width": "fill_container",
+                  "height": 48,
                   "descendants": {
                     "diCSc": {
                       "content": "여럿이 모아서 선물하기"
@@ -27592,6 +27670,7 @@
                           "type": "ref",
                           "ref": "o829BZ",
                           "name": "변경 버튼",
+                          "height": 48,
                           "descendants": {
                             "v9isES": {
                               "content": "변경"
@@ -27667,6 +27746,7 @@
               "ref": "c8U1g",
               "name": "다음 버튼",
               "width": "fill_container",
+              "height": 48,
               "descendants": {
                 "xdcYf": {
                   "content": "다음"
@@ -27947,6 +28027,7 @@
                 "enabled": false,
                 "color": "$color-shadow"
               },
+              "height": 48,
               "descendants": {
                 "xdcYf": {
                   "content": "선물 요청 보내기",
@@ -28503,6 +28584,7 @@
                   "ref": "MElPV",
                   "name": "취소 버튼",
                   "width": "fill_container",
+                  "height": 48,
                   "descendants": {
                     "diCSc": {
                       "content": "취소"
@@ -28515,6 +28597,7 @@
                   "ref": "c8U1g",
                   "name": "확정 버튼",
                   "width": "fill_container",
+                  "height": 48,
                   "descendants": {
                     "xdcYf": {
                       "content": "이걸로 할게요"
@@ -28672,6 +28755,7 @@
                   "ref": "c8U1g",
                   "name": "다시 보내기 버튼",
                   "width": "fill_container",
+                  "height": 48,
                   "descendants": {
                     "xdcYf": {
                       "content": "다시 보내기"
@@ -28684,6 +28768,7 @@
                   "ref": "o829BZ",
                   "name": "닫기 버튼",
                   "width": "fill_container",
+                  "height": 48,
                   "descendants": {
                     "v9isES": {
                       "content": "닫기"
@@ -28768,6 +28853,9 @@
                 "A8XA7K": {
                   "content": "받는 분"
                 },
+                "q9imG": {
+                  "height": 48
+                },
                 "u5AVHe": {
                   "enabled": false
                 },
@@ -28792,6 +28880,9 @@
               "descendants": {
                 "A8XA7K": {
                   "content": "연락처"
+                },
+                "q9imG": {
+                  "height": 48
                 },
                 "u5AVHe": {
                   "enabled": false
@@ -28826,6 +28917,9 @@
                     "A8XA7K": {
                       "content": "주소"
                     },
+                    "q9imG": {
+                      "height": 48
+                    },
                     "u5AVHe": {
                       "enabled": false
                     },
@@ -28853,6 +28947,7 @@
                       "type": "ref",
                       "ref": "MElPV",
                       "name": "주소 찾기 버튼",
+                      "height": 48,
                       "descendants": {
                         "diCSc": {
                           "content": "주소 찾기"
@@ -28872,6 +28967,9 @@
               "descendants": {
                 "A8XA7K": {
                   "content": "상세 주소"
+                },
+                "q9imG": {
+                  "height": 48
                 },
                 "u5AVHe": {
                   "enabled": false
@@ -28913,6 +29011,7 @@
               "ref": "c8U1g",
               "name": "완료 버튼",
               "width": "fill_container",
+              "height": 48,
               "descendants": {
                 "xdcYf": {
                   "content": "완료"
@@ -28986,13 +29085,10 @@
                   "alignItems": "center",
                   "children": [
                     {
-                      "type": "icon",
-                      "id": "RTPus",
-                      "name": "체크",
-                      "width": 36,
-                      "height": 36,
-                      "icon": "check",
-                      "library": "lucide",
+                      "id": "ISNf4",
+                      "type": "ref",
+                      "ref": "u7BRX",
+                      "name": "체크 아이콘",
                       "fill": "$color-success-700"
                     }
                   ]
@@ -29195,6 +29291,7 @@
               "ref": "c8U1g",
               "name": "확인 버튼",
               "width": "fill_container",
+              "height": 48,
               "descendants": {
                 "xdcYf": {
                   "content": "확인"
@@ -29435,6 +29532,7 @@
                   "ref": "c8U1g",
                   "name": "변경 재시도 버튼",
                   "width": "fill_container",
+                  "height": 48,
                   "descendants": {
                     "xdcYf": {
                       "content": "결제수단 변경하고 재시도"
@@ -29447,6 +29545,7 @@
                   "ref": "MElPV",
                   "name": "같은 카드 재시도 버튼",
                   "width": "fill_container",
+                  "height": 48,
                   "descendants": {
                     "diCSc": {
                       "content": "같은 카드로 재시도"
@@ -29781,6 +29880,7 @@
               "ref": "c8U1g",
               "name": "다음 버튼",
               "width": "fill_container",
+              "height": 48,
               "descendants": {
                 "xdcYf": {
                   "content": "다음"
@@ -29862,6 +29962,9 @@
                 "A8XA7K": {
                   "content": "목표 금액"
                 },
+                "q9imG": {
+                  "height": 48
+                },
                 "f7TF6u": {
                   "content": "400,000원",
                   "fill": "$color-text-primary"
@@ -29881,6 +29984,9 @@
               "descendants": {
                 "A8XA7K": {
                   "content": "최소 달성선"
+                },
+                "q9imG": {
+                  "height": 48
                 },
                 "f7TF6u": {
                   "content": "250,000원",
@@ -29925,6 +30031,9 @@
                 "X1eib": {
                   "content": "마감일"
                 },
+                "f3V9I": {
+                  "height": 48
+                },
                 "h17tl5": {
                   "content": "2026 - 09 - 10",
                   "fill": "$color-text-primary"
@@ -29944,6 +30053,7 @@
               "ref": "c8U1g",
               "name": "다음 버튼",
               "width": "fill_container",
+              "height": 48,
               "descendants": {
                 "xdcYf": {
                   "content": "다음"
@@ -30279,6 +30389,7 @@
                 "enabled": false,
                 "color": "$color-shadow"
               },
+              "height": 48,
               "descendants": {
                 "xdcYf": {
                   "content": "펀딩 시작하기",
@@ -30883,6 +30994,7 @@
               "ref": "c8U1g",
               "name": "참여 버튼",
               "width": "fill_container",
+              "height": 48,
               "descendants": {
                 "xdcYf": {
                   "content": "참여하기"
@@ -30965,6 +31077,9 @@
                 "A8XA7K": {
                   "content": "참여 금액"
                 },
+                "q9imG": {
+                  "height": 48
+                },
                 "f7TF6u": {
                   "content": "60,000원",
                   "fill": "$color-text-primary"
@@ -30973,100 +31088,10 @@
             },
             {
               "type": "frame",
-              "id": "ZC2Tc",
-              "name": "빠른 선택",
-              "width": "fill_container",
-              "gap": "$space-8",
-              "children": [
-                {
-                  "type": "frame",
-                  "id": "HhAIY",
-                  "name": "칩 2만원",
-                  "fill": "$color-background-surface",
-                  "cornerRadius": 999,
-                  "stroke": "$color-border-default",
-                  "strokeWidth": 1,
-                  "padding": [
-                    "$space-8",
-                    "$space-16"
-                  ],
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "type": "text",
-                      "id": "PpSEl",
-                      "name": "라벨",
-                      "fill": "$color-text-secondary",
-                      "content": "2만원",
-                      "fontFamily": "$font-body",
-                      "fontSize": "$font-size-14",
-                      "fontWeight": "$font-weight-semibold"
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "R6NfHr",
-                  "name": "칩 5만원",
-                  "fill": "$color-background-surface",
-                  "cornerRadius": 999,
-                  "stroke": "$color-border-default",
-                  "strokeWidth": 1,
-                  "padding": [
-                    "$space-8",
-                    "$space-16"
-                  ],
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "type": "text",
-                      "id": "hj1sd",
-                      "name": "라벨",
-                      "fill": "$color-text-secondary",
-                      "content": "5만원",
-                      "fontFamily": "$font-body",
-                      "fontSize": "$font-size-14",
-                      "fontWeight": "$font-weight-semibold"
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "thsJQ",
-                  "name": "칩 8만원 전액",
-                  "fill": "$color-background-brand-subtle",
-                  "cornerRadius": 999,
-                  "stroke": "$color-rose-200",
-                  "strokeWidth": 1,
-                  "padding": [
-                    "$space-8",
-                    "$space-16"
-                  ],
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "type": "text",
-                      "id": "YhsZs",
-                      "name": "라벨",
-                      "fill": "$color-text-brand",
-                      "content": "8만원 전액",
-                      "fontFamily": "$font-body",
-                      "fontSize": "$font-size-14",
-                      "fontWeight": "$font-weight-semibold"
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "frame",
               "id": "raUdc",
               "name": "남은 금액 행",
               "width": "fill_container",
-              "padding": [
-                "$space-0",
-                "$space-4"
-              ],
+              "padding": "$space-4",
               "justifyContent": "space_between",
               "alignItems": "center",
               "children": [
@@ -31074,11 +31099,11 @@
                   "type": "text",
                   "id": "hlqzE",
                   "name": "라벨",
-                  "fill": "$color-text-secondary",
+                  "fill": "$color-text-primary",
                   "content": "남은 금액",
                   "fontFamily": "$font-body",
-                  "fontSize": "$font-size-14",
-                  "fontWeight": "normal"
+                  "fontSize": "$font-size-16",
+                  "fontWeight": "$font-weight-semibold"
                 },
                 {
                   "type": "text",
@@ -31087,86 +31112,94 @@
                   "fill": "$color-text-primary",
                   "content": "80,000원",
                   "fontFamily": "$font-body",
-                  "fontSize": "$font-size-14",
+                  "fontSize": "$font-size-20",
                   "fontWeight": "$font-weight-bold"
                 }
               ]
             },
             {
               "type": "frame",
-              "id": "gZqBc",
-              "name": "안내",
+              "id": "XJvm3",
+              "name": "안내 문구 그룹",
               "width": "fill_container",
-              "fill": "$color-background-surface-soft",
-              "cornerRadius": 14,
-              "gap": "$space-8",
-              "padding": [
-                "$space-12",
-                "$space-16"
-              ],
-              "alignItems": "center",
+              "layout": "vertical",
+              "gap": "$space-4",
               "children": [
                 {
-                  "type": "icon",
-                  "id": "vGxZQ",
-                  "name": "아이콘",
-                  "width": 18,
-                  "height": 18,
-                  "icon": "info",
-                  "library": "lucide",
-                  "fill": "$color-text-secondary"
+                  "type": "frame",
+                  "id": "gZqBc",
+                  "name": "안내",
+                  "width": "fill_container",
+                  "fill": "#FFFFFF00",
+                  "gap": "$space-8",
+                  "padding": [
+                    "$space-4",
+                    "$space-0"
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "vGxZQ",
+                      "name": "아이콘",
+                      "width": 18,
+                      "height": 18,
+                      "icon": "info",
+                      "library": "lucide",
+                      "fill": "$color-text-secondary"
+                    },
+                    {
+                      "type": "text",
+                      "id": "l7r7h6",
+                      "name": "문구",
+                      "fill": "$color-text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "참여 금액은 서연님과 주최자에게 공개돼요.",
+                      "lineHeight": "$line-height-relaxed",
+                      "fontFamily": "$font-body",
+                      "fontSize": "$font-size-14",
+                      "fontWeight": "normal"
+                    }
+                  ]
                 },
                 {
-                  "type": "text",
-                  "id": "l7r7h6",
-                  "name": "문구",
-                  "fill": "$color-text-secondary",
-                  "textGrowth": "fixed-width",
+                  "type": "frame",
+                  "id": "sswli",
+                  "name": "안내",
                   "width": "fill_container",
-                  "content": "참여 금액은 서연님과 주최자에게 공개돼요.",
-                  "lineHeight": "$line-height-relaxed",
-                  "fontFamily": "$font-body",
-                  "fontSize": "$font-size-14",
-                  "fontWeight": "normal"
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "sswli",
-              "name": "안내",
-              "width": "fill_container",
-              "fill": "$color-background-surface-soft",
-              "cornerRadius": 14,
-              "gap": "$space-8",
-              "padding": [
-                "$space-12",
-                "$space-16"
-              ],
-              "alignItems": "center",
-              "children": [
-                {
-                  "type": "icon",
-                  "id": "OySnU",
-                  "name": "아이콘",
-                  "width": 18,
-                  "height": 18,
-                  "icon": "info",
-                  "library": "lucide",
-                  "fill": "$color-text-secondary"
-                },
-                {
-                  "type": "text",
-                  "id": "p4UCb6",
-                  "name": "문구",
-                  "fill": "$color-text-secondary",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "달성선에 못 미치면 전액 환불돼요.",
-                  "lineHeight": "$line-height-relaxed",
-                  "fontFamily": "$font-body",
-                  "fontSize": "$font-size-14",
-                  "fontWeight": "normal"
+                  "fill": "#FFFFFF00",
+                  "gap": "$space-8",
+                  "padding": [
+                    "$space-4",
+                    "$space-0"
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "OySnU",
+                      "name": "아이콘",
+                      "width": 18,
+                      "height": 18,
+                      "icon": "info",
+                      "library": "lucide",
+                      "fill": "$color-text-secondary"
+                    },
+                    {
+                      "type": "text",
+                      "id": "p4UCb6",
+                      "name": "문구",
+                      "fill": "$color-text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "달성선에 못 미치면 전액 환불돼요.",
+                      "lineHeight": "$line-height-relaxed",
+                      "fontFamily": "$font-body",
+                      "fontSize": "$font-size-14",
+                      "fontWeight": "normal"
+                    }
+                  ]
                 }
               ]
             },
@@ -31233,6 +31266,7 @@
               "ref": "c8U1g",
               "name": "참여 버튼",
               "width": "fill_container",
+              "height": 48,
               "descendants": {
                 "xdcYf": {
                   "content": "결제하고 참여하기"
@@ -31453,6 +31487,7 @@
                   "ref": "c8U1g",
                   "name": "펀딩 보기 버튼",
                   "width": "fill_container",
+                  "height": 48,
                   "descendants": {
                     "xdcYf": {
                       "content": "펀딩 보기"
@@ -31465,6 +31500,7 @@
                   "ref": "MElPV",
                   "name": "알리기 버튼",
                   "width": "fill_container",
+                  "height": 48,
                   "descendants": {
                     "diCSc": {
                       "content": "친구에게 알리기"
@@ -31762,6 +31798,7 @@
               "ref": "c8U1g",
               "name": "확인 버튼",
               "width": "fill_container",
+              "height": 48,
               "descendants": {
                 "xdcYf": {
                   "content": "확인"
@@ -31993,6 +32030,7 @@
               "ref": "c8U1g",
               "name": "확인 버튼",
               "width": "fill_container",
+              "height": 48,
               "descendants": {
                 "xdcYf": {
                   "content": "확인"
@@ -32259,6 +32297,7 @@
               "ref": "c8U1g",
               "name": "확인 버튼",
               "width": "fill_container",
+              "height": 48,
               "descendants": {
                 "xdcYf": {
                   "content": "확인"
@@ -33208,6 +33247,7 @@
                               "type": "ref",
                               "ref": "MElPV",
                               "name": "복사",
+                              "height": 48,
                               "descendants": {
                                 "u258Q": {
                                   "enabled": false
@@ -33225,6 +33265,7 @@
                               "type": "ref",
                               "ref": "o829BZ",
                               "name": "중지",
+                              "height": 48,
                               "descendants": {
                                 "u2pnq": {
                                   "enabled": false
@@ -33525,6 +33566,7 @@
                   "ref": "c8U1g",
                   "name": "CTA",
                   "width": "fill_container",
+                  "height": 48,
                   "descendants": {
                     "Qkvdw": {
                       "enabled": false
@@ -33547,7 +33589,7 @@
       "type": "frame",
       "id": "B7gAS",
       "x": 5290,
-      "y": 15554,
+      "y": 15814,
       "name": "V2 · P5 · I07 결제수단 관리",
       "clip": true,
       "width": 390,
@@ -33640,6 +33682,7 @@
                   "type": "ref",
                   "ref": "o829BZ",
                   "name": "삭제",
+                  "height": 48,
                   "descendants": {
                     "v9isES": {
                       "content": "삭제"
@@ -33654,6 +33697,7 @@
               "ref": "MElPV",
               "name": "등록 버튼",
               "width": "fill_container",
+              "height": 48,
               "descendants": {
                 "diCSc": {
                   "content": "+ 다른 결제수단 등록"
@@ -33681,7 +33725,7 @@
       "type": "frame",
       "id": "NnN2r",
       "x": 5728,
-      "y": 15554,
+      "y": 15814,
       "name": "V2 · P5 · I06 결제수단 등록",
       "clip": true,
       "width": 390,
@@ -33820,7 +33864,7 @@
       "type": "frame",
       "id": "YQOYl",
       "x": 6166,
-      "y": 15554,
+      "y": 15814,
       "name": "V2 · P3 · F05 요청 상세 (주는 사람)",
       "clip": true,
       "width": 390,
@@ -34146,6 +34190,7 @@
               "ref": "MElPV",
               "name": "요청 취소 버튼",
               "width": "fill_container",
+              "height": 48,
               "descendants": {
                 "diCSc": {
                   "content": "요청 취소"
@@ -34153,6 +34198,1551 @@
               }
             }
           ]
+        }
+      ]
+    },
+    {
+      "type": "note",
+      "id": "xQmXO",
+      "x": 9232,
+      "y": 12018,
+      "name": "온보딩 취향 용어 및 단계 통일 검토",
+      "width": 390,
+      "height": 240,
+      "content": "- ‘취향 서술’이라는 용어가 좀 어색함ㅜ 용어도 바꾸고, 온보딩 화면(nBRag · Content)에서 placeholder를 좀 더 구체적으로 쓰는 게 좋을 듯\n\n- 온보딩 화면(y3cqjd · Content)에 ‘이미 있어요/관심 없어요’는 있지만, ‘원하는 것’을 선택하는 단계는 없어서 통일 필요"
+    },
+    {
+      "type": "note",
+      "id": "uRv3H",
+      "x": 8794,
+      "y": 12018,
+      "name": "마이 화면 미구현 항목",
+      "width": 390,
+      "height": 150,
+      "content": "‘약관·개인정보처리방침’ 화면 아직 미구현\n- 아예 빼도 될 듯..?"
+    },
+    {
+      "type": "note",
+      "id": "hhqbI",
+      "x": 4852.15826389629,
+      "y": 9797.591866475492,
+      "name": "친구 상세 문구 전반 검토",
+      "width": 390,
+      "height": 250,
+      "content": "전반적으로 문구가 어색한 부분이 많아서 한 번씩 다 읽고 수정 부탁드려요. 특히 서술형으로 작성한 부분은 AI 티가 많이 나네요ㅜㅜ 용어 통일이 필요한 경우 용어를 통일해 주시면 감사하겠습니다!"
+    },
+    {
+      "type": "note",
+      "id": "JOAQC",
+      "x": 6166,
+      "y": 15386,
+      "name": "알림 설정 구현 및 연동 상태",
+      "width": 390,
+      "height": 400,
+      "content": "[구현 상태] 알림 설정 화면 UI 및 동선 구현 완료\n\n- 동선: 마이 탭 → 알림 설정 → /settings, 뒤로가기 → /my\n- 구현 항목: 선물 요청 알림, 펀딩 소식 알림, 친구 소식 알림, 약관·개인정보처리방침, 오픈소스 라이선스, 버전 정보\n- 현재 알림 설정 저장용 DB 필드와 푸시 시스템은 미구현\n- 가짜 토글은 구현하지 않았으며, 필수 알림은 ‘항상 받음’, 푸시 알림 선택 기능은 ‘준비 중’으로 표시\n- 실제 설정 저장 및 푸시 선택 기능은 서버·DB 연동 후 구현 필요\n- ESLint·TypeScript 검사 및 알림 단위 테스트 21개 통과, 현재 브랜치에서 커밋 전 상태"
+    },
+    {
+      "type": "frame",
+      "id": "SYNC015",
+      "x": 5290,
+      "y": 16880,
+      "name": "CURRENT · M2 · 일정 관리",
+      "theme": {
+        "colorDirection": "rose"
+      },
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "$color-background-default",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "SYNC013",
+          "type": "ref",
+          "ref": "wnqJ6",
+          "name": "Status Bar",
+          "width": "fill_container"
+        },
+        {
+          "id": "SYNC014",
+          "type": "ref",
+          "ref": "CPOcQ",
+          "name": "일정 Top Bar",
+          "width": "fill_container",
+          "descendants": {
+            "qSAdV": {
+              "content": "일정"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "SYNC012",
+          "name": "일정 콘텐츠",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": "$space-16",
+          "padding": [
+            "$space-16",
+            "$space-20",
+            "$space-20",
+            "$space-20"
+          ],
+          "children": [
+            {
+              "id": "SYNC003",
+              "type": "ref",
+              "ref": "c8U1g",
+              "name": "일정 추가",
+              "width": "fill_container",
+              "height": 48,
+              "descendants": {
+                "xdcYf": {
+                  "content": "일정 추가"
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "SYNC007",
+              "name": "민지 생일 카드",
+              "width": "fill_container",
+              "fill": "$color-background-surface",
+              "cornerRadius": 20,
+              "layout": "vertical",
+              "gap": "$space-8",
+              "padding": "$space-16",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "SYNC004",
+                  "name": "생일",
+                  "content": "생일",
+                  "fill": "$color-text-brand",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-12",
+                  "fontWeight": "$font-weight-semibold",
+                  "lineHeight": "$line-height-normal"
+                },
+                {
+                  "type": "text",
+                  "id": "SYNC005",
+                  "name": "민지 생일",
+                  "content": "민지 생일",
+                  "fill": "$color-text-primary",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-16",
+                  "fontWeight": "$font-weight-bold",
+                  "lineHeight": "$line-height-normal"
+                },
+                {
+                  "type": "text",
+                  "id": "SYNC006",
+                  "name": "2026-09-18 · 매년",
+                  "content": "2026-09-18 · 매년",
+                  "fill": "$color-text-secondary",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-14",
+                  "fontWeight": "$font-weight-regular",
+                  "lineHeight": "$line-height-normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "SYNC011",
+              "name": "부모님 결혼기념일 카드",
+              "width": "fill_container",
+              "fill": "$color-background-surface",
+              "cornerRadius": 20,
+              "layout": "vertical",
+              "gap": "$space-8",
+              "padding": "$space-16",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "SYNC008",
+                  "name": "기념일",
+                  "content": "기념일",
+                  "fill": "$color-text-brand",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-12",
+                  "fontWeight": "$font-weight-semibold",
+                  "lineHeight": "$line-height-normal"
+                },
+                {
+                  "type": "text",
+                  "id": "SYNC009",
+                  "name": "부모님 결혼기념일",
+                  "content": "부모님 결혼기념일",
+                  "fill": "$color-text-primary",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-16",
+                  "fontWeight": "$font-weight-bold",
+                  "lineHeight": "$line-height-normal"
+                },
+                {
+                  "type": "text",
+                  "id": "SYNC010",
+                  "name": "2026-10-03 · 매년",
+                  "content": "2026-10-03 · 매년",
+                  "fill": "$color-text-secondary",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-14",
+                  "fontWeight": "$font-weight-regular",
+                  "lineHeight": "$line-height-normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "SYNC028",
+      "x": 5728,
+      "y": 16880,
+      "name": "CURRENT · M2 · 초대 링크 관리",
+      "theme": {
+        "colorDirection": "rose"
+      },
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "$color-background-default",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "SYNC026",
+          "type": "ref",
+          "ref": "wnqJ6",
+          "name": "Status Bar",
+          "width": "fill_container"
+        },
+        {
+          "id": "SYNC027",
+          "type": "ref",
+          "ref": "CPOcQ",
+          "name": "초대 링크 Top Bar",
+          "width": "fill_container",
+          "descendants": {
+            "qSAdV": {
+              "content": "초대 링크"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "SYNC025",
+          "name": "초대 링크 콘텐츠",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": "$space-16",
+          "padding": [
+            "$space-16",
+            "$space-20",
+            "$space-20",
+            "$space-20"
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "SYNC016",
+              "name": "사용 중",
+              "content": "사용 중",
+              "fill": "$color-text-primary",
+              "fontFamily": "$font-body",
+              "fontSize": "$font-size-14",
+              "fontWeight": "$font-weight-semibold",
+              "lineHeight": "$line-height-normal"
+            },
+            {
+              "type": "frame",
+              "id": "SYNC019",
+              "name": "neonjisi.app/i/abc123 카드",
+              "width": "fill_container",
+              "fill": "$color-background-surface",
+              "cornerRadius": 20,
+              "layout": "vertical",
+              "gap": "$space-8",
+              "padding": "$space-16",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "SYNC017",
+                  "name": "neonjisi.app/i/abc123",
+                  "content": "neonjisi.app/i/abc123",
+                  "fill": "$color-text-primary",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-16",
+                  "fontWeight": "$font-weight-bold",
+                  "lineHeight": "$line-height-normal"
+                },
+                {
+                  "type": "text",
+                  "id": "SYNC018",
+                  "name": "만료 2026-09-11 · 사용 0/1",
+                  "content": "만료 2026-09-11 · 사용 0/1",
+                  "fill": "$color-text-secondary",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-14",
+                  "fontWeight": "$font-weight-regular",
+                  "lineHeight": "$line-height-normal"
+                }
+              ]
+            },
+            {
+              "id": "SYNC020",
+              "type": "ref",
+              "ref": "c8U1g",
+              "name": "새 링크 만들기",
+              "width": "fill_container",
+              "height": 48,
+              "descendants": {
+                "xdcYf": {
+                  "content": "새 링크 만들기"
+                }
+              }
+            },
+            {
+              "type": "text",
+              "id": "SYNC021",
+              "name": "지난 링크",
+              "content": "지난 링크",
+              "fill": "$color-text-primary",
+              "fontFamily": "$font-body",
+              "fontSize": "$font-size-14",
+              "fontWeight": "$font-weight-semibold",
+              "lineHeight": "$line-height-normal"
+            },
+            {
+              "type": "frame",
+              "id": "SYNC024",
+              "name": "만료된 링크 카드",
+              "width": "fill_container",
+              "fill": "$color-background-surface",
+              "cornerRadius": 20,
+              "layout": "vertical",
+              "gap": "$space-8",
+              "padding": "$space-16",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "SYNC022",
+                  "name": "만료된 링크",
+                  "content": "만료된 링크",
+                  "fill": "$color-text-primary",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-16",
+                  "fontWeight": "$font-weight-bold",
+                  "lineHeight": "$line-height-normal"
+                },
+                {
+                  "type": "text",
+                  "id": "SYNC023",
+                  "name": "2026-08-28 만료",
+                  "content": "2026-08-28 만료",
+                  "fill": "$color-text-secondary",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-14",
+                  "fontWeight": "$font-weight-regular",
+                  "lineHeight": "$line-height-normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "SYNC043",
+      "x": 6166,
+      "y": 16880,
+      "name": "CURRENT · M3 · 알림 목록",
+      "theme": {
+        "colorDirection": "rose"
+      },
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "$color-background-default",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "SYNC041",
+          "type": "ref",
+          "ref": "wnqJ6",
+          "name": "Status Bar",
+          "width": "fill_container"
+        },
+        {
+          "id": "SYNC042",
+          "type": "ref",
+          "ref": "CPOcQ",
+          "name": "알림 Top Bar",
+          "width": "fill_container",
+          "descendants": {
+            "qSAdV": {
+              "content": "알림"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "SYNC040",
+          "name": "알림 콘텐츠",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": "$space-16",
+          "padding": [
+            "$space-16",
+            "$space-20",
+            "$space-20",
+            "$space-20"
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "SYNC029",
+              "name": "모두 읽음",
+              "content": "모두 읽음",
+              "fill": "$color-text-brand",
+              "fontFamily": "$font-body",
+              "fontSize": "$font-size-14",
+              "fontWeight": "$font-weight-semibold",
+              "lineHeight": "$line-height-normal"
+            },
+            {
+              "type": "frame",
+              "id": "SYNC033",
+              "name": "민지님이 선물 요청을 확인했어요 카드",
+              "width": "fill_container",
+              "fill": "$color-background-surface",
+              "cornerRadius": 20,
+              "layout": "vertical",
+              "gap": "$space-8",
+              "padding": "$space-16",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "SYNC030",
+                  "name": "읽지 않음",
+                  "content": "읽지 않음",
+                  "fill": "$color-text-brand",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-12",
+                  "fontWeight": "$font-weight-semibold",
+                  "lineHeight": "$line-height-normal"
+                },
+                {
+                  "type": "text",
+                  "id": "SYNC031",
+                  "name": "민지님이 선물 요청을 확인했어요",
+                  "content": "민지님이 선물 요청을 확인했어요",
+                  "fill": "$color-text-primary",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-16",
+                  "fontWeight": "$font-weight-bold",
+                  "lineHeight": "$line-height-normal"
+                },
+                {
+                  "type": "text",
+                  "id": "SYNC032",
+                  "name": "방금 전",
+                  "content": "방금 전",
+                  "fill": "$color-text-secondary",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-14",
+                  "fontWeight": "$font-weight-regular",
+                  "lineHeight": "$line-height-normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "SYNC036",
+              "name": "함께 준비한 펀딩이 성사됐어요 카드",
+              "width": "fill_container",
+              "fill": "$color-background-surface",
+              "cornerRadius": 20,
+              "layout": "vertical",
+              "gap": "$space-8",
+              "padding": "$space-16",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "SYNC034",
+                  "name": "함께 준비한 펀딩이 성사됐어요",
+                  "content": "함께 준비한 펀딩이 성사됐어요",
+                  "fill": "$color-text-primary",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-16",
+                  "fontWeight": "$font-weight-bold",
+                  "lineHeight": "$line-height-normal"
+                },
+                {
+                  "type": "text",
+                  "id": "SYNC035",
+                  "name": "10분 전",
+                  "content": "10분 전",
+                  "fill": "$color-text-secondary",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-14",
+                  "fontWeight": "$font-weight-regular",
+                  "lineHeight": "$line-height-normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "SYNC039",
+              "name": "서연님과 친구가 되었어요 카드",
+              "width": "fill_container",
+              "fill": "$color-background-surface",
+              "cornerRadius": 20,
+              "layout": "vertical",
+              "gap": "$space-8",
+              "padding": "$space-16",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "SYNC037",
+                  "name": "서연님과 친구가 되었어요",
+                  "content": "서연님과 친구가 되었어요",
+                  "fill": "$color-text-primary",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-16",
+                  "fontWeight": "$font-weight-bold",
+                  "lineHeight": "$line-height-normal"
+                },
+                {
+                  "type": "text",
+                  "id": "SYNC038",
+                  "name": "어제",
+                  "content": "어제",
+                  "fill": "$color-text-secondary",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-14",
+                  "fontWeight": "$font-weight-regular",
+                  "lineHeight": "$line-height-normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "SYNC057",
+      "x": 6604,
+      "y": 16880,
+      "name": "CURRENT · M3 · 받을 친구 선택",
+      "theme": {
+        "colorDirection": "rose"
+      },
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "$color-background-default",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "SYNC055",
+          "type": "ref",
+          "ref": "wnqJ6",
+          "name": "Status Bar",
+          "width": "fill_container"
+        },
+        {
+          "id": "SYNC056",
+          "type": "ref",
+          "ref": "CPOcQ",
+          "name": "받을 친구 선택 Top Bar",
+          "width": "fill_container",
+          "descendants": {
+            "qSAdV": {
+              "content": "받을 친구 선택"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "SYNC054",
+          "name": "받을 친구 선택 콘텐츠",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": "$space-16",
+          "padding": [
+            "$space-16",
+            "$space-20",
+            "$space-20",
+            "$space-20"
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "SYNC044",
+              "name": "핸드드립 세트을(를) 받을 친구를 선택해주세요.",
+              "content": "핸드드립 세트을(를) 받을 친구를 선택해주세요.",
+              "fill": "$color-text-secondary",
+              "fontFamily": "$font-body",
+              "fontSize": "$font-size-14",
+              "fontWeight": "$font-weight-regular",
+              "lineHeight": "$line-height-normal"
+            },
+            {
+              "type": "frame",
+              "id": "SYNC047",
+              "name": "김민지 카드",
+              "width": "fill_container",
+              "fill": "$color-background-surface",
+              "cornerRadius": 20,
+              "layout": "vertical",
+              "gap": "$space-8",
+              "padding": "$space-16",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "SYNC045",
+                  "name": "김민지",
+                  "content": "김민지",
+                  "fill": "$color-text-primary",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-16",
+                  "fontWeight": "$font-weight-bold",
+                  "lineHeight": "$line-height-normal"
+                },
+                {
+                  "type": "text",
+                  "id": "SYNC046",
+                  "name": "친구",
+                  "content": "친구",
+                  "fill": "$color-text-secondary",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-14",
+                  "fontWeight": "$font-weight-regular",
+                  "lineHeight": "$line-height-normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "SYNC050",
+              "name": "이서연 카드",
+              "width": "fill_container",
+              "fill": "$color-background-surface",
+              "cornerRadius": 20,
+              "layout": "vertical",
+              "gap": "$space-8",
+              "padding": "$space-16",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "SYNC048",
+                  "name": "이서연",
+                  "content": "이서연",
+                  "fill": "$color-text-primary",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-16",
+                  "fontWeight": "$font-weight-bold",
+                  "lineHeight": "$line-height-normal"
+                },
+                {
+                  "type": "text",
+                  "id": "SYNC049",
+                  "name": "친구",
+                  "content": "친구",
+                  "fill": "$color-text-secondary",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-14",
+                  "fontWeight": "$font-weight-regular",
+                  "lineHeight": "$line-height-normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "SYNC053",
+              "name": "박지훈 카드",
+              "width": "fill_container",
+              "fill": "$color-background-surface",
+              "cornerRadius": 20,
+              "layout": "vertical",
+              "gap": "$space-8",
+              "padding": "$space-16",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "SYNC051",
+                  "name": "박지훈",
+                  "content": "박지훈",
+                  "fill": "$color-text-primary",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-16",
+                  "fontWeight": "$font-weight-bold",
+                  "lineHeight": "$line-height-normal"
+                },
+                {
+                  "type": "text",
+                  "id": "SYNC052",
+                  "name": "친구",
+                  "content": "친구",
+                  "fill": "$color-text-secondary",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-14",
+                  "fontWeight": "$font-weight-regular",
+                  "lineHeight": "$line-height-normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "SYNC065",
+      "x": 7042,
+      "y": 16880,
+      "name": "CURRENT · M3 · 선물 전송 완료",
+      "theme": {
+        "colorDirection": "rose"
+      },
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "$color-background-default",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "SYNC063",
+          "type": "ref",
+          "ref": "wnqJ6",
+          "name": "Status Bar",
+          "width": "fill_container"
+        },
+        {
+          "id": "SYNC064",
+          "type": "ref",
+          "ref": "CPOcQ",
+          "name": "전송 완료 Top Bar",
+          "width": "fill_container",
+          "descendants": {
+            "qSAdV": {
+              "content": "전송 완료"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "SYNC062",
+          "name": "전송 완료 콘텐츠",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": "$space-16",
+          "padding": [
+            "$space-16",
+            "$space-20",
+            "$space-20",
+            "$space-20"
+          ],
+          "children": [
+            {
+              "type": "icon",
+              "id": "SYNC058",
+              "name": "완료",
+              "width": 64,
+              "height": 64,
+              "icon": "circle-check",
+              "library": "lucide",
+              "fill": "$color-success-500"
+            },
+            {
+              "type": "text",
+              "id": "SYNC059",
+              "name": "요청을 보냈습니다",
+              "content": "요청을 보냈습니다",
+              "fill": "$color-text-primary",
+              "fontFamily": "$font-body",
+              "fontSize": "$font-size-20",
+              "fontWeight": "$font-weight-bold",
+              "lineHeight": "$line-height-normal"
+            },
+            {
+              "type": "text",
+              "id": "SYNC060",
+              "name": "친구가 24시간 안에 받을지 선택할 수 있어요.",
+              "content": "친구가 24시간 안에 받을지 선택할 수 있어요.",
+              "fill": "$color-text-secondary",
+              "fontFamily": "$font-body",
+              "fontSize": "$font-size-14",
+              "fontWeight": "$font-weight-regular",
+              "lineHeight": "$line-height-normal"
+            },
+            {
+              "id": "SYNC061",
+              "type": "ref",
+              "ref": "c8U1g",
+              "name": "홈으로",
+              "width": "fill_container",
+              "height": 48,
+              "descendants": {
+                "xdcYf": {
+                  "content": "홈으로"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "SYNC077",
+      "x": 7480,
+      "y": 16880,
+      "name": "CURRENT · M3 · 결제 복구",
+      "theme": {
+        "colorDirection": "rose"
+      },
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "$color-background-default",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "SYNC075",
+          "type": "ref",
+          "ref": "wnqJ6",
+          "name": "Status Bar",
+          "width": "fill_container"
+        },
+        {
+          "id": "SYNC076",
+          "type": "ref",
+          "ref": "CPOcQ",
+          "name": "결제 실패 Top Bar",
+          "width": "fill_container",
+          "descendants": {
+            "qSAdV": {
+              "content": "결제 실패"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "SYNC074",
+          "name": "결제 실패 콘텐츠",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": "$space-16",
+          "padding": [
+            "$space-16",
+            "$space-20",
+            "$space-20",
+            "$space-20"
+          ],
+          "children": [
+            {
+              "type": "icon",
+              "id": "SYNC066",
+              "name": "경고",
+              "width": 56,
+              "height": 56,
+              "icon": "circle-alert",
+              "library": "lucide",
+              "fill": "$color-error-500"
+            },
+            {
+              "type": "text",
+              "id": "SYNC067",
+              "name": "결제가 되지 않았어요",
+              "content": "결제가 되지 않았어요",
+              "fill": "$color-text-primary",
+              "fontFamily": "$font-body",
+              "fontSize": "$font-size-20",
+              "fontWeight": "$font-weight-bold",
+              "lineHeight": "$line-height-normal"
+            },
+            {
+              "type": "text",
+              "id": "SYNC068",
+              "name": "결제수단을 확인하고 다시 시도해주세요.",
+              "content": "결제수단을 확인하고 다시 시도해주세요.",
+              "fill": "$color-text-secondary",
+              "fontFamily": "$font-body",
+              "fontSize": "$font-size-14",
+              "fontWeight": "$font-weight-regular",
+              "lineHeight": "$line-height-normal"
+            },
+            {
+              "type": "frame",
+              "id": "SYNC071",
+              "name": "등록 카드 카드",
+              "width": "fill_container",
+              "fill": "$color-background-surface",
+              "cornerRadius": 20,
+              "layout": "vertical",
+              "gap": "$space-8",
+              "padding": "$space-16",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "SYNC069",
+                  "name": "등록 카드",
+                  "content": "등록 카드",
+                  "fill": "$color-text-primary",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-16",
+                  "fontWeight": "$font-weight-bold",
+                  "lineHeight": "$line-height-normal"
+                },
+                {
+                  "type": "text",
+                  "id": "SYNC070",
+                  "name": "•••• 1234",
+                  "content": "•••• 1234",
+                  "fill": "$color-text-secondary",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-14",
+                  "fontWeight": "$font-weight-regular",
+                  "lineHeight": "$line-height-normal"
+                }
+              ]
+            },
+            {
+              "id": "SYNC072",
+              "type": "ref",
+              "ref": "c8U1g",
+              "name": "다시 결제하기",
+              "width": "fill_container",
+              "height": 48,
+              "descendants": {
+                "xdcYf": {
+                  "content": "다시 결제하기"
+                }
+              }
+            },
+            {
+              "id": "SYNC073",
+              "type": "ref",
+              "ref": "o829BZ",
+              "name": "결제수단 변경",
+              "width": "fill_container",
+              "height": 48,
+              "descendants": {
+                "v9isES": {
+                  "content": "결제수단 변경"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "SYNC094",
+      "x": 7918,
+      "y": 16880,
+      "name": "CURRENT · M1 · 원하는 상품 고르기",
+      "theme": {
+        "colorDirection": "rose"
+      },
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "$color-background-default",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "SYNC092",
+          "type": "ref",
+          "ref": "wnqJ6",
+          "name": "Status Bar",
+          "width": "fill_container"
+        },
+        {
+          "id": "SYNC093",
+          "type": "ref",
+          "ref": "CPOcQ",
+          "name": "원하는 상품 고르기 Top Bar",
+          "width": "fill_container",
+          "descendants": {
+            "qSAdV": {
+              "content": "원하는 상품 고르기"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "SYNC091",
+          "name": "원하는 상품 고르기 콘텐츠",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": "$space-16",
+          "padding": [
+            "$space-16",
+            "$space-20",
+            "$space-20",
+            "$space-20"
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "SYNC078",
+              "name": "원하는 상품을 골라 취향에 추가하세요.",
+              "content": "원하는 상품을 골라 취향에 추가하세요.",
+              "fill": "$color-text-secondary",
+              "fontFamily": "$font-body",
+              "fontSize": "$font-size-14",
+              "fontWeight": "$font-weight-regular",
+              "lineHeight": "$line-height-normal"
+            },
+            {
+              "type": "frame",
+              "id": "SYNC082",
+              "name": "핸드드립 세트 카드",
+              "width": "fill_container",
+              "fill": "$color-background-surface",
+              "cornerRadius": 20,
+              "layout": "vertical",
+              "gap": "$space-8",
+              "padding": "$space-16",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "SYNC079",
+                  "name": "커피",
+                  "content": "커피",
+                  "fill": "$color-text-brand",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-12",
+                  "fontWeight": "$font-weight-semibold",
+                  "lineHeight": "$line-height-normal"
+                },
+                {
+                  "type": "text",
+                  "id": "SYNC080",
+                  "name": "핸드드립 세트",
+                  "content": "핸드드립 세트",
+                  "fill": "$color-text-primary",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-16",
+                  "fontWeight": "$font-weight-bold",
+                  "lineHeight": "$line-height-normal"
+                },
+                {
+                  "type": "text",
+                  "id": "SYNC081",
+                  "name": "89,000원",
+                  "content": "89,000원",
+                  "fill": "$color-text-secondary",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-14",
+                  "fontWeight": "$font-weight-regular",
+                  "lineHeight": "$line-height-normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "SYNC086",
+              "name": "러닝 벨트 카드",
+              "width": "fill_container",
+              "fill": "$color-background-surface",
+              "cornerRadius": 20,
+              "layout": "vertical",
+              "gap": "$space-8",
+              "padding": "$space-16",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "SYNC083",
+                  "name": "운동",
+                  "content": "운동",
+                  "fill": "$color-text-brand",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-12",
+                  "fontWeight": "$font-weight-semibold",
+                  "lineHeight": "$line-height-normal"
+                },
+                {
+                  "type": "text",
+                  "id": "SYNC084",
+                  "name": "러닝 벨트",
+                  "content": "러닝 벨트",
+                  "fill": "$color-text-primary",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-16",
+                  "fontWeight": "$font-weight-bold",
+                  "lineHeight": "$line-height-normal"
+                },
+                {
+                  "type": "text",
+                  "id": "SYNC085",
+                  "name": "45,000원",
+                  "content": "45,000원",
+                  "fill": "$color-text-secondary",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-14",
+                  "fontWeight": "$font-weight-regular",
+                  "lineHeight": "$line-height-normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "SYNC090",
+              "name": "우디 향 디퓨저 카드",
+              "width": "fill_container",
+              "fill": "$color-background-surface",
+              "cornerRadius": 20,
+              "layout": "vertical",
+              "gap": "$space-8",
+              "padding": "$space-16",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "SYNC087",
+                  "name": "향",
+                  "content": "향",
+                  "fill": "$color-text-brand",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-12",
+                  "fontWeight": "$font-weight-semibold",
+                  "lineHeight": "$line-height-normal"
+                },
+                {
+                  "type": "text",
+                  "id": "SYNC088",
+                  "name": "우디 향 디퓨저",
+                  "content": "우디 향 디퓨저",
+                  "fill": "$color-text-primary",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-16",
+                  "fontWeight": "$font-weight-bold",
+                  "lineHeight": "$line-height-normal"
+                },
+                {
+                  "type": "text",
+                  "id": "SYNC089",
+                  "name": "39,000원",
+                  "content": "39,000원",
+                  "fill": "$color-text-secondary",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-14",
+                  "fontWeight": "$font-weight-regular",
+                  "lineHeight": "$line-height-normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "SYNC102",
+      "x": 8356,
+      "y": 16880,
+      "name": "CURRENT · M4 · 펀딩 취소 결과",
+      "theme": {
+        "colorDirection": "rose"
+      },
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "$color-background-default",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "SYNC100",
+          "type": "ref",
+          "ref": "wnqJ6",
+          "name": "Status Bar",
+          "width": "fill_container"
+        },
+        {
+          "id": "SYNC101",
+          "type": "ref",
+          "ref": "CPOcQ",
+          "name": "펀딩 결과 Top Bar",
+          "width": "fill_container",
+          "descendants": {
+            "qSAdV": {
+              "content": "펀딩 결과"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "SYNC099",
+          "name": "펀딩 결과 콘텐츠",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": "$space-16",
+          "padding": [
+            "$space-16",
+            "$space-20",
+            "$space-20",
+            "$space-20"
+          ],
+          "children": [
+            {
+              "type": "icon",
+              "id": "SYNC095",
+              "name": "취소",
+              "width": 64,
+              "height": 64,
+              "icon": "circle-x",
+              "library": "lucide",
+              "fill": "$color-text-secondary"
+            },
+            {
+              "type": "text",
+              "id": "SYNC096",
+              "name": "주최자가 펀딩을 취소했어요",
+              "content": "주최자가 펀딩을 취소했어요",
+              "fill": "$color-text-primary",
+              "fontFamily": "$font-body",
+              "fontSize": "$font-size-20",
+              "fontWeight": "$font-weight-bold",
+              "lineHeight": "$line-height-normal"
+            },
+            {
+              "type": "text",
+              "id": "SYNC097",
+              "name": "참여한 금액은 전액 환불됩니다. 카드사에 따라 영업일 3~5일이 걸릴 수 있어요.",
+              "content": "참여한 금액은 전액 환불됩니다. 카드사에 따라 영업일 3~5일이 걸릴 수 있어요.",
+              "fill": "$color-text-secondary",
+              "fontFamily": "$font-body",
+              "fontSize": "$font-size-14",
+              "fontWeight": "$font-weight-regular",
+              "lineHeight": "$line-height-normal"
+            },
+            {
+              "id": "SYNC098",
+              "type": "ref",
+              "ref": "c8U1g",
+              "name": "펀딩 내역 보기",
+              "width": "fill_container",
+              "height": 48,
+              "descendants": {
+                "xdcYf": {
+                  "content": "펀딩 내역 보기"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "SYNC103",
+      "x": 8794,
+      "y": 16880,
+      "name": "CURRENT · M2 · 친구 목록",
+      "theme": {
+        "colorDirection": "rose"
+      },
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "$color-background-default",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "SYNC104",
+          "type": "ref",
+          "ref": "wnqJ6",
+          "name": "Status Bar",
+          "width": "fill_container"
+        },
+        {
+          "type": "frame",
+          "id": "SYNC105",
+          "name": "친구 Top Bar",
+          "width": "fill_container",
+          "height": 56,
+          "padding": [
+            0,
+            "$space-8"
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "rectangle",
+              "id": "SYNC106",
+              "name": "아이콘 로고",
+              "width": 40,
+              "height": 40,
+              "fill": {
+                "type": "image",
+                "url": "../public/brand/trans_neonjisi_logo_icon.png",
+                "mode": "fill"
+              }
+            },
+            {
+              "type": "text",
+              "id": "SYNC107",
+              "name": "친구",
+              "content": "친구",
+              "width": "fill_container",
+              "textGrowth": "fixed-width",
+              "textAlign": "center",
+              "fill": "$color-text-primary",
+              "fontFamily": "$font-body",
+              "fontSize": "$font-size-16",
+              "fontWeight": "$font-weight-semibold"
+            },
+            {
+              "type": "frame",
+              "id": "SYNC108",
+              "name": "친구 추가",
+              "width": 40,
+              "height": 40,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "SYNC109",
+                  "name": "친구 추가 아이콘",
+                  "width": 24,
+                  "height": 24,
+                  "icon": "plus",
+                  "library": "lucide",
+                  "fill": "$color-text-brand"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "SYNC110",
+          "name": "친구 콘텐츠",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": "$space-16",
+          "padding": [
+            "$space-16",
+            "$space-20",
+            "$space-20",
+            "$space-20"
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "SYNC111",
+              "name": "다가오는 친구 일정",
+              "content": "다가오는 친구 일정",
+              "fill": "$color-text-primary",
+              "fontFamily": "$font-body",
+              "fontSize": "$font-size-16",
+              "fontWeight": "$font-weight-bold",
+              "lineHeight": "$line-height-normal"
+            },
+            {
+              "type": "frame",
+              "id": "SYNC115",
+              "name": "민지 생일 카드",
+              "width": "fill_container",
+              "fill": "$color-background-surface",
+              "cornerRadius": 20,
+              "layout": "vertical",
+              "gap": "$space-8",
+              "padding": "$space-16",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "SYNC112",
+                  "name": "다가오는 일정",
+                  "content": "다가오는 일정",
+                  "fill": "$color-text-brand",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-12",
+                  "fontWeight": "$font-weight-semibold",
+                  "lineHeight": "$line-height-normal"
+                },
+                {
+                  "type": "text",
+                  "id": "SYNC113",
+                  "name": "민지 생일",
+                  "content": "민지 생일",
+                  "fill": "$color-text-primary",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-16",
+                  "fontWeight": "$font-weight-bold",
+                  "lineHeight": "$line-height-normal"
+                },
+                {
+                  "type": "text",
+                  "id": "SYNC114",
+                  "name": "2026-09-18 · D-13",
+                  "content": "2026-09-18 · D-13",
+                  "fill": "$color-text-secondary",
+                  "fontFamily": "$font-body",
+                  "fontSize": "$font-size-14",
+                  "fontWeight": "$font-weight-regular",
+                  "lineHeight": "$line-height-normal"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "SYNC116",
+              "name": "친구 3명",
+              "content": "친구 3명",
+              "fill": "$color-text-primary",
+              "fontFamily": "$font-body",
+              "fontSize": "$font-size-16",
+              "fontWeight": "$font-weight-bold",
+              "lineHeight": "$line-height-normal"
+            },
+            {
+              "type": "frame",
+              "id": "SYNC117",
+              "name": "친구 목록",
+              "width": "fill_container",
+              "fill": "$color-background-surface",
+              "cornerRadius": 20,
+              "layout": "vertical",
+              "padding": [
+                "$space-4",
+                "$space-16"
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "SYNC120",
+                  "name": "김민지 카드",
+                  "width": "fill_container",
+                  "fill": "$color-background-surface",
+                  "cornerRadius": 20,
+                  "layout": "vertical",
+                  "gap": "$space-8",
+                  "padding": "$space-16",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "SYNC118",
+                      "name": "김민지",
+                      "content": "김민지",
+                      "fill": "$color-text-primary",
+                      "fontFamily": "$font-body",
+                      "fontSize": "$font-size-16",
+                      "fontWeight": "$font-weight-bold",
+                      "lineHeight": "$line-height-normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "SYNC119",
+                      "name": "커피 · 우디 향 · 러닝",
+                      "content": "커피 · 우디 향 · 러닝",
+                      "fill": "$color-text-secondary",
+                      "fontFamily": "$font-body",
+                      "fontSize": "$font-size-14",
+                      "fontWeight": "$font-weight-regular",
+                      "lineHeight": "$line-height-normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "SYNC123",
+                  "name": "이서연 카드",
+                  "width": "fill_container",
+                  "fill": "$color-background-surface",
+                  "cornerRadius": 20,
+                  "layout": "vertical",
+                  "gap": "$space-8",
+                  "padding": "$space-16",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "SYNC121",
+                      "name": "이서연",
+                      "content": "이서연",
+                      "fill": "$color-text-primary",
+                      "fontFamily": "$font-body",
+                      "fontSize": "$font-size-16",
+                      "fontWeight": "$font-weight-bold",
+                      "lineHeight": "$line-height-normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "SYNC122",
+                      "name": "향수 · 독서",
+                      "content": "향수 · 독서",
+                      "fill": "$color-text-secondary",
+                      "fontFamily": "$font-body",
+                      "fontSize": "$font-size-14",
+                      "fontWeight": "$font-weight-regular",
+                      "lineHeight": "$line-height-normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "SYNC126",
+                  "name": "박지훈 카드",
+                  "width": "fill_container",
+                  "fill": "$color-background-surface",
+                  "cornerRadius": 20,
+                  "layout": "vertical",
+                  "gap": "$space-8",
+                  "padding": "$space-16",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "SYNC124",
+                      "name": "박지훈",
+                      "content": "박지훈",
+                      "fill": "$color-text-primary",
+                      "fontFamily": "$font-body",
+                      "fontSize": "$font-size-16",
+                      "fontWeight": "$font-weight-bold",
+                      "lineHeight": "$line-height-normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "SYNC125",
+                      "name": "운동 · 게임",
+                      "content": "운동 · 게임",
+                      "fill": "$color-text-secondary",
+                      "fontFamily": "$font-body",
+                      "fontSize": "$font-size-14",
+                      "fontWeight": "$font-weight-regular",
+                      "lineHeight": "$line-height-normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "SYNC127",
+          "type": "ref",
+          "ref": "rrpkH",
+          "name": "친구 탭 Bottom Navigation",
+          "width": "fill_container"
         }
       ]
     }
