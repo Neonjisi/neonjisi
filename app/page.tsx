@@ -1,4 +1,6 @@
 import { LinkButton } from "@/components/ui/button";
+import Link from "next/link";
+import { Bell } from "lucide-react";
 import { LoginErrorNotice } from "@/app/login/login-buttons";
 import { FundingCard } from "@/components/funding/funding-card";
 import { BottomNav } from "@/components/ui/bottom-nav";
@@ -8,6 +10,7 @@ import { BrandLogo } from "@/components/ui/brand-logo";
 import { GiftCountdown } from "@/components/gift/countdown";
 import { getPendingRequestsForMe } from "@/lib/dal/gift";
 import { getUpcomingEvents } from "@/lib/dal/event";
+import { getUnreadCount } from "@/lib/dal/notification";
 
 /**
  * 랜딩 (SCR-M0-01) — 비로그인 첫 화면. 로그인 상태 리다이렉트는 인증 연동 시 proxy.ts가 맡는다.
@@ -20,18 +23,36 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
   const session = await getOptionalSession();
 
   if (session) {
-    const [fundings, pendingGifts, upcomingEvents] = await Promise.all([
+    const [fundings, pendingGifts, upcomingEvents, unreadCount] = await Promise.all([
       getHomeFundings(),
       getPendingRequestsForMe(),
       getUpcomingEvents(),
+      getUnreadCount(),
     ]);
     return (
       <>
         <main className="flex-1 px-5 pb-8 pt-7">
-          <header className="flex items-center gap-1">
-            <h1 className="sr-only">넌지시</h1>
-            <BrandLogo href="/" priority />
-            <BrandLogo variant="typo" priority className="-ml-3" />
+          <header className="flex items-center justify-between">
+            <div className="flex items-center gap-1">
+              <h1 className="sr-only">넌지시</h1>
+              <BrandLogo href="/" priority />
+              <BrandLogo variant="typo" priority className="-ml-3" />
+            </div>
+            <Link
+              href="/notifications?from=home"
+              aria-label={unreadCount > 0 ? `알림, 읽지 않은 알림 ${unreadCount}개` : "알림"}
+              className="relative grid size-10 shrink-0 place-items-center rounded-full text-neutral-900 active:bg-neutral-100"
+            >
+              <Bell size={24} aria-hidden />
+              {unreadCount > 0 ? (
+                <span
+                  aria-hidden
+                  className="absolute right-0 top-0 grid min-h-[18px] min-w-[18px] place-items-center rounded-full bg-rose-500 px-1 text-[10px] font-bold leading-none text-white"
+                >
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              ) : null}
+            </Link>
           </header>
           {pendingGifts.length ? (
             <section className="mt-8" aria-labelledby="pending-gifts">

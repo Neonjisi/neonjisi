@@ -50,11 +50,14 @@ export function FundingContributeForm({
       <div className="mt-3 flex flex-wrap gap-2">
         {chips.map((chip) => <button key={chip} type="button" onClick={() => setAmount(String(chip))} className="rounded-full border border-neutral-200 bg-surface px-4 py-2 text-sm font-semibold">{chip === remaining ? `${formatPrice(chip)} 전액` : formatPrice(chip)}</button>)}
       </div>
-      <p className="mt-4 text-sm text-neutral-600">남은 금액 <strong className="text-neutral-900">{formatPrice(remaining)}</strong></p>
+      <div className="mt-4 flex items-center justify-between p-1">
+        <span className="text-base font-semibold text-neutral-900">남은 금액</span>
+        <strong className="text-xl font-bold text-neutral-900">{formatPrice(remaining)}</strong>
+      </div>
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        <p className="rounded-[14px] bg-info-50 p-4 text-sm text-info-700">참여 금액은 {receiverDisplayName}님과 주최자에게 공개됩니다.</p>
-        <p className="rounded-[14px] bg-warning-50 p-4 text-sm text-warning-700">달성선에 못 미치면 전액 환불됩니다.</p>
+      <div className="mt-6 grid gap-2 sm:grid-cols-2">
+        <p className="py-1 text-sm text-info-700">참여 금액은 {receiverDisplayName}님과 주최자에게 공개됩니다.</p>
+        <p className="py-1 text-sm text-warning-700">달성선에 못 미치면 전액 환불됩니다.</p>
       </div>
       <p className="mt-5 text-sm">결제수단 <strong>{cardLabel}</strong> <Link href={`/payment-methods?returnTo=${encodeURIComponent(`/fundings/${fundingId}/contribute`)}`} className="ml-2 text-rose-700">변경</Link></p>
       {error ? <p role="alert" className="mt-4 text-sm font-semibold text-error-700">{error}</p> : null}

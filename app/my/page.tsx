@@ -22,7 +22,7 @@ const MAIN_MENU: { label: string; href: string }[] = [
 ];
 
 const SUB_MENU: { label: string; href: string }[] = [
-  { label: "알림 설정", href: "#" },
+  { label: "알림 설정", href: "/settings" },
   { label: "약관 · 개인정보처리방침", href: "#" },
 ];
 
