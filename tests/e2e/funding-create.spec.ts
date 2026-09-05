@@ -1,6 +1,6 @@
 /**
  * M4 T017 — 펀딩 개설은 화면보다 테스트를 먼저 둔다.
- * 친구 대상은 3단계(차액 동의), 본인 대상은 달성선을 잠근 2단계다.
+ * 친구 대상은 3단계(차액 동의), 본인 대상은 최소 달성 금액을 잠근 2단계다.
  */
 import { expect, test } from './fixtures/auth'
 import { becomeFriends, ensureOnboarded, removeAllFriends } from './fixtures/friend-ui'
@@ -77,12 +77,12 @@ test.describe('M4 US1 — 펀딩을 연다', () => {
     await authedPage.getByRole('button', { name: '다음' }).click()
 
     await authedPage.getByLabel('목표 금액').fill('400000')
-    await authedPage.getByLabel('최소 달성선').fill('250000')
+    await authedPage.getByLabel('최소 달성 금액').fill('250000')
     const tomorrow = new Date(Date.now() + 86_400_000).toISOString().slice(0, 10)
     await authedPage.getByLabel('마감일').fill(tomorrow)
     await authedPage.getByRole('button', { name: '다음' }).click()
 
-    await expect(authedPage.getByText('최대 150,000원', { exact: true })).toBeVisible()
+    await expect(authedPage.getByText('내가 부담하는 금액은 최대 150,000원입니다.')).toBeVisible()
     const start = authedPage.getByRole('button', { name: '펀딩 시작하기' })
     await expect(start).toBeDisabled()
     await authedPage.getByRole('checkbox', { name: /동의/ }).check()
@@ -93,13 +93,13 @@ test.describe('M4 US1 — 펀딩을 연다', () => {
     await expect(authedPage.getByText('250,000원').first()).toBeVisible()
   })
 
-  test('나에게 열면 달성선을 목표와 같게 잠그고 2단계로 끝낸다', async ({ authedPage }) => {
+  test('나에게 열면 최소 달성 금액을 목표와 같게 잠그고 2단계로 끝낸다', async ({ authedPage }) => {
     await ensureOnboarded(authedPage)
     await openFirstProduct(authedPage)
     await authedPage.getByText('나에게', { exact: true }).click()
     await authedPage.getByRole('button', { name: '다음' }).click()
     await authedPage.getByLabel('목표 금액').fill('400000')
-    await expect(authedPage.getByLabel('최소 달성선')).toBeDisabled()
+    await expect(authedPage.getByLabel('최소 달성 금액')).toBeDisabled()
     await expect(authedPage.getByText('목표 금액과 동일')).toBeVisible()
     const start = authedPage.getByRole('button', { name: '펀딩 시작하기' })
     await expect(start).toBeVisible()
@@ -116,9 +116,9 @@ test.describe('M4 US1 — 펀딩을 연다', () => {
     await authedPage.getByLabel('받는 사람').selectOption(bId)
     await authedPage.getByRole('button', { name: '다음' }).click()
     await authedPage.getByLabel('목표 금액').fill('100000')
-    await authedPage.getByLabel('최소 달성선').fill('200000')
+    await authedPage.getByLabel('최소 달성 금액').fill('200000')
     await authedPage.getByLabel('마감일').fill('2020-01-01')
     await authedPage.getByRole('button', { name: '다음' }).click()
-    await expect(authedPage.getByText('최소 달성선은 목표 금액보다 클 수 없어요')).toBeVisible()
+    await expect(authedPage.getByText('최소 달성 금액은 목표 금액보다 클 수 없어요')).toBeVisible()
   })
 })

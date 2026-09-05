@@ -63,13 +63,13 @@ const NOTICE = {
 /** 화면 문구 — SCR-M4-04 상세의 STATUS_COPY · SCR-M4-07 결과 3변형 */
 const SCREEN = {
   settled: '선물이 확정되었어요',
-  failed: '달성선에 못 미쳐 취소됐어요',
-  cancelled: '주최자가 취소했어요',
+  failed: '최소 달성 금액을 못 채워 취소됐어요',
+  cancelled: '펀딩을 취소했어요',
   resultSucceeded: '펀딩이 성사됐어요',
   resultFailed: '최소 달성 금액을 채우지 못했어요',
-  resultCancelled: '주최자가 펀딩을 취소했어요',
-  resultRefund: '참여하신 금액은 전액 환불됩니다.',
-  resultTopup: new RegExp(`차액 ${won(TOPUP)}이 등록된 카드로 결제되었습니다`),
+  resultCancelled: '펀딩이 취소됐어요',
+  resultRefund: '참여하신 금액은 전액 환불돼요.',
+  resultTopup: new RegExp(`차액 ${won(TOPUP)}이 등록된 카드로 결제됐어요`),
 } as const
 
 /** 개설 폼의 `min` 과 같은 방식으로 내일을 만든다 — 다르게 계산하면 date 입력이 거부한다 */
@@ -163,13 +163,15 @@ async function openFunding(page: Page, minAmount: number): Promise<string> {
 
   // 2스텝 — 목표·달성선·마감일. 마감은 미래로 넣는다 (과거는 개설이 거부한다 — V1-4)
   await page.getByLabel('목표 금액').fill(String(GOAL))
-  await page.getByLabel('최소 달성선').fill(String(minAmount))
+  await page.getByLabel('최소 달성 금액').fill(String(minAmount))
   await page.getByLabel('마감일').fill(tomorrowISO())
   await page.getByRole('button', { name: '다음' }).click()
 
   // 3스텝 — 차액 동의. 최대 부담액은 숫자로 보이고, 체크 전에는 개설 버튼이 비활성이다 (FR-004)
-  // 동의 문장에도 같은 금액이 "…최대 N원까지…" 로 들어 있어 exact 로 굵은 금액 줄만 잡는다
-  await expect(page.getByText(`최대 ${won(GOAL - minAmount)}`, { exact: true })).toBeVisible()
+  // T002 확정문부터 최대 부담액은 동의문 문장 안에 있다 — 굵은 금액 줄은 중복이라 걷어냈다
+  await expect(
+    page.getByText(`내가 부담하는 금액은 최대 ${won(GOAL - minAmount)}입니다.`),
+  ).toBeVisible()
   const start = page.getByRole('button', { name: '펀딩 시작하기' })
   await expect(start).toBeDisabled()
   await page.getByRole('checkbox', { name: /동의/ }).check()
@@ -184,7 +186,7 @@ async function openFunding(page: Page, minAmount: number): Promise<string> {
 async function contribute(page: Page, fundingId: string, amount: number): Promise<void> {
   await page.goto(`/fundings/${fundingId}/contribute`)
   // 고지 2종은 나란히 선다 (T002 문구 · FR-011)
-  await expect(page.getByText(/주최자에게 공개됩니다/)).toBeVisible()
+  await expect(page.getByText(/주최자에게만 공개됩니다/)).toBeVisible()
   await expect(page.getByText(/전액 환불됩니다/)).toBeVisible()
 
   await page.getByLabel('참여 금액').fill(String(amount))
@@ -311,7 +313,11 @@ test.describe('US3 — 마감이 성사·미달을 가르고 돈이 정리된다
     // **누르기 전에** 걸어야 한다. 안 걸면 Playwright 가 자동으로 닫아 아무 일도 일어나지 않는다.
     organizer.once('dialog', (dialog) => void dialog.accept())
     await organizer.getByRole('menuitem', { name: '펀딩 취소' }).click()
-    await expect(organizer.getByLabel('펀딩 진행 상황')).toContainText(SCREEN.cancelled)
+    // 취소는 settleFunding() 을 타고 환불·알림까지 돈 뒤에야 router.refresh() 가 반영된다 —
+    // 기본 5초로는 모자란다. 같은 취소를 검사하는 funding-history.spec.ts 와 같은 예산을 준다.
+    await expect(organizer.getByLabel('펀딩 진행 상황')).toContainText(SCREEN.cancelled, {
+      timeout: 20_000,
+    })
 
     // 취소는 미달과 **다른 문구**로 간다 — 같은 종류를 reason·cause 로 가른다 (FR-018)
     await expectNotice(contributor, fundingId, NOTICE.cancelledByOrganizer)
