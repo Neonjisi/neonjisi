@@ -57,3 +57,7 @@ idation.rtf
 
 # git worktree (세션별 병렬 작업용)
 /.worktrees/
+
+# 상품 사진 원본 (제출 전 변환 소스) — public/products/ 의 webp 만 추적한다.
+# 원본은 6.5MB 이고 변환 결과는 1.6MB 다. 둘 다 넣을 이유가 없다.
+/product-photos/
