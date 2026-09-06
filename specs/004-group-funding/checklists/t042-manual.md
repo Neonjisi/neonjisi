@@ -79,7 +79,9 @@
   `invite-control:144`(A 의 활성 초대 링크 `usedCount=13` 인데 "1명 사용" 기대 —
   `getOrCreateActiveInviteLink()` 가 링크를 재사용하니 누적된다, FR-004) ·
   `invite-control:282`·`:302`(알림이 안 비워진다 — e2e2 에 126건) ·
-  `gift-request:174`(대체 상품 배송지 입력 후 `/result` 로 넘어가지 않고
-  `/respond/shipping?counterProductId=…` 에 머문다 — **이건 화면 동작 쪽일 수 있어 따로 봐야 한다**).
-  T042 수동 검증을 막지는 않는다.
+  `gift-request:174` 는 **해결됐다** — 화면 동작이 아니라 예산이었다. 실패 건을 DB 에서
+  열어보니 `resolution=COUNTERED` · `counterAmount=12,000` · `status=PAID` · 결제 `PAID` ·
+  배송지 스냅샷까지 전부 정상이었고, `/result` 로의 RSC 이동만 `toHaveURL` 기본 5초를
+  넘겼다. 두 단언에 20초를 줘서 통과한다.
+  T042 수동 검증을 막는 것은 없다.
 - T044(문구 확정 반영)가 끝난 뒤 만든 목록이다 — 검증이 옛 문구를 보지 않는다.

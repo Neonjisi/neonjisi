@@ -167,7 +167,10 @@ test.describe('US3 — 선물 요청을 보낸다', () => {
     await pageB.getByLabel('주소', { exact: true }).fill('서울시 테스트로 1')
     await pageB.getByLabel('상세 주소').fill('101호')
     await pageB.getByRole('button', { name: '완료' }).click()
-    await expect(pageB).toHaveURL(/\/gifts\/[0-9a-f-]{36}\/result$/)
+    // 완료 한 번에 (응답 확정 + 자동 결제 + RSC 이동)이 이어진다. 셋 다 시드니 DB 를
+    // 왕복하므로 expect 기본 5초로는 모자란다 — 2026-09-06 실패 건을 DB 에서 열어보니
+    // status=PAID · 결제 PAID · 배송지 스냅샷까지 전부 정상이었고, 화면 이동만 늦었다.
+    await expect(pageB).toHaveURL(/\/gifts\/[0-9a-f-]{36}\/result$/, { timeout: 20_000 })
     await expect(pageB.getByText(/선물이 확정됐어요|결제가 완료됐어요/)).toBeVisible()
   })
 
@@ -197,6 +200,9 @@ test.describe('US3 — 선물 요청을 보낸다', () => {
     await pageB.getByLabel('연락처').fill('01012345678')
     await pageB.getByLabel('주소', { exact: true }).fill('서울시 테스트로 1')
     await pageB.getByRole('button', { name: '완료' }).click()
-    await expect(pageB).toHaveURL(/\/gifts\/[0-9a-f-]{36}\/result$/)
+    // 완료 한 번에 (응답 확정 + 자동 결제 + RSC 이동)이 이어진다. 셋 다 시드니 DB 를
+    // 왕복하므로 expect 기본 5초로는 모자란다 — 2026-09-06 실패 건을 DB 에서 열어보니
+    // status=PAID · 결제 PAID · 배송지 스냅샷까지 전부 정상이었고, 화면 이동만 늦었다.
+    await expect(pageB).toHaveURL(/\/gifts\/[0-9a-f-]{36}\/result$/, { timeout: 20_000 })
   })
 })
