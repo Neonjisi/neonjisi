@@ -171,7 +171,13 @@ test.describe('US3 — 선물 요청을 보낸다', () => {
     // 왕복하므로 expect 기본 5초로는 모자란다 — 2026-09-06 실패 건을 DB 에서 열어보니
     // status=PAID · 결제 PAID · 배송지 스냅샷까지 전부 정상이었고, 화면 이동만 늦었다.
     await expect(pageB).toHaveURL(/\/gifts\/[0-9a-f-]{36}\/result$/, { timeout: 20_000 })
-    await expect(pageB.getByText(/선물이 확정됐어요|결제가 완료됐어요/)).toBeVisible()
+    // heading 으로 잡는다 — 이동이 끝나면 Next 의 라우트 안내자
+    // (`div role=alert #__next-route-announcer__`)가 같은 문구를 스크린리더용으로 복제해
+    // getByText 가 2개에 걸린다. 결과 화면의 두 변형은 같은 h1 안에 있다
+    // (app/gifts/[id]/result/page.tsx:67 — 주는 쪽 "결제가 완료됐어요" / 받는 쪽 "선물이 확정됐어요").
+    await expect(
+      pageB.getByRole('heading', { name: /선물이 확정됐어요|결제가 완료됐어요/ }),
+    ).toBeVisible()
   })
 
   test('수령자가 요청 금액 이하의 다른 상품을 골라 자동 결제한다', async ({
