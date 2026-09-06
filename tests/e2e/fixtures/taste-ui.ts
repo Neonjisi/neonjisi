@@ -2,12 +2,15 @@
  * 취향 화면 E2E 헬퍼 — 셀렉터는 전부 role · label · text · placeholder 로 잡는다
  * (data-testid 없음). 화면 문구가 바뀌면 여기만 고친다.
  *
- * 테스트 계정은 하나뿐이고 e2e 에서는 DB 를 직접 만지지 않으므로(DAL·prisma import 금지),
- * 상태 초기화도 **UI 로** 한다: /taste 에서 행을 탭 → 삭제 → 확인을 반복해 항목을 전부 지우면
- * 마지막 HAVE/UNWANTED 삭제가 온보딩을 미완료로 되돌리고(US4-3), 그 뒤 /taste 는
- * /onboarding 으로 리다이렉트된다(FR-018) — 그것이 초기화의 종료 조건이다.
+ * 상태를 **만드는** 일은 전부 UI 로 한다 (DAL·prisma import 금지). **지우는** 일만 예외로
+ * DB 를 쓴다 — `resetAccount` 가 `taste-db.ts` 에 위임한다 (T029, 이유는 그 파일 머리말).
+ * 종료 조건은 예전 UI 반복 삭제 판과 같다: 항목이 0건이면 온보딩이 미완료로 돌아가고
+ * (US4-3), 그 뒤 /taste 는 /onboarding 으로 리다이렉트된다 (FR-018).
  */
 import { expect, type Locator, type Page } from '@playwright/test'
+
+import { sessionUserId } from './auth'
+import { resetTasteProfile } from './taste-db'
 
 /** prisma/seed.ts 의 앞 12개 — 온보딩 1/3 에서 '더보기' 없이 바로 보이는 대분류 */
 export const CATEGORY = {
@@ -153,16 +156,6 @@ export async function openEditSheet(
   return dialog
 }
 
-async function openEditSheetFromRow(
-  page: Page,
-  sectionName: SectionName,
-  rowLocator: Locator,
-): Promise<Locator> {
-  const dialog = sheet(page, sheetTitleFor(sectionName, true))
-  await clickAndSee(rowLocator, dialog)
-  return dialog
-}
-
 /** 시트의 저장 → 시트가 닫히면 성공 (실패면 시트가 남고 role=alert 가 뜬다, FR-016) */
 export async function saveSheet(dialog: Locator): Promise<void> {
   await dialog.getByRole('button', { name: '저장', exact: true }).click()
@@ -221,56 +214,30 @@ export async function setDescription(page: Page, text: string): Promise<void> {
   await saveSheet(dialog)
 }
 
-async function clearDescriptionIfNeeded(page: Page): Promise<void> {
-  const hint = section(page, '취향 서술').getByText(TEXT.descriptionHint)
-  if (await hint.isVisible()) return
-  await setDescription(page, '')
-  await expect(hint).toBeVisible()
-}
-
 // ── 상태 초기화 · 온보딩 ────────────────────────────────────────────────────────
 
-/** 삭제 순서 — WANT 를 먼저 지워야 마지막 HAVE/UNWANTED 삭제 뒤에 남는 것이 없다 */
-const RESET_ORDER: SectionName[] = [SECTION.WANT, SECTION.HAVE, SECTION.UNWANTED]
-
 /**
- * 테스트 계정을 **온보딩 미완료 · 항목 0건 · 서술 없음** 으로 되돌린다.
- * 종료 조건: /taste 진입이 /onboarding 으로 리다이렉트된다 (FR-018).
+ * 테스트 계정을 **온보딩 미완료 · 항목 0건 · 서술 없음** 으로 되돌린다 (T029).
+ * 종료 조건은 그대로다: /taste 진입이 /onboarding 으로 리다이렉트된다 (FR-018).
  *
- * 처음부터 미완료 상태라면 `원하는 것`이 숨어 남아 있을 수 있다(온보딩 판정과 무관, FR-008).
- * /taste 없이는 지울 수 없으므로 최소 온보딩으로 화면을 연 뒤 전부 지운다.
+ * 지우는 일은 `taste-db.ts` 가 DB 로 한다. 예전 판은 /taste 를 최대 305번 다시 열며
+ * 항목을 한 건씩 지웠고, 그래서 앞 테스트가 쌓아 둔 만큼 뒤 테스트가 느려지는 순서
+ * 의존이 생겼다 (`friend-invite.spec.ts` 뒤쪽 6개가 파일 전체 실행에서만 90초 초과).
+ *
+ * `원하는 것`이 숨어 남는 경우(온보딩 미완료라 /taste 를 못 여는 상태, FR-008)를 위해
+ * 최소 온보딩을 먼저 밟던 우회도 함께 없앴다 — DB 삭제는 화면을 거치지 않는다.
+ *
+ * 마지막 한 줄이 예전 판의 안전장치를 대신한다: 지웠는데도 /taste 가 열린다면 화면과
+ * DAL 의 온보딩 판정이 어긋난 것이고, 그건 이 초기화가 잡아야 할 결함이다.
  */
 export async function resetAccount(page: Page): Promise<void> {
+  await resetTasteProfile(await sessionUserId(page))
+
   await page.goto('/taste')
-  await expect(page).toHaveURL(/\/(taste|onboarding)(\?.*)?$/)
-  if (URLS.onboarding.test(page.url())) {
-    await completeOnboarding(page, [{ category: CATEGORY.TUMBLER, kind: 'HAVE' }])
-  }
-
-  // 종류별 상한 100건(FR-020) × 3 + 여유
-  const MAX_ITERATIONS = 3 * 100 + 5
-  for (let iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
-    await page.goto('/taste')
-    await expect(page).toHaveURL(/\/(taste|onboarding)(\?.*)?$/)
-    if (URLS.onboarding.test(page.url())) return
-
-    await expect(heading(page, TEXT.tasteTitle)).toBeVisible()
-    if (iteration === 0) await clearDescriptionIfNeeded(page)
-
-    let deleted = false
-    for (const sectionName of RESET_ORDER) {
-      const sectionRows = rows(page, sectionName)
-      if ((await sectionRows.count()) === 0) continue
-      const dialog = await openEditSheetFromRow(page, sectionName, sectionRows.first())
-      await confirmDeleteFromSheet(page, dialog)
-      deleted = true
-      break
-    }
-    if (!deleted) {
-      throw new Error('온보딩 완료 상태인데 삭제할 항목이 없다 — 화면과 DAL 의 온보딩 판정이 어긋났다')
-    }
-  }
-  throw new Error(`항목 삭제를 ${MAX_ITERATIONS}회 반복해도 온보딩 미완료로 돌아가지 않았다`)
+  await expect(
+    page,
+    '초기화 뒤에도 /taste 가 열린다 — 화면과 DAL 의 온보딩 판정이 어긋났다 (FR-018)',
+  ).toHaveURL(URLS.onboarding)
 }
 
 export type OnboardingItem = { category: string; kind: OnboardingKind; detail?: string }
