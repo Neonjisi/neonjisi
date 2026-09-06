@@ -93,6 +93,9 @@ test.describe('M4 US4 — 결과·내역·홈', () => {
   })
 
   test('진행 중 펀딩이 홈과 내역에 나오고 취소 결과가 구분된다', async ({ authedPage: page }) => {
+    // 개설 → 홈 → 내역 → 취소 → 결과까지 한 테스트가 도는 여정이라 90초 기본 예산을 넘긴다
+    // (실측 1.5분). funding-settle.spec.ts 의 긴 정산 테스트들과 같은 처리다.
+    test.slow()
     await ensureOnboarded(page)
     const { url, productName } = await createSelfFunding(page)
 

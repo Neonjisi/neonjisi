@@ -1,6 +1,6 @@
 import { expect, test } from './fixtures/auth'
 import type { Locator, Page } from '@playwright/test'
-import { becomeFriends, ensureOnboarded } from './fixtures/friend-ui'
+import { becomeFriends, ensureOnboarded, removeAllFriends } from './fixtures/friend-ui'
 import {
   closeGiftDb,
   deleteE2ETestEvents,
@@ -53,6 +53,8 @@ test.describe('US6 — 홈 액션 허브와 일정·내역', () => {
     test.setTimeout(180_000)
     await ensureOnboarded(pageA)
     await ensureOnboarded(pageB)
+    await removeAllFriends(pageA)
+    await removeAllFriends(pageB)
     const { aId, bId } = await becomeFriends(pageA, pageB)
     await expirePendingGiftsBetween(aId, bId)
     await pageB.goto('/') // 조회가 이전 실행의 요청을 EXPIRED로 확정한다
@@ -82,6 +84,8 @@ test.describe('US6 — 홈 액션 허브와 일정·내역', () => {
   }) => {
     await ensureOnboarded(pageA)
     await ensureOnboarded(pageB)
+    await removeAllFriends(pageA)
+    await removeAllFriends(pageB)
     const { bId } = await becomeFriends(pageA, pageB)
     await deleteE2ETestEvents(bId)
 

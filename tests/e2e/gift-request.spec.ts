@@ -24,7 +24,7 @@
  */
 import type { Locator, Page } from '@playwright/test'
 import { expect, test } from './fixtures/auth'
-import { becomeFriends, ensureOnboarded } from './fixtures/friend-ui'
+import { becomeFriends, ensureOnboarded, removeAllFriends } from './fixtures/friend-ui'
 
 const PENDING_SCREENS_REASON =
   'US3 화면 의존 대기 — H 의 카탈로그(T022~)·요청 화면(T039~T041) · D 의 결제수단 등록(SCR-M3-06)'
@@ -97,6 +97,8 @@ test.describe('US3 — 선물 요청을 보낸다', () => {
     await skipUntilScreensExist(pageA)
     await ensureOnboarded(pageA)
     await ensureOnboarded(pageB)
+    await removeAllFriends(pageA)
+    await removeAllFriends(pageB)
     const { bId } = await becomeFriends(pageA, pageB)
 
     await ensurePaymentMethod(pageA)
@@ -147,6 +149,8 @@ test.describe('US3 — 선물 요청을 보낸다', () => {
   }) => {
     await ensureOnboarded(pageA)
     await ensureOnboarded(pageB)
+    await removeAllFriends(pageA)
+    await removeAllFriends(pageB)
     const { bId } = await becomeFriends(pageA, pageB)
     await ensurePaymentMethod(pageA)
     await startGiftRequest(pageA, bId)
@@ -173,6 +177,8 @@ test.describe('US3 — 선물 요청을 보낸다', () => {
   }) => {
     await ensureOnboarded(pageA)
     await ensureOnboarded(pageB)
+    await removeAllFriends(pageA)
+    await removeAllFriends(pageB)
     const { bId } = await becomeFriends(pageA, pageB)
     await ensurePaymentMethod(pageA)
     await startGiftRequest(pageA, bId)

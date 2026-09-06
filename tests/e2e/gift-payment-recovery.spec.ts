@@ -17,7 +17,7 @@
  */
 import type { Page } from '@playwright/test'
 import { expect, test } from './fixtures/auth'
-import { becomeFriends, ensureOnboarded } from './fixtures/friend-ui'
+import { becomeFriends, ensureOnboarded, removeAllFriends } from './fixtures/friend-ui'
 
 const FAILING_CARD_LAST4 = '0000'
 const GOOD_CARD_LAST4 = '4821'
@@ -66,6 +66,8 @@ test.describe('US5 — 결제 실패에서 복구한다', () => {
   test('V7 · 0000 카드로 실패 → 수단 변경 재시도 → 성공', async ({ authedPage, friendPage }) => {
     await ensureOnboarded(authedPage)
     await ensureOnboarded(friendPage)
+    await removeAllFriends(authedPage)
+    await removeAllFriends(friendPage)
     const { bId } = await becomeFriends(authedPage, friendPage)
     await registerCard(authedPage, FAILING_CARD_LAST4)
 
