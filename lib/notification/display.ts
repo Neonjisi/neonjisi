@@ -49,7 +49,7 @@ function isFundingView(view: NotificationView): view is FundingNotificationView 
 function messageAndHref(view: NotificationView): { message: string; href: string } {
   if (view.type === 'FRIEND_JOINED_VIA_LINK') {
     return {
-      message: `${view.payload.friendDisplayName}님이 링크로 친구가 되었습니다`,
+      message: `${view.payload.friendDisplayName}님이 링크로 친구가 되었어요`,
       href: `/friends/${view.payload.friendUserId}`,
     }
   }
@@ -62,7 +62,7 @@ function messageAndHref(view: NotificationView): { message: string; href: string
   switch (view.type) {
     case 'GIFT_REQUEST_RECEIVED':
       return {
-        message: `${counterpartDisplayName}님의 ${productName} 선물 요청이 도착했습니다`,
+        message: `${counterpartDisplayName}님의 ${productName} 선물 요청이 도착했어요`,
         href: giftHref,
       }
     case 'GIFT_COUNTERED':

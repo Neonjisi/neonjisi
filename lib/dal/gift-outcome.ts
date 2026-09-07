@@ -79,7 +79,7 @@ export type GiftResultView = {
   productImageUrl: string | null
   /** 실제로 청구된(또는 청구될) 금액 — 대안이면 대안 금액이다 */
   amount: number
-  /** 대안으로 확정됐는지 — "차액은 청구되지 않았습니다" 고지의 조건 */
+  /** 대안으로 확정됐는지 — "차액은 청구되지 않았어요" 고지의 조건 */
   isCountered: boolean
   requestedAmount: number
   counterpartDisplayName: string

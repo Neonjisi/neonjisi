@@ -30,7 +30,7 @@ export default async function NewPaymentMethodPage({
           <h2 className="text-xl font-bold leading-snug text-neutral-900">
             선물을 보내려면
             <br />
-            결제수단이 필요합니다.
+            결제수단이 필요해요.
           </h2>
           <p className="pt-2 text-sm text-neutral-600">
             한 번 등록하면 다음부터는 다시 입력하지 않습니다.

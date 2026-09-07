@@ -56,7 +56,7 @@ const CONSENT_REQUIRED_MESSAGE = '동의가 필요해요. 동의 화면에서 �
 /** 화면 명세 SCR-M3-08 진입 차단 문구 그대로 */
 const NOT_FRIENDS_MESSAGE = '친구인 사람에게만 보낼 수 있어요.'
 /** 화면 명세 SCR-M3-06 문구 그대로 */
-const NO_PAYMENT_METHOD_MESSAGE = '선물을 보내려면 결제수단이 필요합니다.'
+const NO_PAYMENT_METHOD_MESSAGE = '선물을 보내려면 결제수단이 필요해요.'
 /** 부재·비활성을 구분해 알리지 않는다 — 존재 여부가 id 탐색의 힌트가 된다 */
 const PRODUCT_UNAVAILABLE_MESSAGE = '지금은 보낼 수 없는 상품이에요.'
 const PRODUCT_UNWANTED_MESSAGE = '받는 분이 관심 없다고 한 종류의 상품이에요.'

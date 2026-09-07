@@ -118,14 +118,14 @@ test.describe('US3 — 선물 요청을 보낸다', () => {
     await sendButton(pageA).click()
 
     // ── SCR-M3-10 전송 완료 — 카운트다운이 보인다 (respond_due_at 절대 시각)
-    await expect(pageA.getByText('요청을 보냈습니다')).toBeVisible({ timeout: 15_000 })
+    await expect(pageA.getByText('요청을 보냈어요')).toBeVisible({ timeout: 15_000 })
     await expect(pageA.getByText(/남은 시간/)).toBeVisible()
 
     // ── 수령자 홈 최상단 승인 대기 + 알림 도착 (FR-038 · gift_request_received)
     await pageB.goto('/')
     await expect(pageB.getByText(/응답 기다리는 중|보낸 선물/).first()).toBeVisible()
     await pageB.goto('/notifications')
-    await expect(pageB.getByText(/선물 요청이 도착했습니다/).first()).toBeVisible()
+    await expect(pageB.getByText(/선물 요청이 도착했어요/).first()).toBeVisible()
 
     // ── SCR-M3-11 주는 사람 상세 — pending 에서만 취소할 수 있다
     await pageA.getByRole('link', { name: /요청 상세 보기/ }).click()
@@ -157,7 +157,7 @@ test.describe('US3 — 선물 요청을 보낸다', () => {
     await nextButton(pageA).click()
     await consentCheckbox(pageA).check()
     await sendButton(pageA).click()
-    await expect(pageA.getByText('요청을 보냈습니다')).toBeVisible({ timeout: 15_000 })
+    await expect(pageA.getByText('요청을 보냈어요')).toBeVisible({ timeout: 15_000 })
 
     await pageB.goto('/')
     await pageB.getByRole('link', { name: /응답 기다리는 중/ }).click()
@@ -194,7 +194,7 @@ test.describe('US3 — 선물 요청을 보낸다', () => {
     await nextButton(pageA).click()
     await consentCheckbox(pageA).check()
     await sendButton(pageA).click()
-    await expect(pageA.getByText('요청을 보냈습니다')).toBeVisible({ timeout: 15_000 })
+    await expect(pageA.getByText('요청을 보냈어요')).toBeVisible({ timeout: 15_000 })
 
     await pageB.goto('/')
     await pageB.getByRole('link', { name: /응답 기다리는 중/ }).click()

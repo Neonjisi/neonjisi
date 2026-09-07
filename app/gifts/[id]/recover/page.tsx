@@ -25,7 +25,7 @@ export const dynamic = "force-dynamic";
 
 const BLOCKED_MESSAGE: Record<RetryBlockedReason, string> = {
   NOT_FAILED: "지금은 다시 시도할 수 없는 상태예요.",
-  ATTEMPTS_EXHAUSTED: "재시도 횟수를 모두 사용해 요청이 취소되었습니다.",
+  ATTEMPTS_EXHAUSTED: "재시도 횟수를 모두 사용해 요청이 취소되었어요.",
   WINDOW_EXPIRED: "재시도 기한이 지나 더 이상 시도할 수 없어요.",
 };
 

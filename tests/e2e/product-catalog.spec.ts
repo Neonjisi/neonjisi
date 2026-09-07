@@ -44,7 +44,7 @@ test.describe('US1 — 상품 카탈로그', () => {
 
     await pageA.goto(`/products?for=${bId}&q=스타벅스`)
     await pageA.getByRole('link', { name: /스타벅스 스탠리/ }).click()
-    await expect(pageA.getByText('원하는 것에 적어둔 항목입니다')).toBeVisible()
+    await expect(pageA.getByText('원하는 것에 적어둔 항목이에요')).toBeVisible()
 
     await pageA.goto(`/products?for=${bId}&q=송월타올 호텔수건`)
     await pageA.getByRole('link', { name: /송월타올 호텔수건/ }).click()

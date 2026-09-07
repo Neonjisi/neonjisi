@@ -62,7 +62,7 @@ export default async function GiftDetailPage({
             <p className="text-sm font-semibold text-info-700">받는 분이 다른 상품을 골랐어요</p>
             <p className="mt-2 text-sm text-neutral-600">원래 상품 · {gift.productSnapshot.name} ({formatPrice(gift.requestedAmount)})</p>
             <p className="mt-1 font-semibold">최종 상품 · {gift.counterProductSnapshot.name} ({formatPrice(gift.finalAmount ?? gift.counterProductSnapshot.price)})</p>
-            <p className="mt-2 text-sm text-neutral-600">차액 {formatPrice(Math.max(0, gift.requestedAmount - (gift.finalAmount ?? gift.counterProductSnapshot.price)))}은 청구되지 않았습니다.</p>
+            <p className="mt-2 text-sm text-neutral-600">차액 {formatPrice(Math.max(0, gift.requestedAmount - (gift.finalAmount ?? gift.counterProductSnapshot.price)))}은 청구되지 않았어요.</p>
           </section>
         ) : null}
 

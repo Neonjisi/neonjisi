@@ -22,7 +22,7 @@ export default async function GiftDonePage({
       <TopBar title="전송 완료" backHref="/" />
       <div className="flex flex-1 flex-col items-center px-5 pb-4 pt-12 text-center">
         <CircleCheck size={48} className="text-success-600" aria-hidden />
-        <h2 className="mt-5 text-xl font-bold">요청을 보냈습니다</h2>
+        <h2 className="mt-5 text-xl font-bold">요청을 보냈어요</h2>
         <p className="mt-2 text-sm text-neutral-600">{gift.counterpartDisplayName}님이 확인하면 자동으로 결제됩니다.</p>
         <p className="mt-10 text-sm font-semibold text-neutral-600">남은 시간</p>
         <GiftCountdown respondDueAt={gift.respondDueAt} serverNow={gift.serverNow} className="mt-3" />

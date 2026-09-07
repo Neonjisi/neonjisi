@@ -38,7 +38,7 @@ const { NotificationList } = await import('@/components/notification/notificatio
 const UNREAD = {
   id: '11111111-1111-4111-8111-111111111111',
   href: '/friends/22222222-2222-4222-8222-222222222222',
-  message: '김민수님이 링크로 친구가 되었습니다',
+  message: '김민수님이 링크로 친구가 되었어요',
   createdAtLabel: '3분 전',
   createdAtISO: '2026-08-31T11:57:00.000Z',
   isRead: false,
@@ -64,7 +64,7 @@ describe('NotificationList (T047)', () => {
     render(<NotificationList notifications={[UNREAD, READ]} />)
 
     expect(screen.getAllByText('읽지 않음')).toHaveLength(1)
-    expect(screen.getByText(/김민수님이 링크로 친구가 되었습니다/)).toBeInTheDocument()
+    expect(screen.getByText(/김민수님이 링크로 친구가 되었어요/)).toBeInTheDocument()
     expect(screen.getByText('3분 전')).toBeInTheDocument()
 
     const links = screen.getAllByRole('link')

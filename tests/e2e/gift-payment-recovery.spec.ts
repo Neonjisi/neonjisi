@@ -55,7 +55,7 @@ async function sendGiftRequest(page: Page, receiverId: string): Promise<string> 
   await consentCheckbox.check()
   await page.getByRole('button', { name: /보내기|전송/ }).click()
 
-  await expect(page.getByText('요청을 보냈습니다')).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText('요청을 보냈어요')).toBeVisible({ timeout: 15_000 })
   const id = new URL(page.url()).searchParams.get('id')
   if (!id) throw new Error(`완료 URL에 gift id가 없다: ${page.url()}`)
   return id

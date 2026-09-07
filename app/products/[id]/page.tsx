@@ -11,7 +11,7 @@ import { safeReturnTo } from '@/lib/navigation/return-to'
 const BANNERS: Record<Exclude<MatchBanner, null>, { className: string; text: string; Icon: typeof Info }> = {
   want: {
     className: 'bg-success-50 text-success-700',
-    text: '원하는 것에 적어둔 항목입니다',
+    text: '원하는 것에 적어둔 항목이에요',
     Icon: CheckCircle2,
   },
   have: {

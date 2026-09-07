@@ -85,7 +85,7 @@ async function createPendingGift(page: Page, receiverId: string): Promise<void> 
   await page.getByRole('link', { name: '다음', exact: true }).click()
   await page.getByRole('checkbox', { name: /동의/ }).check()
   await page.getByRole('button', { name: /선물 요청 보내기/ }).click()
-  await expect(page.getByText('요청을 보냈습니다')).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText('요청을 보냈어요')).toBeVisible({ timeout: 15_000 })
 }
 
 test.describe('US2 — 결제수단', () => {
@@ -102,8 +102,8 @@ test.describe('US2 — 결제수단', () => {
     authedPage,
   }) => {
     await authedPage.goto('/payment-methods')
-    // 0건 안내 — "선물을 보내려면 결제수단이 필요합니다" (SCR-M3-07)
-    await expect(authedPage.getByText('선물을 보내려면 결제수단이 필요합니다')).toBeVisible()
+    // 0건 안내 — "선물을 보내려면 결제수단이 필요해요" (SCR-M3-07)
+    await expect(authedPage.getByText('선물을 보내려면 결제수단이 필요해요')).toBeVisible()
 
     await authedPage.goto('/payment-methods/new')
     // FR-008 — 카드번호·CVC 는 앱이 만지지 않는다. 그 사실을 화면이 말한다
@@ -124,7 +124,7 @@ test.describe('US2 — 결제수단', () => {
 
     await authedPage.goto('/payment-methods')
     await expect(cardInList(authedPage)).toBeVisible()
-    await expect(authedPage.getByText('선물을 보내려면 결제수단이 필요합니다')).toBeHidden()
+    await expect(authedPage.getByText('선물을 보내려면 결제수단이 필요해요')).toBeHidden()
     await expect(
       authedPage.getByText('등록된 결제수단으로 선물 요청이 승인되면 자동으로 결제됩니다'),
     ).toBeVisible()
@@ -146,7 +146,7 @@ test.describe('US2 — 결제수단', () => {
     await expect(authedPage.getByRole('alertdialog')).toBeHidden()
     await expect(cardInList(authedPage)).toBeHidden()
     // soft 삭제라 행은 남지만 목록에서는 사라진다 (data-model PaymentMethod.deletedAt)
-    await expect(authedPage.getByText('선물을 보내려면 결제수단이 필요합니다')).toBeVisible()
+    await expect(authedPage.getByText('선물을 보내려면 결제수단이 필요해요')).toBeVisible()
   })
 
   test('US2-3(경고) · 진행 중 요청이 이 카드를 쓰면 건수를 경고한다 (FR-011)', async ({

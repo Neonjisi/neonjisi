@@ -44,7 +44,7 @@ function ProductCard({ view }: { view: GiftResultView }) {
       {view.isCountered && view.amount < view.requestedAmount && (
         <p className="pt-2 text-xs text-neutral-500">
           처음 요청한 {formatAmount(view.requestedAmount)}과의 차액{" "}
-          {formatAmount(view.requestedAmount - view.amount)}은 청구되지 않았습니다.
+          {formatAmount(view.requestedAmount - view.amount)}은 청구되지 않았어요.
         </p>
       )}
     </div>
@@ -97,10 +97,10 @@ function ExpiredView({ view }: { view: GiftResultView }) {
       <h1 className="pt-4 text-xl font-bold text-neutral-900">응답 기한이 지났어요</h1>
       <p className="pt-2 text-sm leading-relaxed text-neutral-600">
         {isGiver
-          ? `${view.counterpartDisplayName}님이 시간 안에 확인하지 못했습니다.`
-          : "확인 시간이 지나 요청이 종료되었습니다."}
+          ? `${view.counterpartDisplayName}님이 시간 안에 확인하지 못했어요.`
+          : "확인 시간이 지나 요청이 종료되었어요."}
         <br />
-        결제는 이루어지지 않았습니다.
+        결제는 이루어지지 않았어요.
       </p>
       <div className="w-full pt-6">
         <ProductCard view={view} />
@@ -116,7 +116,7 @@ function CancelledView({ view }: { view: GiftResultView }) {
       <CircleAlert size={44} className="text-error-500" aria-hidden />
       <h1 className="pt-4 text-xl font-bold text-neutral-900">선물이 취소되었어요</h1>
       <p className="pt-2 text-sm leading-relaxed text-neutral-600">
-        결제가 완료되지 않아 요청이 취소되었습니다.
+        결제가 완료되지 않아 요청이 취소되었어요.
         <br />
         {/* S 확정 문구 — 끝난 사실만 알리고 끊지 않는다 */}
         {view.counterpartDisplayName}님께 별도로 연락해보세요.
@@ -126,7 +126,7 @@ function CancelledView({ view }: { view: GiftResultView }) {
       </div>
       {isGiver && (
         <p className="w-full pt-3 text-xs text-neutral-500">
-          청구된 금액은 없습니다. 결제수단을 확인한 뒤 다시 보낼 수 있어요.
+          청구된 금액은 없어요. 결제수단을 확인한 뒤 다시 보낼 수 있어요.
         </p>
       )}
     </>

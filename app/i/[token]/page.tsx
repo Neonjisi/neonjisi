@@ -33,7 +33,7 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-[430px] flex-col items-center justify-center px-8 pb-16 text-center">
       <span className="grid size-[80px] place-items-center rounded-full bg-success-50"><CircleCheck size={38} className="text-success-500" aria-hidden /></span>
-      <h1 className="pt-5 text-2xl font-bold">{preview.displayName}님과<br />친구가 되었습니다</h1>
+      <h1 className="pt-5 text-2xl font-bold">{preview.displayName}님과<br />친구가 되었어요</h1>
       <p className="pt-3 text-sm text-neutral-600">이제 서로의 취향을 볼 수 있어요.</p>
       <div className="w-full pt-8"><LinkButton href={`/friends/${result.data.friendUserId}`} size="lg">{preview.displayName}님 취향 보기</LinkButton><LinkButton href="/friends" variant="tertiary" className="mt-2">친구 목록으로</LinkButton></div>
     </main>

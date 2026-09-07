@@ -65,7 +65,7 @@ describe('친구 알림 (M2)', () => {
       createdAt: CREATED_AT,
     }
     const item = toNotificationItem(view, NOW)
-    expect(item.message).toBe('김민수님이 링크로 친구가 되었습니다')
+    expect(item.message).toBe('김민수님이 링크로 친구가 되었어요')
     expect(item.href).toBe('/friends/55555555-5555-4555-8555-555555555555')
   })
 })

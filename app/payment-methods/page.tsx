@@ -70,7 +70,7 @@ export default async function PaymentMethodsPage({ searchParams }: PageProps<"/p
 
       {methods.length === 0 ? (
         <div className="px-5 pt-6">
-          <p className="text-[15px] text-neutral-900">선물을 보내려면 결제수단이 필요합니다</p>
+          <p className="text-[15px] text-neutral-900">선물을 보내려면 결제수단이 필요해요</p>
           <p className="pt-1 text-sm text-neutral-600">
             카드를 등록해두면 요청이 승인될 때 자동으로 결제됩니다.
           </p>
