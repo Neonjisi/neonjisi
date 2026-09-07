@@ -6,13 +6,26 @@ import { formatPrice } from '@/components/product/product-card'
 import { buttonClasses } from '@/components/ui/button'
 import { TopBar } from '@/components/ui/top-bar'
 import { getFunding, type FundingDetailView } from '@/lib/dal/funding'
+import { safeReturnTo } from '@/lib/navigation/return-to'
 
 const STATUS_COPY: Record<FundingDetailView['status'], string> = {
   OPEN: '함께 채우고 있어요',
-  SUCCEEDED: '성사되었습니다',
+  SUCCEEDED: '성사됐어요',
   SETTLED: '선물이 확정되었어요',
-  FAILED: '달성선에 못 미쳐 취소됐어요',
-  CANCELLED: '주최자가 취소했어요',
+  FAILED: '최소 달성 금액을 못 채워 취소됐어요',
+  // 취소는 두 원인이 한 상태로 들어온다 — 사유 중립이 기본이고, 주최자에게만 statusCopy() 가 가른다
+  CANCELLED: '펀딩이 취소됐어요',
+}
+
+/**
+ * 취소 사유는 `topup` 이 내려오는 **주최자에게만** 갈린다 (lib/dal/funding.ts — organizer 전용).
+ * 판정식은 settle.ts 의 cause 판정(`topupAttemptCount > 0`)과 **같은 식**이다. 같은 식을 쓰므로
+ * 알림("차액 결제가 완료되지 않아 …")과 이 화면이 구조적으로 어긋날 수 없다 (copy.md §4).
+ */
+function statusCopy(funding: FundingDetailView): string {
+  if (funding.status !== 'CANCELLED') return STATUS_COPY[funding.status]
+  if (!funding.topup) return STATUS_COPY.CANCELLED
+  return funding.topup.attemptCount > 0 ? '차액 결제가 완료되지 않아 취소됐어요' : '펀딩을 취소했어요'
 }
 
 function dDay(deadline: Date, now: Date): string {
@@ -20,8 +33,9 @@ function dDay(deadline: Date, now: Date): string {
   return days === 0 ? '오늘 마감' : `D-${days}`
 }
 
-export default async function FundingDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+export default async function FundingDetailPage({ params, searchParams }: PageProps<'/fundings/[id]'>) {
+  const [{ id }, query] = await Promise.all([params, searchParams])
+  const rawReturnTo = typeof query.returnTo === 'string' ? query.returnTo : query.returnTo?.[0]
   const funding = await getFunding(id)
   if (!funding) notFound()
 
@@ -35,7 +49,7 @@ export default async function FundingDetailPage({ params }: { params: Promise<{ 
     <main className="flex min-h-dvh flex-col pb-6">
       <TopBar
         title={`${funding.receiverDisplayName}님 선물`}
-        backHref="/"
+        backHref={safeReturnTo(rawReturnTo, '/')}
         action={funding.role === 'organizer' && funding.status === 'OPEN' ? <FundingDetailActions fundingId={funding.id} /> : null}
       />
       <div className="flex flex-col gap-6 px-5 pt-4">
@@ -50,13 +64,13 @@ export default async function FundingDetailPage({ params }: { params: Promise<{ 
         </article>
 
         <section aria-label="펀딩 진행 상황" className="rounded-[20px] bg-surface p-5">
-          <p className="text-sm font-semibold text-rose-700">{funding.status === 'OPEN' && funding.remaining === 0 ? '목표를 채웠어요' : STATUS_COPY[funding.status]}</p>
+          <p className="text-sm font-semibold text-rose-700">{funding.status === 'OPEN' && funding.remaining === 0 ? '목표를 채웠어요' : statusCopy(funding)}</p>
           <p className="mt-2 text-xl font-extrabold">{formatPrice(funding.paidTotal)} <span className="text-sm font-medium text-neutral-500">/ {formatPrice(funding.goalAmount)}</span></p>
           <div className="relative mt-4 h-2.5 overflow-visible rounded-full bg-neutral-100">
             <div className="h-full rounded-full bg-success-500 transition-[width] duration-[400ms]" style={{ width: `${progress}%` }} />
             <span className="absolute top-[-3px] h-4 w-px bg-success-700" style={{ left: `${threshold}%` }} aria-hidden />
           </div>
-          <p className="mt-2 text-xs text-neutral-600">최소 달성선 {formatPrice(funding.minAmount)} · {reached ? '달성' : '달성 전'}</p>
+          <p className="mt-2 text-xs text-neutral-600">최소 달성 금액 {formatPrice(funding.minAmount)} · {reached ? '달성' : '달성 전'}</p>
           <dl className="mt-5 grid grid-cols-2 gap-y-2 text-sm">
             <dt className="text-neutral-600">남은 금액</dt><dd className="text-right font-bold">{formatPrice(funding.remaining)}</dd>
             {funding.reservedInFlight > 0 ? <><dt className="text-neutral-600">결제 중</dt><dd className="text-right font-semibold">{formatPrice(funding.reservedInFlight)}</dd></> : null}

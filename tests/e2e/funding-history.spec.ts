@@ -49,7 +49,7 @@ async function createFriendFunding(page: Page, receiverId: string): Promise<stri
   await expect(page.getByLabel('받는 사람')).toHaveValue(receiverId)
   await page.getByRole('button', { name: '다음' }).click()
   await page.getByLabel('목표 금액').fill('100000')
-  await page.getByLabel('최소 달성선').fill('50000')
+  await page.getByLabel('최소 달성 금액').fill('50000')
   const deadline = new Date(Date.now() + 2 * 86_400_000).toISOString().slice(0, 10)
   await page.getByLabel('마감일').fill(deadline)
   await page.getByRole('button', { name: '다음' }).click()
@@ -93,6 +93,9 @@ test.describe('M4 US4 — 결과·내역·홈', () => {
   })
 
   test('진행 중 펀딩이 홈과 내역에 나오고 취소 결과가 구분된다', async ({ authedPage: page }) => {
+    // 개설 → 홈 → 내역 → 취소 → 결과까지 한 테스트가 도는 여정이라 90초 기본 예산을 넘긴다
+    // (실측 1.5분). funding-settle.spec.ts 의 긴 정산 테스트들과 같은 처리다.
+    test.slow()
     await ensureOnboarded(page)
     const { url, productName } = await createSelfFunding(page)
 
@@ -113,13 +116,13 @@ test.describe('M4 US4 — 결과·내역·홈', () => {
     page.once('dialog', (dialog) => dialog.accept())
     await page.getByRole('button', { name: '더보기' }).click()
     await page.getByRole('menuitem', { name: '펀딩 취소' }).click()
-    await expect(page.getByText('주최자가 취소했어요')).toBeVisible({ timeout: 20_000 })
+    await expect(page.getByText('펀딩을 취소했어요')).toBeVisible({ timeout: 20_000 })
     await page.getByRole('link', { name: '환불 내역' }).click()
-    await expect(page.getByRole('heading', { name: '주최자가 펀딩을 취소했어요' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: '펀딩을 취소했어요' })).toBeVisible()
     await expect(page.getByText(/영업일 기준 3~5일/)).toBeVisible()
   })
 
-  test('마감 미달 결과는 환불 안내와 달성선을 보여준다', async ({ authedPage: page }) => {
+  test('마감 미달 결과는 환불 안내와 최소 달성 금액을 보여준다', async ({ authedPage: page }) => {
     await ensureOnboarded(page)
     const { url } = await createSelfFunding(page)
     const fundingId = url.split('/').at(-1)
@@ -128,9 +131,9 @@ test.describe('M4 US4 — 결과·내역·홈', () => {
 
     await page.goto(url)
     await page.getByRole('link', { name: '환불 내역' }).click()
-    await expect(page.getByRole('heading', { name: '달성선에 못 미쳤어요' })).toBeVisible()
-    await expect(page.getByText('최소 달성선')).toBeVisible()
-    await expect(page.getByText(/전액 환불됩니다/)).toBeVisible()
+    await expect(page.getByRole('heading', { name: '최소 달성 금액을 채우지 못했어요' })).toBeVisible()
+    await expect(page.getByText('최소 달성 금액', { exact: true })).toBeVisible()
+    await expect(page.getByText(/전액 환불돼요/)).toBeVisible()
   })
 
   test('목표를 전부 채운 펀딩은 차액 없이 성사 결과를 보여준다', async ({ authedPage: page }) => {
@@ -144,7 +147,7 @@ test.describe('M4 US4 — 결과·내역·홈', () => {
     await expect(page.getByText('100,000원', { exact: true }).first()).toBeVisible()
   })
 
-  test('달성선만 채운 펀딩은 주최자 차액을 숫자로 고지한다', async ({ authedPage: organizer, friendPage: receiver }) => {
+  test('최소 달성 금액만 채운 펀딩은 주최자 차액을 숫자로 고지한다', async ({ authedPage: organizer, friendPage: receiver }) => {
     await ensurePaymentMethod(organizer)
     await ensureOnboarded(organizer)
     await ensureOnboarded(receiver)
@@ -158,6 +161,6 @@ test.describe('M4 US4 — 결과·내역·홈', () => {
 
     await organizer.goto(`${url}/result`)
     await expect(organizer.getByRole('heading', { name: '펀딩이 성사됐어요' })).toBeVisible({ timeout: 20_000 })
-    await expect(organizer.getByText(/차액 50,000원이 .*카드로 결제되었습니다/)).toBeVisible()
+    await expect(organizer.getByText(/차액 50,000원이 .*카드로 결제됐어요/)).toBeVisible()
   })
 })

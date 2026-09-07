@@ -46,7 +46,7 @@ export type CreateFundingErrorCode =
 /** 화면 명세 SCR-M4-01 진입 차단 문구와 맞춘다 */
 const NOT_FRIENDS_MESSAGE = '친구인 사람에게만 펀딩을 열 수 있어요.'
 const NO_PAYMENT_METHOD_MESSAGE = '차액을 결제할 수단이 필요해요.'
-const INVALID_AMOUNTS_MESSAGE = '최소 달성선은 목표 금액보다 클 수 없어요.'
+const INVALID_AMOUNTS_MESSAGE = '최소 달성 금액은 목표 금액보다 클 수 없어요.'
 const INVALID_DEADLINE_MESSAGE = '마감일은 지금보다 이후여야 해요.'
 const CONSENT_REQUIRED_MESSAGE = '차액 자동 결제 동의가 필요해요.'
 const CREATE_FAILED_MESSAGE = '펀딩을 열지 못했어요. 잠시 후 다시 시도해주세요.'

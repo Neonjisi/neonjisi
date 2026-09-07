@@ -17,7 +17,7 @@
 ## Phase 1: Setup
 
 - [ ] T001 `.env.local`에 M4 env 추가 — 참여자 `E2E_USER4_*` + 비친구 `E2E_USER5_*`(Supabase Add user · Auto Confirm) + `FUNDING_RESERVATION_TTL=5m` (전원 각자, **커밋 금지**, `skipped` 함정 주의)
-- [ ] T002 [P] 문구 세트 확정 — 고지 2종("공개됩니다"·"환불됩니다") · 차액 동의 v1(최대 부담액 숫자 템플릿, `FUNDING_CONSENT_VERSION` 시작점) · `FAILED`/`CANCELLED` 구분 문구 · 환불 안내("영업일 3~5일" 고정 — clarify Q4) (S 산출물, 마감: 각 화면 구현 전)
+- [X] T002 [P] 문구 세트 확정 — ✅ **S 확정안 `copy.md` 완료.** 고지 2종 · 차액 동의 · `FAILED`/`CANCELLED` 구분 · 환불 안내("영업일 기준 3~5일이 걸릴 수 있어요" — clarify Q4) + 어체·1인칭·용어 규칙. 화면이 먼저 만들어져서 **들어간 문구를 읽고 고칠 27건을 골라낸 형태**다 → 반영은 T044. 태스크 원문과 다른 점 2가지: ① `FUNDING_CONSENT_VERSION` 은 `'1'` 시작이 아니라 **`'2'` 로 올린다** (v1 동의 기록이 공유 DB에 19건 있어 v1 재정의 불가) ② `minAmount` 의 화면 이름을 "달성선" → **"최소 달성 금액"** 으로 통일 (S 산출물, 마감: 각 화면 구현 전 — **놓쳤다**)
 - [x] T003 [P] E2E 픽스처 다계정 확장 — 계정 1·2·4는 3주체, 계정 5는 비친구 접근 거부에 사용 (M2 T017 방식. **3주체 E2E 전부를 막는 선행 태스크**)
 
 ---
@@ -124,6 +124,7 @@ M3의 T017(charge)과 같은 자리.
 - [x] T041 [P] `'use client'` 예산(4개 — contracts §6) + 500줄 + **totals 모듈 밖 합산 없는지** 점검 (R3)
 - [ ] T042 quickstart V1~V6 수동 검증 (**3계정**) + `skipped` 수 확인 (S 주도)
 - [x] T043 `npm run lint` · `npm run build` 통과 → main 병합
+- [x] T044 T002 확정문 반영 — `copy.md` §6 의 27건. **T042 수동 검증 전에 끝나야 한다** (검증이 옛 문구를 보면 의미가 없다). 딸린 코드 변경 3가지: ① `fundingConsentSentences` 인자에 `minAmount`·`goalAmount` 추가 + `FUNDING_CONSENT_VERSION = '2'` ② `FundingContributeForm` props 에 `minAmount` 추가 ③ `REFUND_NOTICE` 를 `display.ts` 밖 공용 위치로 빼서 결과 화면도 import (문자열 중복이 두 문구로 갈린 원인). 반영 뒤 `npm run lint` · `npm run build` 재통과 — ✅ **2026-09-05 완료.** 27건 전부 반영 · 단위 401개 통과 · lint·build 통과. `REFUND_NOTICE` 는 `lib/funding/refund-notice.ts` 로 뺐다
 
 ---
 

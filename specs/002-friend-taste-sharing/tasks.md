@@ -66,7 +66,7 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 - [x] T011 [P] `lib/dal/session.ts`에 `getOptionalSession()` 추가 — 세션이 없으면 **`null`을 반환하고 redirect 하지 않는다** (research R3)
 - [x] T012 [P] `proxy.ts`의 matcher에 `/friends/:path*`·`/notifications/:path*` 추가. **`/i/:path*`는 넣지 않는다** — 미리보기는 공개여야 한다 (FR-008)
 - [x] T013 [P] `app/friends/error.tsx`와 `app/notifications/error.tsx` 배치 — 예상 못 한 예외 경계
-- [ ] T014 [P] `lib/dal/invite.ts`에 링크 유효성 판정 하나를 만든다 — `isValid(link) := revokedAt === null && expiresAt > now`. FR-004와 FR-007이 **같은 판정식**을 쓰므로 한 곳에 둔다
+- [x] T014 [P] `lib/dal/invite.ts`에 링크 유효성 판정 하나를 만든다 — `isValid(link) := revokedAt === null && expiresAt > now`. FR-004와 FR-007이 **같은 판정식**을 쓰므로 한 곳에 둔다
 - [x] T015 [P] `app/friends/actions/shared.ts` — `ActionResult` 타입과 `guarded` 래퍼. **Action 파일 4개가 함께 쓰므로 기반 단계에서 먼저 만든다** (M1의 `lib/actions/call-action.ts` 패턴)
 
 > 🚨 **T005~T008을 순서대로, 한 사람이.**
@@ -94,21 +94,21 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 
 - [x] T016 [P] [US1] E2E 테스트 — `tests/e2e/friend-invite.spec.ts`. spec.md US1 수용 시나리오 1~7. **로그인부터 시작하고 계정 2개를 쓴다**
 - [x] T017 [P] [US1] E2E 인증 픽스처 확장 — `tests/e2e/fixtures/auth.ts`에 두 번째 계정 세션 주입 추가. env가 비면 skip 되는 기존 동작을 유지한다
-- [ ] T018 [P] [US1] 통합 테스트 — `tests/integration/accept-invite.test.ts`. 성사 시 관계·`usedCount`·알림이 **한 트랜잭션**으로 함께 생기는지, 실패 시 함께 롤백되는지 (research R5)
-- [ ] T019 [P] [US1] 통합 테스트 — `tests/integration/accept-invite-concurrent.test.ts`. 같은 링크를 동시에 여러 명이 써도 `usedCount`가 정확히 누적되고 관계가 중복 생성되지 않는지 (SC-008)
+- [x] T018 [P] [US1] 통합 테스트 — `tests/integration/accept-invite.test.ts`. 성사 시 관계·`usedCount`·알림이 **한 트랜잭션**으로 함께 생기는지, 실패 시 함께 롤백되는지 (research R5)
+- [x] T019 [P] [US1] 통합 테스트 — `tests/integration/accept-invite-concurrent.test.ts`. 같은 링크를 동시에 여러 명이 써도 `usedCount`가 정확히 누적되고 관계가 중복 생성되지 않는지 (SC-008)
 
 ### Implementation for User Story 1
 
-- [ ] T020 [US1] `lib/dal/invite.ts` — `getOrCreateActiveInviteLink()`. **유효한 링크가 있으면 새로 발급하지 않고 그것을 반환한다** (FR-004)
-- [ ] T021 [US1] `lib/dal/invite.ts` — `getPreview(token)`. 유효하면 표시명·이미지·대표 태그, 무효면 `null`. **만료·중지·부재를 구분하지 않는다** (FR-007)
+- [x] T020 [US1] `lib/dal/invite.ts` — `getOrCreateActiveInviteLink()`. **유효한 링크가 있으면 새로 발급하지 않고 그것을 반환한다** (FR-004)
+- [x] T021 [US1] `lib/dal/invite.ts` — `getPreview(token)`. 유효하면 표시명·이미지·대표 태그, 무효면 `null`. **만료·중지·부재를 구분하지 않는다** (FR-007)
 - [x] T022 [US1] `lib/dal/friend.ts` — 대표 태그 추출. `WANT` 항목의 카테고리명 최근 등록순 최대 3건, 0건이면 빈 배열 (FR-012)
-- [ ] T023 [US1] `app/friends/actions/accept-invite.ts` — `acceptInvite` Server Action. 검사 순서를 지킨다: 세션 → 토큰 유효성 → 본인 링크 → 기존 관계 → 트랜잭션(관계·`usedCount`·알림). **P2002를 `ALREADY_FRIENDS`로 바꾼다**
+- [x] T023 [US1] `app/friends/actions/accept-invite.ts` — `acceptInvite` Server Action. 검사 순서를 지킨다: 세션 → 토큰 유효성 → 본인 링크 → 기존 관계 → 트랜잭션(관계·`usedCount`·알림). **P2002를 `ALREADY_FRIENDS`로 바꾼다**
 - [x] T024 [P] [US1] `app/friends/invite/page.tsx` (SCR-M2-02) — 링크·만료 안내·복사·공유. **"받은 사람이 바로 친구가 됩니다"를 발급 시점에 고지한다** (FR-014)
 - [x] T025 [P] [US1] `components/friend/invite-link-card.tsx` (`'use client'`) — 클립보드 복사와 OS 공유 시트 호출
 - [x] T026 [P] [US1] `components/friend/invite-preview.tsx` (**Server Component**) — 표시명·이미지·대표 태그와 **가려진 항목의 이름 목록**(FR-010)
 - [x] T027 [US1] `app/i/[token]/page.tsx` (SCR-M2-04·05) — 세션 유무로 미리보기/성사를 가른다. 6가지 분기는 contracts의 표를 따른다. **`getOptionalSession()`을 쓴다 — `verifySession()`은 비가입자를 튕긴다**
 - [x] T028 [US1] `app/friends/page.tsx` (SCR-M2-01) — 친구 목록. **다가오는 일정 영역은 만들지 않는다** (clarify Q1)
-- [ ] T029 [US1] `tests/e2e/friend-invite.spec.ts`·`tests/integration/accept-invite.test.ts`·`tests/integration/accept-invite-concurrent.test.ts`를 초록으로 만들고 `--project=mobile-360`으로 재확인
+- [X] T029 [US1] `tests/e2e/friend-invite.spec.ts`·`tests/integration/accept-invite.test.ts`·`tests/integration/accept-invite-concurrent.test.ts`를 초록으로 만들고 `--project=mobile-360`으로 재확인 — **2026-09-06 완료 (S).** 배정은 J 였으나 진단이 끝나 있었고 원인이 스펙 7개가 공유하는 픽스처라 S 가 마감했다. 원인이 둘이었다. **① E2E** — `resetAccount` 가 취향 항목을 UI 로 한 건씩 지우며 `page.goto('/taste')` 를 최대 305회 돌던 것을 DB 직접 삭제로 바꿨다: 새 픽스처 `tests/e2e/fixtures/taste-db.ts` 의 `resetTasteProfile(userId)`, 계정 식별은 `tests/e2e/fixtures/auth.ts` 에 새로 넣은 `sessionUserId(page)`(쿠키→세션 역함수)가 한다. `taste-ui.ts` 의 `resetAccount` 는 위임한 뒤 `/taste`→`/onboarding` 리다이렉트(FR-018)로 결과만 확인하고, 전용 헬퍼 3개(`RESET_ORDER`·`openEditSheetFromRow`·`clearDescriptionIfNeeded`)는 지웠다. **② 통합** — T018 의 ALREADY_FRIENDS 는 결함이 아니라 7.4초짜리 테스트에 vitest 기본 5초를 준 것이었다. `vitest.config.mts` 에 `projects` 를 넣어 단위 5초 / 통합 30초로 갈랐다(단위까지 올리면 진짜로 멈춘 단위 테스트를 늦게 안다). 결과: 단위·통합 **594개 전부 통과**(그동안 기존 불안정으로 적혀 있던 `accept-invite` 1건 · `ownership` 2건도 같은 원인이라 함께 해소), `friend-invite.spec.ts` **8/8**(chromium 1.4분 · mobile-360 8/8), `resetAccount` 를 쓰는 스펙 7개 mobile-360 **39/39**, 전체 E2E 43.9분 → **25.7분**. 쿠키 청크 분기는 실 세션(2541자 < 상한 3180)에서 안 밟히므로 `tests/unit/e2e-auth-cookies.test.ts` 6건으로 따로 고정했다
 
 **Checkpoint**: 링크로 친구가 된다. **여기까지가 MVP다** — 취향 열람이 없어도 관계가 맺어지는 것을 시연할 수 있다
 
@@ -154,7 +154,7 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 
 ### Implementation for User Story 3
 
-- [ ] T041 [US3] `lib/dal/invite.ts` — `getMyInviteLinks()`. 사용 중 링크와 지난 링크를 나눠 반환
+- [x] T041 [US3] `lib/dal/invite.ts` — `getMyInviteLinks()`. 사용 중 링크와 지난 링크를 나눠 반환
 - [x] T042 [US3] `app/friends/actions/invite-link.ts` — `revokeInviteLink` Server Action. 소유자 검사 후 `revokedAt` 기록
 - [x] T043 [US3] `lib/dal/notification.ts` — `getMyNotifications()`와 `getUnreadCount()`
 - [x] T044 [US3] `app/friends/actions/notification.ts` — `markNotificationRead`와 `markAllNotificationsRead`. 후자는 **읽지 않은 것만** 갱신한다
@@ -192,15 +192,15 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 
 ### Tests for User Story 4 ⚠️
 
-- [ ] T049 [P] [US4] E2E 테스트 — `tests/e2e/friend-remove.spec.ts`. spec.md US4 수용 시나리오 1~4. **해제 후 재추가가 되는지** 반드시 포함 (FR-026)
-- [ ] T050 [P] [US4] 통합 테스트 — `tests/integration/friend-remove.test.ts`. 해제가 **양방향**인지, `removedBy`가 기록되는지, 과거 알림을 눌러도 접근이 거부되는지
+- [x] T049 [P] [US4] E2E 테스트 — `tests/e2e/friend-remove.spec.ts`. spec.md US4 수용 시나리오 1~4. **해제 후 재추가가 되는지** 반드시 포함 (FR-026)
+- [x] T050 [P] [US4] 통합 테스트 — `tests/integration/friend-remove.test.ts`. 해제가 **양방향**인지, `removedBy`가 기록되는지, 과거 알림을 눌러도 접근이 거부되는지
 
 ### Implementation for User Story 4
 
-- [ ] T051 [US4] `app/friends/actions/friendship.ts` — `removeFriend` Server Action. `status = REMOVED`, `removedAt`, `removedBy` 기록. **행을 지우지 않는다** (research R9)
-- [ ] T052 [P] [US4] `components/friend/remove-friend-dialog.tsx` (`'use client'`) — 해제 확인. **"진행 중인 선물·펀딩은 그대로 진행됩니다" 문구를 넣지 않는다** — M2에는 거래가 없어 거짓말이 된다
-- [ ] T053 [US4] `app/friends/[userId]/page.tsx`에 해제 진입점 추가. 목록과 카드는 Server Component로 유지하고 다이얼로그만 클라이언트로 뗀다
-- [ ] T054 [US4] `tests/e2e/friend-remove.spec.ts`·`tests/integration/friend-remove.test.ts`를 초록으로 만든다
+- [x] T051 [US4] `app/friends/actions/friendship.ts` — `removeFriend` Server Action. `status = REMOVED`, `removedAt`, `removedBy` 기록. **행을 지우지 않는다** (research R9)
+- [x] T052 [P] [US4] `components/friend/remove-friend-dialog.tsx` (`'use client'`) — 해제 확인. ~~**"진행 중인 선물·펀딩은 그대로 진행됩니다" 문구를 넣지 않는다** — M2에는 거래가 없어 거짓말이 된다~~ ⚠️ **이 규칙은 M2 단독 시점의 것이라 낡았다.** M3 T050(`[X]`)이 그 문장을 **넣었고**, `GiftRequest` 스키마 · `removeFriend`(선물을 건드리지 않는다) · 도메인 모델 D3 가 그 동작을 규정하므로 **M3 이후로는 참이다.** 현재 `remove-friend-dialog.tsx:166` 에 들어 있는 것이 맞다
+- [x] T053 [US4] `app/friends/[userId]/page.tsx`에 해제 진입점 추가. 목록과 카드는 Server Component로 유지하고 다이얼로그만 클라이언트로 뗀다
+- [x] T054 [US4] `tests/e2e/friend-remove.spec.ts`·`tests/integration/friend-remove.test.ts`를 초록으로 만든다 — ✅ 2026-09-05 확인: 통합 8건 통과 · E2E 실패 0 · **skipped 0**
 
 **Checkpoint**: US1~US4 전부 동작한다
 
@@ -216,7 +216,7 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 - [x] T058 [P] `components/friend/`·`components/notification/`·`app/friends/` 컴포넌트 크기 점검 — 500줄 초과가 있으면 하위 컴포넌트로 분해 (constitution 품질 게이트)
 - [ ] T059 `npm run lint`와 `npm run build` 통과 (constitution 품질 게이트)
 - [ ] T060 quickstart.md V1~V6 전체를 순서대로 수동 검증. **`skipped` 수를 확인한다**
-- [ ] T061 [P] SC-003 확인 — 링크를 발급한 사용자 5명에게 "받은 사람이 승인 없이 바로 친구가 되는 것을 알고 있었는지" 묻는다. **4명 이상**이 기준이며 결과를 숫자로 기록한다. 구현에 참여한 사람은 평가자가 될 수 없다
+- [ ] T061 [P] SC-003 확인 — 링크를 발급한 사용자 5명에게 "받은 사람이 승인 없이 바로 친구가 되는 것을 알고 있었는지" 묻는다. **4명 이상**이 기준이며 결과를 숫자로 기록한다. 구현에 참여한 사람은 평가자가 될 수 없다 — ❌ **2026-09-05 취소 결정 (S).** 외부 평가를 진행하지 않는다. 따라서 `SC-003`(링크를 받으면 승인 없이 바로 친구가 된다는 것을 알고 있었는가) 는 **근거 없이 남는다** — 나중에 이 줄을 읽는 사람이 "통과했다"로 오해하지 않도록 미체크로 둔다
 
 ---
 

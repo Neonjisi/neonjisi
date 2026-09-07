@@ -19,6 +19,11 @@ type Props = {
   friends: FriendOption[]
   initialReceiverId?: string
   hasPaymentMethod: boolean
+  initialStep: 1 | 2 | 3
+  initialGoal?: string
+  initialMinimum?: string
+  initialDeadline?: string
+  returnTo: string
 }
 
 function tomorrow(): string {
@@ -37,15 +42,20 @@ export function FundingCreateForm({
   friends,
   initialReceiverId,
   hasPaymentMethod,
+  initialStep,
+  initialGoal,
+  initialMinimum,
+  initialDeadline,
+  returnTo,
 }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
-  const [step, setStep] = useState<1 | 2 | 3>(1)
+  const [step, setStep] = useState<1 | 2 | 3>(initialStep)
   const [target, setTarget] = useState<'self' | 'friend'>(initialReceiverId ? 'friend' : 'self')
   const [receiverId, setReceiverId] = useState(initialReceiverId ?? friends[0]?.userId ?? '')
-  const [goal, setGoal] = useState(String(product.price))
-  const [minimum, setMinimum] = useState(String(Math.max(1, Math.floor(product.price * 0.7))))
-  const [deadline, setDeadline] = useState(tomorrow())
+  const [goal, setGoal] = useState(initialGoal ?? String(product.price))
+  const [minimum, setMinimum] = useState(initialMinimum ?? String(Math.max(1, Math.floor(product.price * 0.7))))
+  const [deadline, setDeadline] = useState(initialDeadline ?? tomorrow())
   const [consent, setConsent] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -59,7 +69,7 @@ export function FundingCreateForm({
 
   function validateAmounts(): boolean {
     if (!(goalAmount > 0) || !(minAmount > 0) || minAmount > goalAmount) {
-      setError('최소 달성선은 목표 금액보다 클 수 없어요')
+      setError('최소 달성 금액은 목표 금액보다 클 수 없어요')
       return false
     }
     const end = new Date(`${deadline}T23:59:59`)
@@ -78,17 +88,32 @@ export function FundingCreateForm({
         return
       }
       setError(null)
+      if (!isSelf && !hasPaymentMethod) {
+        const returnTo = fundingReturnTo('amount')
+        router.push(`/payment-methods/new?returnTo=${encodeURIComponent(returnTo)}`)
+        return
+      }
       setStep(2)
       return
     }
     if (!validateAmounts()) return
-    if (!isSelf && !hasPaymentMethod) {
-      const returnTo = `/fundings/new?productId=${encodeURIComponent(product.id)}&receiverId=${encodeURIComponent(receiverId)}`
-      router.push(`/payment-methods/new?returnTo=${encodeURIComponent(returnTo)}`)
-      return
-    }
     if (!isSelf) setStep(3)
     else submit()
+  }
+
+  function fundingReturnTo(resume: 'amount' | 'consent'): string {
+    const query = new URLSearchParams({
+      productId: product.id,
+      receiverId,
+      resume,
+      returnTo,
+    })
+    if (resume === 'consent') {
+      query.set('goal', String(goalAmount))
+      query.set('minimum', String(minAmount))
+      query.set('deadline', deadline)
+    }
+    return `/fundings/new?${query.toString()}`
   }
 
   function submit(): void {
@@ -105,7 +130,7 @@ export function FundingCreateForm({
       if (!result.ok) {
         setError(result.error.message)
         if (result.error.code === 'NO_PAYMENT_METHOD') {
-          const returnTo = `/fundings/new?productId=${encodeURIComponent(product.id)}&receiverId=${encodeURIComponent(receiverId)}`
+          const returnTo = fundingReturnTo('consent')
           router.push(`/payment-methods/new?returnTo=${encodeURIComponent(returnTo)}`)
         }
         return
@@ -158,12 +183,12 @@ export function FundingCreateForm({
         <section className="flex flex-col gap-5 pt-5">
           <TextField id="funding-goal" label="목표 금액" inputMode="numeric" value={goal} onChange={(e) => setGoal(e.target.value)} helper={`상품 가격 ${formatPrice(product.price)}`} />
           {isSelf ? (
-            <TextField id="funding-minimum" label="최소 달성선" value={goalAmount > 0 ? formatPrice(goalAmount) : ''} disabled helper="내가 받는 선물이라 목표를 다 채워야 성사됩니다. 목표 금액과 동일" />
+            <TextField id="funding-minimum" label="최소 달성 금액" value={goalAmount > 0 ? formatPrice(goalAmount) : ''} disabled helper="내가 받는 선물이라 목표를 다 채워야 성사됩니다. 목표 금액과 동일" />
           ) : (
-            <TextField id="funding-minimum" label="최소 달성선" inputMode="numeric" value={minimum} onChange={(e) => setMinimum(e.target.value)} helper="이 금액을 넘으면 펀딩이 성사되고, 모자란 만큼은 주최자가 부담합니다." />
+            <TextField id="funding-minimum" label="최소 달성 금액" inputMode="numeric" value={minimum} onChange={(e) => setMinimum(e.target.value)} helper="이 금액 이상이면 펀딩이 성사되고, 부족한 금액은 주최자가 부담합니다." />
           )}
           <TextField id="funding-deadline" label="마감일" type="date" min={tomorrow()} value={deadline} onChange={(e) => setDeadline(e.target.value)} />
-          {goalAmount < product.price ? <p className="rounded-xl bg-warning-50 p-3 text-sm text-warning-700">목표 금액이 상품 가격보다 낮아요. 그대로 진행할 수 있습니다.</p> : null}
+          {goalAmount < product.price ? <p className="rounded-xl bg-warning-50 p-3 text-sm text-warning-700">목표 금액이 상품 가격보다 낮아요. 그대로 진행할 수 있어요.</p> : null}
         </section>
       ) : null}
 
@@ -173,12 +198,10 @@ export function FundingCreateForm({
           <div className="mt-5 rounded-[20px] bg-surface p-5 text-sm leading-6">
             <dl className="grid grid-cols-2 gap-y-2">
               <dt className="text-neutral-600">목표</dt><dd className="text-right font-semibold">{formatPrice(goalAmount)}</dd>
-              <dt className="text-neutral-600">최소 달성선</dt><dd className="text-right font-semibold">{formatPrice(minAmount)}</dd>
+              <dt className="text-neutral-600">최소 달성 금액</dt><dd className="text-right font-semibold">{formatPrice(minAmount)}</dd>
             </dl>
             <div className="my-4 h-px bg-neutral-100" />
-            {fundingConsentSentences({ receiverDisplayName: receiverName, maxBurdenAmount: maxBurden }).map((sentence) => <p key={sentence}>{sentence}</p>)}
-            <p className="mt-3 font-bold text-rose-700">최대 {formatPrice(maxBurden)}</p>
-            <p className="mt-3 text-neutral-600">{formatPrice(minAmount)}에 못 미치면 전액 환불되고 취소됩니다.</p>
+            {fundingConsentSentences({ receiverDisplayName: receiverName, minAmount, goalAmount, maxBurdenAmount: maxBurden }).map((sentence) => <p key={sentence}>{sentence}</p>)}
           </div>
           <label className="mt-5 flex items-start gap-3 text-sm font-semibold">
             <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5 size-5 accent-rose-500" />

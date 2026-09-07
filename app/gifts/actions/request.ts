@@ -1,6 +1,7 @@
 'use server'
 
 import { z } from 'zod'
+import { redirect } from 'next/navigation'
 import {
   cancelOwnPendingGiftRequest,
   createGiftRequestTransaction,
@@ -106,7 +107,7 @@ export async function createGiftRequest(input: {
   receiverId: string
   productId: string
   consent: boolean
-}): Promise<ActionResult<{ giftRequestId: string }>> {
+}): Promise<ActionResult<{ giftRequestId: string; respondDueAt: Date; serverNow: Date }>> {
   // 1. 세션 — 게이트는 guarded 바깥에 둔다 (redirect 예외를 그대로 Next 에 넘긴다)
   const { userId } = await verifySession()
 
@@ -163,7 +164,7 @@ export async function createGiftRequest(input: {
       consentVersion: CONSENT_VERSION,
     })
 
-    return { ok: true, data: { giftRequestId } }
+    return { ok: true, data: { giftRequestId, respondDueAt, serverNow: now } }
   })
 }
 
@@ -186,4 +187,14 @@ export async function cancelGiftRequest(input: {
 
     return { ok: true, data: { cancelled: true } }
   })
+}
+
+/** 자바스크립트 없이도 상세 화면에서 취소할 수 있는 form 어댑터. */
+export async function cancelGiftRequestFromForm(formData: FormData): Promise<never> {
+  const giftRequestId = String(formData.get('giftRequestId') ?? '')
+  const result = await cancelGiftRequest({ giftRequestId })
+  if (!result.ok) {
+    redirect(`/gifts/${encodeURIComponent(giftRequestId)}?error=${encodeURIComponent(result.error.message)}`)
+  }
+  redirect(`/gifts/${encodeURIComponent(giftRequestId)}`)
 }

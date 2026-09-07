@@ -5,6 +5,7 @@ import { BottomNav } from "@/components/ui/bottom-nav";
 import { FriendAvatar } from "@/components/friend/avatar";
 import { getMyPaymentMethods } from "@/lib/dal/payment-method";
 import { getMyProfileSummary } from "@/lib/dal/profile";
+import { BrandLogo } from "@/components/ui/brand-logo";
 
 /** 마이 탭 (SCR-M1-06). 내 취향 외 메뉴는 해당 마일스톤에서 연결한다. */
 
@@ -14,14 +15,14 @@ import { getMyProfileSummary } from "@/lib/dal/profile";
 const MAIN_MENU: { label: string; href: string }[] = [
   { label: "내 취향", href: "/taste" },
   { label: "알림", href: "/notifications" },
-  { label: "선물 내역", href: "#" },
+  { label: "선물 내역", href: "/my/gifts" },
   { label: "펀딩 내역", href: "/my/fundings" },
   { label: "결제수단", href: "/payment-methods" },
-  { label: "초대 링크 관리", href: "/friends/invite/manage" },
+  { label: "초대 링크 관리", href: "/friends/invite/manage?from=my" },
 ];
 
 const SUB_MENU: { label: string; href: string }[] = [
-  { label: "알림 설정", href: "#" },
+  { label: "알림 설정", href: "/settings" },
   { label: "약관 · 개인정보처리방침", href: "#" },
 ];
 
@@ -57,6 +58,9 @@ export default async function MyPage() {
   return (
     <>
       <main className="flex-1 pb-6">
+        <div className="px-3 pt-2">
+          <BrandLogo href="/" />
+        </div>
         <header className="flex items-center gap-3 px-5 pb-4 pt-6">
           <FriendAvatar name={profile.displayName} avatarUrl={profile.avatarUrl} />
           <div className="min-w-0 flex-1">
@@ -66,7 +70,7 @@ export default async function MyPage() {
             </p>
           </div>
           <Link
-            href="/signup/profile"
+            href="/signup/profile?returnTo=%2Fmy"
             className="shrink-0 rounded-full border border-rose-200 bg-rose-50 px-4 py-1.5 text-sm font-semibold text-rose-700 active:bg-rose-100"
           >
             편집

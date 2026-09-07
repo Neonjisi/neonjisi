@@ -2,6 +2,7 @@
 
 import { useId, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Pencil, Plus } from "lucide-react";
 import { createTasteItem, deleteTasteItem, updateTasteItem } from "@/app/taste/actions";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
@@ -275,6 +276,11 @@ export function WishlistItemSheet({
         원하는 것을 적어주세요
       </h2>
       <div className="flex flex-col gap-4">
+        {!isEditing ? (
+          <Link href="/taste/products" className="rounded-xl bg-rose-50 px-4 py-3 text-center text-sm font-semibold text-rose-700">
+            카탈로그에서 고르기
+          </Link>
+        ) : null}
         <CategoryPicker
           categories={categories}
           value={categoryId}

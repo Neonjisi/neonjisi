@@ -2,6 +2,7 @@ import Link from "next/link";
 import { MethodDeleteButton } from "@/components/payment/method-delete-dialog";
 import { buttonClasses } from "@/components/ui/button";
 import { TopBar } from "@/components/ui/top-bar";
+import { safeReturnTo } from "@/lib/navigation/return-to";
 import {
   countActiveRequestsUsing,
   getMyPaymentMethods,
@@ -53,7 +54,10 @@ function MethodCard({
   );
 }
 
-export default async function PaymentMethodsPage() {
+export default async function PaymentMethodsPage({ searchParams }: PageProps<"/payment-methods">) {
+  const query = await searchParams;
+  const rawReturnTo = typeof query.returnTo === "string" ? query.returnTo : query.returnTo?.[0];
+  const returnTo = safeReturnTo(rawReturnTo, "/my");
   const methods = await getMyPaymentMethods();
   // 카드 수는 보통 한둘이다 (빌링키는 사용자당 재사용) — 건수 조회를 나란히 돌린다
   const activeRequestCounts = await Promise.all(
@@ -62,7 +66,7 @@ export default async function PaymentMethodsPage() {
 
   return (
     <main className="flex min-h-dvh flex-col pb-8">
-      <TopBar title="결제수단" backHref="/my" />
+      <TopBar title="결제수단" backHref={returnTo} />
 
       {methods.length === 0 ? (
         <div className="px-5 pt-6">
@@ -84,7 +88,7 @@ export default async function PaymentMethodsPage() {
       )}
 
       <div className="px-5 pt-5">
-        <Link href="/payment-methods/new" className={buttonClasses("secondary", "lg")}>
+        <Link href={`/payment-methods/new?returnTo=${encodeURIComponent(returnTo)}`} className={buttonClasses("secondary", "lg")}>
           {methods.length === 0 ? "결제수단 등록" : "+ 다른 결제수단 등록"}
         </Link>
       </div>

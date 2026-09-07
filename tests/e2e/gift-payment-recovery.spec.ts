@@ -9,15 +9,15 @@
  * | V7-3 | 수단을 바꿔 재시도하면 성공하고 결과 화면에 닿는다 (FR-030) |
  * | V7-4 | **수령자에게는 실패 진행이 보이지 않는다** (FR-030) |
  *
- * ⚠️ 실패 경로를 만들려면 요청 생성(US3 · H·J)과 승인(US4 · J)이 필요하다. 그 화면들이
- *    서기 전에는 각 단계에서 **probe 로 skip** 한다 (R12) — M2 의 US3 E2E 와 같은 구조다.
- *    `skipped` 수를 확인한다.
+ * 실패 경로를 만들기 위해 요청 생성(US3)과 승인·배송지(US4)를 실제 UI로 끝까지 지난다.
+ * 구현 완료 뒤의 회귀 테스트이므로 probe skip 없이 실패한다.
  *
  * 이 파일이 초록이 되는 시점이 곧 **마일스톤 3 완료 판정**이다 (분담표 §8 Phase 7).
  * 결제는 항상 mock 이다 — 실키로 돌리면 테스트가 실결제를 만든다 (협업 규칙 §6).
  */
 import type { Page } from '@playwright/test'
 import { expect, test } from './fixtures/auth'
+import { becomeFriends, ensureOnboarded, removeAllFriends } from './fixtures/friend-ui'
 
 const FAILING_CARD_LAST4 = '0000'
 const GOOD_CARD_LAST4 = '4821'
@@ -34,60 +34,64 @@ async function registerCard(page: Page, cardLast4: string): Promise<void> {
   await expect(page).toHaveURL(/\/payment-methods$/)
 }
 
-/** 상품 하나를 골라 선물 요청을 보낸다. 화면이 아직 없으면 null (→ 호출부에서 skip) */
-async function sendGiftRequest(page: Page): Promise<string | null> {
-  await page.goto('/products')
+/** 상품 하나를 골라 선물 요청을 보낸다. */
+async function sendGiftRequest(page: Page, receiverId: string): Promise<string> {
+  await page.goto(`/products/for/${receiverId}`)
   const productLink = page.locator('a[href^="/products/"]').first()
-  if ((await productLink.count()) === 0) return null
+  await expect(productLink).toBeVisible()
 
   await productLink.click()
-  const giftButton = page.getByRole('link', { name: /선물하기|선물 보내기/ })
-  if ((await giftButton.count()) === 0) return null
+  const giftButton = page.getByRole('link', { name: '선물하기', exact: true })
+  await expect(giftButton).toBeVisible()
 
   await giftButton.click()
   const consentNext = page.getByRole('link', { name: '다음' })
-  if ((await consentNext.count()) === 0) return null
+  await expect(consentNext).toBeVisible()
   await consentNext.click()
 
   // 재결제 동의는 별도 화면이고 체크 전에는 전송이 막혀 있다 (FR-014)
   const consentCheckbox = page.getByRole('checkbox')
-  if ((await consentCheckbox.count()) === 0) return null
+  await expect(consentCheckbox).toBeVisible()
   await consentCheckbox.check()
   await page.getByRole('button', { name: /보내기|전송/ }).click()
 
-  await page.waitForURL(/\/gifts\//)
-  const match = /\/gifts\/([0-9a-f-]{36})/.exec(page.url())
-  return match?.[1] ?? null
+  await expect(page.getByText('요청을 보냈습니다')).toBeVisible({ timeout: 15_000 })
+  const id = new URL(page.url()).searchParams.get('id')
+  if (!id) throw new Error(`완료 URL에 gift id가 없다: ${page.url()}`)
+  return id
 }
 
 test.describe('US5 — 결제 실패에서 복구한다', () => {
+  test.describe.configure({ timeout: 180_000 })
   test('V7 · 0000 카드로 실패 → 수단 변경 재시도 → 성공', async ({ authedPage, friendPage }) => {
+    await ensureOnboarded(authedPage)
+    await ensureOnboarded(friendPage)
+    await removeAllFriends(authedPage)
+    await removeAllFriends(friendPage)
+    const { bId } = await becomeFriends(authedPage, friendPage)
     await registerCard(authedPage, FAILING_CARD_LAST4)
 
-    const giftRequestId = await sendGiftRequest(authedPage)
-    test.skip(
-      giftRequestId === null,
-      '요청 생성 화면(US3 · T039~T041)이 아직 없다 — 그 화면이 서면 이 시나리오가 켜진다 (R12)',
-    )
-    if (giftRequestId === null) return
-
+    const giftRequestId = await sendGiftRequest(authedPage, bId)
     // 수령자가 승인한다 (US4 · J 의 T047) — 승인 즉시 자동 결제가 돌고 0000 카드라 실패한다
     await friendPage.goto(`/gifts/${giftRequestId}`)
-    const approveButton = friendPage.getByRole('button', { name: /좋아요|승인/ })
-    test.skip(
-      (await approveButton.count()) === 0,
-      '수신 응답 화면(US4 · T047)이 아직 없다 — 그 화면이 서면 이 시나리오가 켜진다 (R12)',
-    )
+    const approveButton = friendPage.getByRole('link', { name: '이걸로 받을게요' })
+    await expect(approveButton).toBeVisible()
     await approveButton.click()
+    await friendPage.getByLabel('받는 분').fill('테스트 수령자')
+    await friendPage.getByLabel('연락처').fill('01012345678')
+    await friendPage.getByLabel('주소', { exact: true }).fill('서울시 테스트로 1')
+    await friendPage.getByRole('button', { name: '완료' }).click()
 
     // FR-030 — 주는 사람에게만 실패가 보인다. 복구 화면에 시도 횟수와 기한이 있다
     await authedPage.goto(`/gifts/${giftRequestId}/recover`)
     await expect(authedPage.getByRole('heading', { name: '결제가 되지 않았어요' })).toBeVisible()
     await expect(authedPage.getByText(/시도 \d+ \/ \d+/)).toBeVisible()
 
-    // 수령자는 복구 화면을 볼 수 없다 — 결과 화면으로 보내진다 (FR-030)
+    // 수령자는 복구 화면을 볼 수 없고 상세로 돌아간다. 실패 진행은 노출하지 않는다 (FR-030)
     await friendPage.goto(`/gifts/${giftRequestId}/recover`)
-    await expect(friendPage).toHaveURL(new RegExp(`/gifts/${giftRequestId}/result$`))
+    await expect(friendPage).toHaveURL(new RegExp(`/gifts/${giftRequestId}$`))
+    await expect(friendPage.getByText('선물 준비 중')).toBeVisible()
+    await expect(friendPage.getByText('결제 실패')).toHaveCount(0)
 
     // 정상 카드를 더 등록하고 그 카드로 재시도한다
     await registerCard(authedPage, GOOD_CARD_LAST4)

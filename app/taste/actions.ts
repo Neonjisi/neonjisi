@@ -28,6 +28,7 @@ import {
   tasteItemInputSchema,
   tasteItemUpdateSchema,
 } from '@/lib/validation/taste-item'
+import { getProduct } from '@/lib/dal/product'
 
 /**
  * 취향 Server Actions (T027, T043 선행 구현)
@@ -157,6 +158,21 @@ export async function createTasteItem(
       }
       throw e
     }
+  })
+}
+
+export async function createWishlistFromProduct(
+  productId: string,
+): Promise<ActionResult<{ itemId: string }>> {
+  const product = await getProduct(productId)
+  if (!product) {
+    return failure({ code: 'VALIDATION_FAILED', message: '선택할 수 없는 상품이에요.' })
+  }
+  return createTasteItem({
+    kind: 'WANT',
+    categoryId: product.categoryId,
+    detail: product.name,
+    productId: product.id,
   })
 }
 

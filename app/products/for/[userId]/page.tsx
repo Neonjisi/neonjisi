@@ -15,6 +15,7 @@ export default async function FriendRecommendationsPage({
   const [{ userId }, query] = await Promise.all([params, searchParams])
   const rawReturnTo = typeof query.returnTo === 'string' ? query.returnTo : query.returnTo?.[0]
   const backHref = safeReturnTo(rawReturnTo, `/friends/${userId}`)
+  const detailReturnTo = `/products/for/${userId}?returnTo=${encodeURIComponent(backHref)}`
   const [friend, recommendations] = await Promise.all([
     getFriendTaste(userId),
     getRecommendations(userId),
@@ -41,7 +42,7 @@ export default async function FriendRecommendationsPage({
               아직 원하는 것을 적지 않았어요. 관심 없는 종류를 제외한 전체 상품을 보여드릴게요.
             </div>
           ) : recommendations.wantMatches.length ? (
-            <div className="mt-3"><ProductGrid products={recommendations.wantMatches} friendUserId={userId} haveCategoryIds={haveCategoryIds} /></div>
+            <div className="mt-3"><ProductGrid products={recommendations.wantMatches} friendUserId={userId} haveCategoryIds={haveCategoryIds} returnTo={detailReturnTo} /></div>
           ) : (
             <p className="mt-3 text-sm text-neutral-600">직접 고른 상품이 아직 판매 중이지 않아요.</p>
           )}
@@ -50,7 +51,7 @@ export default async function FriendRecommendationsPage({
         <section className="mt-8" aria-labelledby="category-recommendations">
           <h2 id="category-recommendations" className="text-lg font-bold">같은 카테고리에서 더 보기</h2>
           {recommendations.categoryMatches.length ? (
-            <div className="mt-3"><ProductGrid products={recommendations.categoryMatches} friendUserId={userId} haveCategoryIds={haveCategoryIds} /></div>
+            <div className="mt-3"><ProductGrid products={recommendations.categoryMatches} friendUserId={userId} haveCategoryIds={haveCategoryIds} returnTo={detailReturnTo} /></div>
           ) : (
             <p className="mt-3 rounded-2xl bg-neutral-100 p-5 text-sm text-neutral-600">더 보여드릴 상품이 없어요.</p>
           )}

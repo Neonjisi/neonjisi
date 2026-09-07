@@ -7,7 +7,8 @@ const LABEL = {
   SUCCEEDED: '성사 · 정산 중',
   SETTLED: '성사',
   FAILED: '미달 취소 · 환불 완료',
-  CANCELLED: '주최자 취소 · 환불 완료',
+  // 카드에는 topup 이 없다(FundingCardView) — 사유를 가를 수 없으므로 중립으로 둔다 (copy.md §4)
+  CANCELLED: '취소 · 환불 완료',
 } as const
 
 function dDay(deadline: Date, now: Date): string {
@@ -15,11 +16,11 @@ function dDay(deadline: Date, now: Date): string {
   return days === 0 ? '오늘 마감' : `D-${days}`
 }
 
-export function FundingCard({ funding }: { funding: FundingCardView }) {
+export function FundingCard({ funding, returnTo }: { funding: FundingCardView; returnTo: string }) {
   const progress = Math.min(100, Math.round((funding.paidTotal / funding.goalAmount) * 100))
   return (
     <li>
-      <Link href={`/fundings/${funding.id}`} className="block rounded-[20px] bg-surface p-4 active:bg-neutral-50">
+      <Link href={`/fundings/${funding.id}?returnTo=${encodeURIComponent(returnTo)}`} className="block rounded-[20px] bg-surface p-4 active:bg-neutral-50">
         <div className="flex items-center justify-between gap-3">
           <p className="min-w-0 truncate font-semibold">{funding.receiverDisplayName}님 · {funding.productSnapshot.name}</p>
           <span className="shrink-0 text-xs font-semibold text-rose-700">{LABEL[funding.status]}</span>

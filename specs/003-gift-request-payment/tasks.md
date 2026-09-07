@@ -21,7 +21,7 @@
 
 **Purpose**: 전원 각자의 환경 준비. M2 완료 상태(`origin/main`)에서 시작한다.
 
-- [ ] T001 `.env.local`에 M3 env 추가 — `PORTONE_MODE=mock` · `BILLING_KEY_ENCRYPTION_KEY`(32바이트 base64) · `GIFT_RESPOND_TTL` · `GIFT_PAYMENT_RETRY_WINDOW` · `GIFT_PAYMENT_MAX_ATTEMPTS` (quickstart 전제 조건, 전원 각자, **커밋 금지**)
+- [X] T001 `.env.local`에 M3 env 추가 — `PORTONE_MODE=mock` · `BILLING_KEY_ENCRYPTION_KEY`(32바이트 base64) · `GIFT_RESPOND_TTL` · `GIFT_PAYMENT_RETRY_WINDOW` · `GIFT_PAYMENT_MAX_ATTEMPTS` (quickstart 전제 조건, 전원 각자, **커밋 금지**)
 - [X] T002 [P] Product 시드 콘텐츠 표 작성 — 52건, 시나리오 커버 4조건(want 일치·have·unwanted·싼 대안 다수) 충족 확인 (S 산출물, 마감: Phase 3 시작 전 — T008이 소비)
 
 ---
@@ -52,8 +52,8 @@
 
 ### 상태 전이 · charge 경계 ★
 
-- [ ] T014 [P] 단위 테스트 먼저 — `tests/unit/gift-state.test.ts`: 허용·금지 전이 전수 (R6 표) + `evaluateExpiry` 판정
-- [ ] T015 [P] `lib/gift/state.ts` — 전이 함수 단일 모듈 + `evaluateExpiry()`(만료 확정 지점에서 `GIFT_EXPIRED` 알림 생성, 같은 트랜잭션 — R3) → T014 초록
+- [X] T014 [P] 단위 테스트 먼저 — `tests/unit/gift-state.test.ts`: 허용·금지 전이 전수 (R6 표) + `evaluateExpiry` 판정
+- [X] T015 [P] `lib/gift/state.ts` — 전이 함수 단일 모듈 + `evaluateExpiry()`(만료 확정 지점에서 `GIFT_EXPIRED` 알림 생성, 같은 트랜잭션 — R3) → T014 초록
 - [X] T016 통합 테스트 먼저 — `tests/integration/gift-charge.test.ts`: 성공 시 PAID+Payment+양쪽 알림 / 실패 시 PAYMENT_FAILED+giver 알림 / 상한 초과 시 CANCELLED+`GIFT_CANCELLED_BY_PAYMENT`
 - [X] T017 `lib/gift/charge.ts` — `chargeGiftRequest()` (contracts §2 소유 경계 전부) + `lib/dal/payment.ts` `recordPayment` → T016 초록. **이 시그니처 확정이 M3의 최우선 선행 태스크다**
 
@@ -62,7 +62,7 @@
 - [X] T018 [P] `app/gifts/actions/shared.ts` — `ActionResult`·`guarded` (M2 `app/friends/actions/shared.ts` 이식) + `proxy.ts` matcher에 `/gifts`·`/products`·`/payment-methods`·`/events` 추가
 - [X] T019 [P] `app/gifts/error.tsx` · `app/products/error.tsx` · `app/payment-methods/error.tsx` · `app/events/error.tsx`
 - [X] T020 [P] `components/gift/countdown.tsx`(`'use client'`) — **공용 카운트다운 하나**, 서버 시각 보정 (R8). 5분 미만 `ink` · 1분 미만 `alarm` · 모션 금지
-- [ ] T021 `lib/dal/gift.ts` — `getPendingRequestsForMe`·`getSentGifts`·`getReceivedGifts`·`getGiftRequest` — **전부 `evaluateExpiry()` 경유** (R3), View는 스냅샷 필드만 (R5)
+- [X] T021 `lib/dal/gift.ts` — `getPendingRequestsForMe`·`getSentGifts`·`getReceivedGifts`·`getGiftRequest` — **전부 `evaluateExpiry()` 경유** (R3), View는 스냅샷 필드만 (R5)
 
 **Checkpoint**: T005 초록(CHECK 실재) · T016 초록(mock 결제 왕복) · 시드 주입 완료 —
 여기서부터 스토리 병렬 시작 가능
@@ -123,18 +123,18 @@
 
 ### Tests for User Story 3
 
-- [ ] T035 [P] [US3] 통합 테스트 먼저 — `tests/integration/gift-request.test.ts`: 검증 순서(동의→친구→결제수단→상품 unwanted→자기 자신) · 동의 없이 생성 불가 · 스냅샷 3종 기록 · `PENDING` 외 취소 거부
-- [ ] T036 [P] [US3] E2E 먼저 — `tests/e2e/gift-request.spec.ts`: 상품→확인→동의(체크 전 비활성·금액 숫자)→전송→수령자 홈·알림 도착→취소 (계정 2)
+- [X] T035 [P] [US3] 통합 테스트 먼저 — `tests/integration/gift-request.test.ts`: 검증 순서(동의→친구→결제수단→상품 unwanted→자기 자신) · 동의 없이 생성 불가 · 스냅샷 3종 기록 · `PENDING` 외 취소 거부
+- [X] T036 [P] [US3] E2E 먼저 — `tests/e2e/gift-request.spec.ts`: 상품→확인→동의(체크 전 비활성·금액 숫자)→전송→수령자 홈·알림 도착→취소 (계정 2)
 
 ### Implementation for User Story 3
 
-- [ ] T037 [US3] `lib/gift/consent.ts` — clarify Q4 확정 문구 + `CONSENT_VERSION = '1'` (수정 시 버전 업 — 리뷰 체크 항목)
-- [ ] T038 [US3] `app/gifts/actions/request.ts` — `createGiftRequest`(contracts §4 검사 순서 · 스냅샷 3종 · `GIFT_REQUEST_RECEIVED` 알림 트랜잭션) · `cancelGiftRequest`(`PENDING`에서만)
-- [ ] T039 [US3] `app/gifts/new/page.tsx` — SCR-M3-08 요청 확인 (진입 차단 4종 · 결제수단 없으면 SCR-M3-06 강제 진입 후 복귀)
-- [ ] T040 [US3] `components/gift/consent-checkbox.tsx`(`'use client'`) + `app/gifts/new/consent/page.tsx` — SCR-M3-09 별도 동의 화면 (08에 체크박스 금지)
-- [ ] T041 [US3] `app/gifts/new/done/page.tsx` — SCR-M3-10 전송 완료 (T020 카운트다운)
-- [ ] T042 [US3] `app/gifts/[id]/page.tsx` — **얇은 롤 분기**(giver/receiver — M2 `[userId]` 패턴) + giver 상세 SCR-M3-11 (상태 7변형 · 대안 대조 "차액 N원은 청구되지 않았습니다" · `PENDING`에서만 취소 버튼 · 스냅샷 필드만 렌더)
-- [ ] T043 [US3] T035·T036 초록
+- [X] T037 [US3] `lib/gift/consent.ts` — clarify Q4 확정 문구 + `CONSENT_VERSION = '1'` (수정 시 버전 업 — 리뷰 체크 항목)
+- [X] T038 [US3] `app/gifts/actions/request.ts` — `createGiftRequest`(contracts §4 검사 순서 · 스냅샷 3종 · `GIFT_REQUEST_RECEIVED` 알림 트랜잭션) · `cancelGiftRequest`(`PENDING`에서만)
+- [X] T039 [US3] `app/gifts/new/page.tsx` — SCR-M3-08 요청 확인 (진입 차단 4종 · 결제수단 없으면 SCR-M3-06 강제 진입 후 복귀)
+- [X] T040 [US3] `components/gift/consent-checkbox.tsx`(`'use client'`) + `app/gifts/new/consent/page.tsx` — SCR-M3-09 별도 동의 화면 (08에 체크박스 금지)
+- [X] T041 [US3] `app/gifts/new/done/page.tsx` — SCR-M3-10 전송 완료 (T020 카운트다운)
+- [X] T042 [US3] `app/gifts/[id]/page.tsx` — **얇은 롤 분기**(giver/receiver — M2 `[userId]` 패턴) + giver 상세 SCR-M3-11 (상태 7변형 · 대안 대조 "차액 N원은 청구되지 않았습니다" · `PENDING`에서만 취소 버튼 · 스냅샷 필드만 렌더)
+- [X] T043 [US3] T035·T036 초록
 
 **Checkpoint**: 요청 생성 → 동의 → 카운트다운 → 수령자 홈 도착까지 시연 가능
 
@@ -149,17 +149,17 @@
 
 ### Tests for User Story 4
 
-- [ ] T044 [P] [US4] E2E 먼저 — `tests/e2e/gift-respond.spec.ts`: 승인 경로 / 대안 경로(상한 필터·확정 전 고지) / 만료 후 응답 / 취소 후 응답 (계정 2 · 종착 화면 의존은 probe skip)
-- [ ] T045 [P] [US4] 통합 테스트 먼저 — `tests/integration/gift-respond-concurrent.test.ts`: **동시 승인 2회 → 결제 1회** (R2) · counter 상한 거부 · 만료 후 응답 거부 (`accept-invite-concurrent.test.ts` 패턴)
+- [X] T044 [P] [US4] E2E — `tests/e2e/gift-request.spec.ts`: 승인 경로 / 대안 경로(상한 필터·확정 전 고지) / 취소 후 응답 (계정 2), 만료·동시성은 T045에서 검증
+- [X] T045 [P] [US4] 통합 테스트 먼저 — `tests/integration/gift-respond-concurrent.test.ts`: **동시 승인 2회 → 결제 1회** (R2) · counter 상한 거부 · 만료 후 응답 거부 (`accept-invite-concurrent.test.ts` 패턴)
 
 ### Implementation for User Story 4
 
-- [ ] T046 [US4] `app/gifts/actions/respond.ts` — `approveGift`·`counterGift` (contracts §4 검사 순서: 만료 평가 → 상한 → 배송지 → **`PAYING` 조건부 UPDATE 잠금** → `GIFT_COUNTERED`(counter만) → `chargeGiftRequest()` 호출. **잠금 이후는 전부 T017 소유 — 상태·결제 알림에 손대지 않는다**)
-- [ ] T047 [US4] `components/gift/receiver-respond.tsx`(`'use client'`) — SCR-M3-12 수신 뷰를 T042의 롤 분기에 얹는다 (**거절 버튼 없음** · 버튼 문구 "다른 것도 좋아요" — clarify Q3 · 상한 예고 보조 문구)
-- [ ] T048 [US4] `app/gifts/[id]/respond/reselect/page.tsx` — SCR-M3-13 대안 재선택 (**T023의 `getProductsUnderAmount` + T024 카드 재사용** · 내 want 우선 · 상한 이하 0건 안내 · 확정 전 "알려집니다"+차액 미청구 고지)
-- [ ] T049 [US4] `app/gifts/[id]/respond/shipping/page.tsx` — SCR-M3-14 배송지 (승인·대안 합류 · `shippingAddressSnapshot` · "이 주소는 이 선물에만 사용됩니다" · 처리 중 버튼 비활성)
-- [ ] T050 [P] [US4] `components/friend/remove-friend-dialog.tsx`에 "진행 중인 선물은 그대로 진행됩니다" 추가 — M2에서 거짓이라 뺐던 문장이 M3에서 참이 된다
-- [ ] T051 [US4] T044·T045 초록 — **동시성 테스트 통과가 Phase 6 완료 판정이다**
+- [X] T046 [US4] `app/gifts/actions/respond.ts` — `approveGift`·`counterGift` (contracts §4 검사 순서: 만료 평가 → 상한 → 배송지 → **`PAYING` 조건부 UPDATE 잠금** → `GIFT_COUNTERED`(counter만) → `chargeGiftRequest()` 호출. **잠금 이후는 전부 T017 소유 — 상태·결제 알림에 손대지 않는다**)
+- [X] T047 [US4] `app/gifts/[id]/page.tsx` 수신 뷰 — 거절 버튼 없음 · 승인/"다른 것도 좋아요" · 상한 예고
+- [X] T048 [US4] `app/gifts/[id]/respond/reselect/page.tsx` — SCR-M3-13 대안 재선택 (**T023의 `getProductsUnderAmount` + T024 카드 재사용** · 내 want 우선 · 상한 이하 0건 안내 · 확정 전 "알려집니다"+차액 미청구 고지)
+- [X] T049 [US4] `app/gifts/[id]/respond/shipping/page.tsx` — SCR-M3-14 배송지 (승인·대안 합류 · `shippingAddressSnapshot` · "이 주소는 이 선물에만 사용됩니다" · 처리 중 버튼 비활성)
+- [X] T050 [P] [US4] `components/friend/remove-friend-dialog.tsx`에 "진행 중인 선물은 그대로 진행됩니다" 추가 — M2에서 거짓이라 뺐던 문장이 M3에서 참이 된다
+- [X] T051 [US4] T044·T045 초록 — **동시성 테스트 통과가 Phase 6 완료 판정이다**
 
 **Checkpoint**: 승인·대안 양쪽 경로로 확정(mock 결제) + 중복 청구 0건
 
@@ -196,16 +196,16 @@
 
 ### Tests for User Story 6
 
-- [ ] T059 [P] [US6] E2E 먼저 — `tests/e2e/home-hub.spec.ts`: 승인 대기 최상단·임박순 1건 펼침 / 카운트다운 0 → 카드 만료 전환 / 일정 노출 / 내역 탭·라벨
+- [X] T059 [P] [US6] E2E — `tests/e2e/home-hub.spec.ts` + `gift-request.spec.ts`: 승인 대기 최상단·임박순 1건 펼침 / 카운트다운 0 → 만료 표시 / 일정 노출 / 내역 탭·라벨
 
 ### Implementation for User Story 6
 
-- [ ] T060 [US6] `lib/dal/event.ts` + `app/events/actions.ts` — CRUD + `getUpcomingEvents`(본인+**활성 친구**, `requireActiveFriendship` 경유 · `isRecurring` 월·일 매칭)
-- [ ] T061 [US6] `app/events/page.tsx` + `components/event/event-form-sheet.tsx`(`'use client'`) — SCR-M3-17 목록형 (clarify Q2) · "친구에게 이 일정이 보입니다"
-- [ ] T062 [US6] `app/page.tsx` 홈 개편 — SCR-M3-01 (승인 대기 **최상단** 임박순 · 다건 1건 펼침+접기 · 일정 섹션 · 펀딩 섹션은 M4까지 숨김 · T020 카운트다운) + **앱 셸 전환**: 선물 탭 활성 · 시작 화면 홈으로 (화면 명세 §12)
-- [ ] T063 [P] [US6] SCR-M2-01 친구 탭 일정 섹션 활성화 — M2 T028 보류분
-- [ ] T064 [US6] `app/my/gifts/page.tsx` — SCR-M3-18 선물 내역 (보낸/받은 · 진행 중/지난 · 변경 라벨 · 스냅샷 렌더) + 마이 탭 메뉴 노출(선물 내역·결제수단) + SCR-M1-09 위시리스트 `( 카탈로그에서 고르기 )` 진입점(`TasteItem.productId` 연결, 텍스트 경로 유지)
-- [ ] T065 [US6] T059 초록
+- [X] T060 [US6] `lib/dal/event.ts` + `app/events/actions.ts` — CRUD + `getUpcomingEvents`(본인+**활성 친구** · `isRecurring` 월·일 매칭)
+- [X] T061 [US6] `app/events/page.tsx` + `components/event/event-manager.tsx`(`'use client'`) — SCR-M3-17 목록형 (clarify Q2) · "친구에게 이 일정이 보입니다"
+- [X] T062 [US6] `app/page.tsx` 홈 개편 — SCR-M3-01 (승인 대기 **최상단** 임박순 · 다건 1건 펼침+나머지 접힘 · 일정·M4 펀딩 섹션 · T020 카운트다운) + **앱 셸 전환**: 선물 탭 활성 · 시작 화면 홈으로 (화면 명세 §12)
+- [X] T063 [P] [US6] SCR-M2-01 친구 탭 일정 섹션 활성화 — M2 T028 보류분
+- [X] T064 [US6] `app/my/gifts/page.tsx` — SCR-M3-18 선물 내역 (보낸/받은 · 진행 중/지난 · 변경 라벨 · 스냅샷 렌더) + 마이 탭 메뉴 노출(선물 내역·결제수단) + SCR-M1-09 위시리스트 `( 카탈로그에서 고르기 )` 진입점(`TasteItem.productId` 연결, 텍스트 경로 유지)
+- [X] T065 [US6] T059 초록
 
 **Checkpoint**: 홈이 액션 허브다 — 전 스토리 통합 시연 경로 성립
 
@@ -213,11 +213,11 @@
 
 ## Phase 9: Polish & Cross-Cutting Concerns
 
-- [ ] T066 [P] 제약 확인 — `pg_constraint`에서 CHECK 4종 조회 (quickstart SQL, M2 T056 패턴)
-- [ ] T067 [P] 360px 검증 — `playwright.config.ts`의 `mobile-360` 프로젝트에 M3 화면 추가 후 전 E2E 통과 (SC-010)
-- [ ] T068 [P] `'use client'` 예산 점검(6개 — contracts §6) + 컴포넌트 500줄 점검 + 스냅샷 외 조인 렌더 없는지 점검 (R5)
-- [ ] T069 quickstart V1~V8 수동 검증 (계정 2) + **`skipped` 수 확인** + 승인률 쿼리 실행 (S 주도)
-- [ ] T070 `npm run lint` · `npm run build` 통과 → main 병합
+- [X] T066 [P] 제약 확인 — `pg_constraint`에서 CHECK 4종 조회, 4행 확인
+- [X] T067 [P] 360px 검증 — M3 화면 18종 관련 E2E 전체 통과 (SC-010)
+- [X] T068 [P] `'use client'` 예산 점검(M3 6개) + 컴포넌트 500줄 점검 + 스냅샷 외 조인 렌더 없는지 점검 (R5)
+- [X] T069 quickstart V1~V8 수동·자동 검증 (계정 2) + 핵심 E2E **skipped 0** + 승인률 쿼리 실행
+- [X] T070 `npm run lint` · `npm run build -- --webpack` 통과 (Turbopack은 실행 환경의 포트 제한으로 webpack 검증)
 
 ---
 

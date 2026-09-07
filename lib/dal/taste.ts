@@ -19,6 +19,7 @@ export type TasteItemView = {
   categoryId: string
   categoryName: string
   detail: string | null
+  productId: string | null
 }
 
 export type TasteItemsByKind = Record<TasteKind, TasteItemView[]>
@@ -89,6 +90,7 @@ export const getTasteItemsByKind = cache(async (): Promise<TasteItemsByKind> => 
       categoryId: item.categoryId,
       categoryName: item.category.name,
       detail: item.detail,
+      productId: item.productId,
     })
   }
   return grouped
@@ -110,6 +112,7 @@ export async function listTasteItemSnapshots(profileId: string): Promise<TasteIt
     categoryId: item.categoryId,
     categoryName: item.category.name,
     detail: item.detail,
+    productId: item.productId,
   }))
 }
 
@@ -124,11 +127,11 @@ export async function findCategoryById(categoryId: string): Promise<CategoryView
  */
 export async function insertTasteItem(
   profileId: string,
-  input: { kind: TasteKind; categoryId: string; detail: string | null },
+  input: { kind: TasteKind; categoryId: string; detail: string | null; productId?: string | null },
 ): Promise<{ itemId: string }> {
   return prisma.$transaction(async (tx) => {
     const item = await tx.tasteItem.create({
-      data: { profileId, kind: input.kind, categoryId: input.categoryId, detail: input.detail },
+      data: { profileId, kind: input.kind, categoryId: input.categoryId, detail: input.detail, productId: input.productId },
       select: { id: true },
     })
     if (input.kind === 'HAVE' || input.kind === 'UNWANTED') {
@@ -171,6 +174,7 @@ export async function findTasteItemById(itemId: string): Promise<OwnedTasteItem 
     categoryId: item.categoryId,
     categoryName: item.category.name,
     detail: item.detail,
+    productId: item.productId,
   }
 }
 

@@ -26,8 +26,9 @@
  * 들어 있던 `E2E_USER3_*` 는 사용하지 않는다.
  *
  * env 가 없으면 `authedPage`(·`friendPage`·`thirdPage`) 를 쓰는 테스트는 실패가 아니라 **skip** 된다.
- * 테스트 계정의 취향 데이터는 매 테스트마다 UI 로 지우고 다시 만든다 (taste-ui.ts) —
- * e2e 에서는 `@/lib/prisma` · DAL 을 직접 import 하지 않는다.
+ * 테스트 계정의 취향 데이터는 매 테스트마다 지우고 다시 만든다 — **만들기는 UI 로**
+ * (taste-ui.ts), **지우기는 DB 로** (taste-db.ts, T029). 지우기만 예외인 이유는 그 파일
+ * 머리말에 있다. DAL 과 `@/lib/prisma` 는 어느 쪽도 import 하지 않는다.
  *
  * 쿠키 직렬화는 `node_modules/@supabase/ssr/dist/main/cookies.js` 와
  * `utils/chunker.js` (v0.12.5) 의 구현을 그대로 옮긴 것이다:
@@ -128,6 +129,57 @@ export function toSupabaseAuthCookies(
     httpOnly: false,
     expires,
   }))
+}
+
+/**
+ * `toSupabaseAuthCookies` 의 역함수 — 컨텍스트에 심어 둔 쿠키에서 세션을 되읽는다.
+ * 청크(`.0`, `.1`, …)는 접미 인덱스 순으로 이어 붙인다. 값 형식이 바뀌면 여기서 터진다.
+ */
+export function sessionFromSupabaseAuthCookies(
+  cookies: readonly { name: string; value: string }[],
+  supabaseUrl: string,
+): Session {
+  const key = supabaseStorageKey(supabaseUrl)
+  // `sb-<ref>-auth-token-code-verifier` 는 `.` 로 이어지지 않으므로 걸리지 않는다
+  const parts = cookies
+    .filter((cookie) => cookie.name === key || cookie.name.startsWith(`${key}.`))
+    .map((cookie) => ({
+      index: cookie.name === key ? 0 : Number(cookie.name.slice(key.length + 1)),
+      value: cookie.value,
+    }))
+    .sort((a, b) => a.index - b.index)
+
+  if (parts.length === 0) {
+    throw new Error(`인증 쿠키(${key})가 없다 — 로그인되지 않은 브라우저 컨텍스트다`)
+  }
+
+  const encoded = parts.map((part) => part.value).join('')
+  if (!encoded.startsWith(BASE64_PREFIX)) {
+    throw new Error(
+      '인증 쿠키가 `base64-` 로 시작하지 않는다 — @supabase/ssr 의 cookieEncoding 이 바뀌었다',
+    )
+  }
+
+  return JSON.parse(
+    Buffer.from(encoded.slice(BASE64_PREFIX.length), 'base64url').toString('utf8'),
+  ) as Session
+}
+
+/**
+ * 이 page 가 로그인한 계정의 `auth.users.id` — `User.id` 와 같은 값이다 (schema.prisma R2).
+ * 세션을 인자로 받지 않고 **컨텍스트의 쿠키에서** 읽는다: 초기화 대상은 언제나 그 page 가
+ * 실제로 로그인한 계정이어야 하고, 넘겨받은 세션은 page 와 어긋날 수 있다.
+ */
+export async function sessionUserId(page: Page): Promise<string> {
+  const session = sessionFromSupabaseAuthCookies(
+    await page.context().cookies(),
+    requireEnv('NEXT_PUBLIC_SUPABASE_URL'),
+  )
+  const userId = session.user?.id
+  if (!userId) {
+    throw new Error('세션 쿠키에 user.id 가 없다 — 쿠키 형식이 바뀌었거나 세션이 깨졌다')
+  }
+  return userId
 }
 
 // ── fixture ───────────────────────────────────────────────────────────────────

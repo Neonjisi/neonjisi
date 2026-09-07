@@ -18,7 +18,7 @@ export function ProfileForm({
 }: {
   initialName: string;
   avatarUrl: string | null;
-  returnTo: "/my" | "/onboarding";
+  returnTo: string;
 }) {
   const router = useRouter();
   const [name, setName] = useState(initialName);

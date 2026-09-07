@@ -158,7 +158,7 @@ E2E_USER2_PASSWORD=
 | T021 | `lib/dal/invite.ts` — `getPreview(token)` | |
 | T023 | `app/friends/actions/accept-invite.ts` — `acceptInvite` | |
 | T041 | `lib/dal/invite.ts` — `getMyInviteLinks()` (US3용이지만 **파일 소유자가 J**라 J가 쓴다) | |
-| T029 | T016·T018·T019를 초록으로 만들고 360px에서 재확인 | 마지막 |
+| T029 | T016·T018·T019를 초록으로 만들고 360px에서 재확인 — ✅ **2026-09-06 S 가 마감했다.** 원인이 J 의 기능 코드가 아니라 스펙 7개가 공유하는 `resetAccount` 픽스처였다. 상세는 tasks.md T029 | 마지막 |
 
 > **T023의 검사 순서가 정해져 있다**: 세션 → 토큰 유효성 → 본인 링크 → 기존 관계 →
 > 트랜잭션(관계·`usedCount`·알림).

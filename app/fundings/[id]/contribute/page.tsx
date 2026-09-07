@@ -22,6 +22,7 @@ export default async function ContributeFundingPage({ params }: { params: Promis
         receiverDisplayName={funding.receiverDisplayName}
         productName={funding.productSnapshot.name}
         remaining={funding.remaining}
+        minAmount={funding.minAmount}
         cardLabel={`${paymentMethod.cardBrand} **** ${paymentMethod.cardLast4}`}
       />
     </main>

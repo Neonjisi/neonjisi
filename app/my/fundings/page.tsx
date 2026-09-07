@@ -6,6 +6,7 @@ import { getMyFundings } from '@/lib/dal/funding'
 export default async function MyFundingsPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const [{ tab }, fundings] = await Promise.all([searchParams, getMyFundings()])
   const activeTab = tab === 'contributed' ? 'contributed' : 'organized'
+  const returnTo = activeTab === 'contributed' ? '/my/fundings?tab=contributed' : '/my/fundings'
   const list = fundings[activeTab]
   const active = list.filter((funding) => funding.status === 'OPEN' || funding.status === 'SUCCEEDED')
   const ended = list.filter((funding) => funding.status !== 'OPEN' && funding.status !== 'SUCCEEDED')
@@ -20,11 +21,11 @@ export default async function MyFundingsPage({ searchParams }: { searchParams: P
       <div className="space-y-7 px-5 pt-6">
         <section>
           <h2 className="font-bold">진행 중</h2>
-          {active.length ? <ul className="mt-3 space-y-3">{active.map((funding) => <FundingCard key={funding.id} funding={funding} />)}</ul> : <p className="mt-3 rounded-[20px] bg-surface p-5 text-sm text-neutral-600">진행 중인 펀딩이 없어요. 선물에서 함께 준비할 상품을 골라보세요.</p>}
+          {active.length ? <ul className="mt-3 space-y-3">{active.map((funding) => <FundingCard key={funding.id} funding={funding} returnTo={returnTo} />)}</ul> : <p className="mt-3 rounded-[20px] bg-surface p-5 text-sm text-neutral-600">진행 중인 펀딩이 없어요. 선물에서 함께 준비할 상품을 골라보세요.</p>}
         </section>
         <section>
           <h2 className="font-bold">끝난 펀딩</h2>
-          {ended.length ? <ul className="mt-3 space-y-3">{ended.map((funding) => <FundingCard key={funding.id} funding={funding} />)}</ul> : <p className="mt-3 rounded-[20px] bg-surface p-5 text-sm text-neutral-600">아직 끝난 펀딩이 없어요.</p>}
+          {ended.length ? <ul className="mt-3 space-y-3">{ended.map((funding) => <FundingCard key={funding.id} funding={funding} returnTo={returnTo} />)}</ul> : <p className="mt-3 rounded-[20px] bg-surface p-5 text-sm text-neutral-600">아직 끝난 펀딩이 없어요.</p>}
         </section>
       </div>
     </main>

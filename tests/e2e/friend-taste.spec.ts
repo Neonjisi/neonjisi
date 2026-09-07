@@ -39,11 +39,18 @@ test.describe('US2 — 친구의 취향을 본다', () => {
     await expect(pageB.getByText('아직 적은 게 많지 않아요')).toBeVisible()
   })
 
-  test('폭 360px에서 목록과 상세에 가로 스크롤이 없다', async ({ authedPage: pageA, friendPage: pageB }) => {
-    const { aId } = await becomeFriends(pageA, pageB)
-    await pageB.goto('/friends')
-    await expectNoHorizontalScroll(pageB)
-    await pageB.goto(`/friends/${aId}`)
-    await expectNoHorizontalScroll(pageB)
+  // SC-006 은 폭 360 에서만 의미가 있다 — expectNoHorizontalScroll 이 뷰포트를 단언한다.
+  // 프로젝트 뷰포트를 그대로 쓰면 chromium(1280) 에서도 수집돼 실패한다.
+  // onboarding·want-items·invite-control·payment-method 와 같은 방식으로 여기서 폭을 고정한다.
+  test.describe('SC-006 · 폭 360', () => {
+    test.use({ viewport: { width: 360, height: 740 } })
+
+    test('목록과 상세에 가로 스크롤이 없다', async ({ authedPage: pageA, friendPage: pageB }) => {
+      const { aId } = await becomeFriends(pageA, pageB)
+      await pageB.goto('/friends')
+      await expectNoHorizontalScroll(pageB)
+      await pageB.goto(`/friends/${aId}`)
+      await expectNoHorizontalScroll(pageB)
+    })
   })
 })

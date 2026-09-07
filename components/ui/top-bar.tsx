@@ -1,20 +1,17 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
+import { BrandLogo } from "@/components/ui/brand-logo";
 
 type TopBarProps = {
   title?: string;
   backHref?: string;
   action?: ReactNode;
-  /** 배경을 화면 배경색과 맞출 때 사용 (기본은 흰색 surface) */
-  isTransparent?: boolean;
 };
 
-export function TopBar({ title, backHref, action, isTransparent = false }: TopBarProps) {
+export function TopBar({ title, backHref, action }: TopBarProps) {
   return (
-    <header
-      className={`flex h-14 shrink-0 items-center gap-1 px-2 ${isTransparent ? "" : "bg-surface"}`}
-    >
+    <header className="flex h-14 shrink-0 items-center gap-1 px-2">
       {backHref ? (
         <Link
           href={backHref}
@@ -24,7 +21,7 @@ export function TopBar({ title, backHref, action, isTransparent = false }: TopBa
           <ChevronLeft size={22} />
         </Link>
       ) : (
-        <span className="size-10 shrink-0" aria-hidden />
+        <BrandLogo href="/" />
       )}
       <h1 className="flex-1 truncate text-center text-base font-semibold text-neutral-900">
         {title}
