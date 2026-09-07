@@ -9,7 +9,7 @@ export function FriendList({ friends }: { friends: FriendListItem[] }) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center px-8 pb-20 text-center">
         <span className="grid size-[72px] place-items-center rounded-full bg-rose-50 text-rose-500"><Users size={30} aria-hidden /></span>
-        <h2 className="pt-4 text-lg font-bold">링크 하나면 시작됩니다</h2>
+        <h2 className="pt-4 text-lg font-bold">링크 하나면 시작돼요</h2>
         <p className="pt-2 text-sm text-neutral-600">친구에게 링크를 보내 서로의 취향을 나눠보세요.</p>
         <LinkButton href="/friends/invite" className="mt-6">친구에게 링크 보내기</LinkButton>
       </div>

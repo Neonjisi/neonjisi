@@ -11,7 +11,7 @@ export default async function TasteProductPickerPage({ searchParams }: { searchP
     <main className="min-h-dvh pb-8">
       <TopBar title="원하는 상품 고르기" backHref="/taste" />
       <div className="px-5 pt-4">
-        <p className="text-sm text-neutral-600">상품을 고르면 원하는 것에 바로 추가됩니다.</p>
+        <p className="text-sm text-neutral-600">상품을 고르면 원하는 것에 바로 추가돼요.</p>
         {error ? <p role="alert" className="mt-3 rounded-xl bg-error-50 p-3 text-sm text-error-700">{error}</p> : null}
         <ul aria-label="원하는 상품 목록" className="mt-5 grid grid-cols-2 gap-3">
           {products.map((product) => (

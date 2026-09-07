@@ -50,7 +50,7 @@ export function ProfileForm({
         id="display-name"
         label="이름"
         placeholder="이름을 입력하세요"
-        helper="친구에게 이 이름으로 보입니다."
+        helper="친구에게 이 이름으로 보여요."
         value={name}
         maxLength={DISPLAY_NAME_MAX_LENGTH}
         onChange={(event) => setName(event.target.value)}

@@ -307,8 +307,8 @@ export function OnboardingFlow({ categories }: OnboardingFlowProps) {
         <span className="grid size-[72px] place-items-center rounded-full bg-mint-100">
           <CheckCircle2 size={32} className="text-mint-700" aria-hidden />
         </span>
-        <h1 className="text-2xl font-bold text-neutral-900">준비됐습니다</h1>
-        <p className="text-base text-neutral-600">이제 친구에게 넌지시 알릴 차례입니다.</p>
+        <h1 className="text-2xl font-bold text-neutral-900">준비됐어요</h1>
+        <p className="text-base text-neutral-600">이제 친구에게 넌지시 알릴 차례예요.</p>
       </div>
       <div className="flex flex-col items-center gap-3">
         <Button size="lg" onClick={() => router.push("/my")}>

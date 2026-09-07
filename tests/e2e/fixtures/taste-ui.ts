@@ -46,7 +46,7 @@ export const TEXT = {
   onboardingStep1: '이미 있거나 필요 없는 것을 골라주세요',
   onboardingStep2: '고른 것들, 어느 쪽인가요?',
   onboardingStep3: '어떤 걸 좋아하는지 한 줄만 적어주세요',
-  onboardingDone: '준비됐습니다',
+  onboardingDone: '준비됐어요',
   tasteTitle: '내 취향',
   wantEmpty: '친구가 볼 수 있게 원하는 걸 적어보세요',
   sectionEmpty: '아직 등록한 항목이 없어요',
