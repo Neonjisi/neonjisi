@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // PT 촬영 스크립트의 로컬 중간 산출물 — 추적하지 않는 자리다 (.gitignore 와 한 짝)
+    ".pt-tmp/**",
   ]),
   {
     // T023 — 화면·Server Action 에서 Prisma 직접 접근 금지 (research R4).

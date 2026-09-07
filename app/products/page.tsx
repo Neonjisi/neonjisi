@@ -54,8 +54,10 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
             </label>
             <label className="min-w-0">
               <span className="sr-only">받을 친구</span>
-              <select name="for" defaultValue={friendUserId} className="h-11 w-full rounded-xl border border-neutral-200 bg-surface px-3 text-sm">
-                <option value="">받을 친구 선택</option>
+              {/* 친구가 없으면 고를 것이 없다 — 멀쩡해 보이는 빈 드롭다운 대신 왜 비었는지
+                  말한다 (/fundings/new 가 "친구가 없습니다"로 이미 그렇게 한다) */}
+              <select name="for" defaultValue={friendUserId} disabled={friends.length === 0} className="h-11 w-full rounded-xl border border-neutral-200 bg-surface px-3 text-sm disabled:bg-neutral-100 disabled:text-neutral-400">
+                <option value="">{friends.length === 0 ? "친구가 없습니다" : "받을 친구 선택"}</option>
                 {friends.map((friend) => <option key={friend.userId} value={friend.userId}>{friend.displayName}</option>)}
               </select>
             </label>
