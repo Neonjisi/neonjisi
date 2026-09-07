@@ -67,10 +67,18 @@ describe('formatTimeUntil', () => {
     expect(formatTimeUntil(later(DAY - 1), NOW)).toBe('오늘')
   })
 
-  it('하루 이상 남았으면 일 단위로 내림한다 — 남은 기간을 부풀리지 않는다', () => {
+  it('하루 이상 남았으면 달력 날짜 차이로 센다', () => {
     expect(formatTimeUntil(later(DAY), NOW)).toBe('1일 후')
     expect(formatTimeUntil(later(DAY + HOUR), NOW)).toBe('1일 후')
     // 갓 발급한 링크 — 발급 + 7일 (FR-003)
     expect(formatTimeUntil(later(7 * DAY), NOW)).toBe('7일 후')
+  })
+
+  it('발급 직후에도 7일짜리 링크는 계속 "7일 후"다 — 밀리초 내림이면 1분 만에 6일로 떨어졌다', () => {
+    // 링크는 NOW 에 발급돼 NOW+7일에 만료된다. 관리 화면을 1분 뒤에 열어도 발급 화면이
+    // 적은 날짜(= 7일 뒤 그 날)와 같은 날을 가리켜야 한다
+    const expiresAt = later(7 * DAY)
+    const oneMinuteLater = new Date(NOW.getTime() + MINUTE)
+    expect(formatTimeUntil(expiresAt, oneMinuteLater)).toBe('7일 후')
   })
 })

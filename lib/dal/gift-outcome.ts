@@ -47,6 +47,16 @@ function parseSnapshot(value: unknown, giftRequestId: string): Snapshot | null {
   return parsed.data
 }
 
+/**
+ * 대안 스냅샷 전용 — **없는 것은 정상이다.** 대안 제안 없이 승인된 건은
+ * `counterProductSnapshot` 이 null 이고, 그걸 parseSnapshot 에 태우면 매 렌더 계약 위반
+ * 오류가 찍혀 진짜 위반이 묻힌다. 값이 있는데 형태가 틀린 경우만 검사에 넘긴다.
+ */
+function parseOptionalSnapshot(value: unknown, giftRequestId: string): Snapshot | null {
+  if (value === null || value === undefined) return null
+  return parseSnapshot(value, giftRequestId)
+}
+
 function methodLabel(method: { cardBrand: string; cardLast4: string } | null): string | null {
   return method === null ? null : `${method.cardBrand} **** ${method.cardLast4}`
 }
@@ -108,7 +118,7 @@ export const getGiftResultView = cache(
     if (row.giverId !== userId && row.receiverId !== userId) return null
 
     const isGiver = row.giverId === userId
-    const counterSnapshot = parseSnapshot(row.counterProductSnapshot, row.id)
+    const counterSnapshot = parseOptionalSnapshot(row.counterProductSnapshot, row.id)
     const snapshot = counterSnapshot ?? parseSnapshot(row.productSnapshot, row.id)
 
     return {
@@ -159,7 +169,7 @@ export const getGiftRecoveryView = cache(
     })
     if (row === null || row.giverId !== userId) return null
 
-    const counterSnapshot = parseSnapshot(row.counterProductSnapshot, row.id)
+    const counterSnapshot = parseOptionalSnapshot(row.counterProductSnapshot, row.id)
     const snapshot = counterSnapshot ?? parseSnapshot(row.productSnapshot, row.id)
     const maxAttempts = getPaymentMaxAttempts()
 

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { BottomNav } from "@/components/ui/bottom-nav";
 import { FriendAvatar } from "@/components/friend/avatar";
+import { signOut } from "@/app/my/actions";
 import { getMyPaymentMethods } from "@/lib/dal/payment-method";
 import { getMyProfileSummary } from "@/lib/dal/profile";
 import { BrandLogo } from "@/components/ui/brand-logo";
@@ -21,16 +22,29 @@ const MAIN_MENU: { label: string; href: string }[] = [
   { label: "초대 링크 관리", href: "/friends/invite/manage?from=my" },
 ];
 
-const SUB_MENU: { label: string; href: string }[] = [
+// href 가 없는 항목은 **아직 문서가 없는 것**이다. 예전에는 href="#" 으로 두어 눌리는
+// 링크처럼 보였지만 아무 일도 일어나지 않았다 — /settings 는 같은 항목을 "준비 중"으로
+// 밝히고 있었으므로 그쪽에 맞춘다.
+const SUB_MENU: { label: string; href?: string }[] = [
   { label: "알림 설정", href: "/settings" },
-  { label: "약관 · 개인정보처리방침", href: "#" },
+  { label: "약관 · 개인정보처리방침" },
 ];
 
 function MenuCard({ children }: { children: ReactNode }) {
   return <div className="divide-y divide-neutral-100 rounded-[20px] bg-surface px-4">{children}</div>;
 }
 
-function MenuRow({ label, href, badge }: { label: string; href: string; badge?: string }) {
+function MenuRow({ label, href, badge }: { label: string; href?: string; badge?: string }) {
+  // 갈 곳이 없는 항목은 링크로 만들지 않는다 — 눌리는 모양을 하고 아무 일도 안 하는 것보다
+  // "준비 중"이라고 말해 두는 편이 정확하다 (/settings 와 같은 표기)
+  if (!href) {
+    return (
+      <div className="flex h-[52px] items-center justify-between">
+        <span className="text-[15px] text-neutral-500">{label}</span>
+        <span className="text-xs text-neutral-400">준비 중</span>
+      </div>
+    );
+  }
   return (
     <Link href={href} className="flex h-[52px] items-center justify-between active:bg-neutral-50">
       <span className="text-[15px] text-neutral-900">{label}</span>
@@ -90,12 +104,16 @@ export default async function MyPage() {
             {SUB_MENU.map((item) => (
               <MenuRow key={item.label} {...item} />
             ))}
-            <button
-              type="button"
-              className="flex h-[52px] w-full items-center text-[15px] text-error-600 active:bg-neutral-50"
-            >
-              로그아웃
-            </button>
+            {/* Server Action 으로 실제 세션을 끊는다 — 예전에는 핸들러 없는 버튼이라
+                눌러도 아무 일이 없었다 (app/my/actions.ts) */}
+            <form action={signOut}>
+              <button
+                type="submit"
+                className="flex h-[52px] w-full items-center text-[15px] text-error-600 active:bg-neutral-50"
+              >
+                로그아웃
+              </button>
+            </form>
           </MenuCard>
         </div>
       </main>

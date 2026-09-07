@@ -123,8 +123,12 @@ export default async function GiftRecoverPage({
       <div className="flex flex-col items-center px-5 pt-6 text-center">
         <CircleAlert size={44} className="text-error-500" aria-hidden />
         <h1 className="pt-4 text-xl font-bold text-neutral-900">결제가 되지 않았어요</h1>
+        {/* 전달 약속은 아직 되돌릴 수 있을 때만 참이다. 기한·횟수가 끝나 취소된 뒤에도
+            "결제만 마치면 전달됩니다"라고 하면 없는 길을 알려주는 것이 된다 */}
         <p className="pt-2 text-sm text-neutral-600">
-          {view.receiverDisplayName}님은 이미 승인했어요. 결제만 마치면 선물이 전달됩니다.
+          {view.availability.canRetry
+            ? `${view.receiverDisplayName}님은 이미 승인했어요. 결제만 마치면 선물이 전달됩니다.`
+            : `${view.receiverDisplayName}님은 승인했지만 결제가 끝내 완료되지 않았어요.`}
         </p>
       </div>
 
@@ -147,7 +151,10 @@ export default async function GiftRecoverPage({
           <p>
             시도 {view.attemptCount} / {view.maxAttempts}
           </p>
-          {view.retryUntil && (
+          {/* 기한 안내는 **아직 시도할 수 있을 때만** 낸다 — 끝난 뒤에도 남기면 바로 아래
+              차단 문구와 정면으로 어긋난다("…까지 재시도할 수 있어요" + "지금은 다시 시도할
+              수 없는 상태예요"). 끝난 사정은 BLOCKED_MESSAGE 가 이미 말한다 */}
+          {view.availability.canRetry && view.retryUntil && (
             <p className="pt-1">{formatDeadline(view.retryUntil)}까지 재시도할 수 있어요.</p>
           )}
         </div>

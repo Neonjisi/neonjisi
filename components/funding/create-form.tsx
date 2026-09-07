@@ -67,14 +67,33 @@ export function FundingCreateForm({
   const maxBurden = Math.max(0, goalAmount - minAmount)
   const totalSteps = isSelf ? 2 : 3
 
+  /**
+   * 마감일은 **입력 즉시** 판정해 필드에 붙인다 (TextField 의 error prop — 테두리·aria-invalid
+   * 까지 함께 간다). 제출해야만 알 수 있으면 사용자는 왜 막히는지 모른 채 버튼을 누른다.
+   */
+  const deadlineError =
+    deadline === ''
+      ? '마감일을 정해주세요'
+      : new Date(`${deadline}T23:59:59`).getTime() <= Date.now()
+        ? '마감일은 오늘 이후로 정해주세요'
+        : undefined
+
+  /** 값이 바뀌면 지난 제출에서 남은 오류를 지운다 — 이미 고친 값 위에 옛 오류가 남으면 안 된다 */
+  function editField(set: (value: string) => void): (value: string) => void {
+    return (value) => {
+      setError(null)
+      set(value)
+    }
+  }
+
   function validateAmounts(): boolean {
     if (!(goalAmount > 0) || !(minAmount > 0) || minAmount > goalAmount) {
       setError('최소 달성 금액은 목표 금액보다 클 수 없어요')
       return false
     }
-    const end = new Date(`${deadline}T23:59:59`)
-    if (!deadline || end.getTime() <= Date.now()) {
-      setError('마감일은 오늘 이후로 정해주세요')
+    // 마감일 사정은 필드가 이미 말하고 있다 — 같은 문장을 폼 상단에 겹쳐 쓰지 않는다
+    if (deadlineError) {
+      setError(null)
       return false
     }
     setError(null)
@@ -181,13 +200,13 @@ export function FundingCreateForm({
 
       {step === 2 ? (
         <section className="flex flex-col gap-5 pt-5">
-          <TextField id="funding-goal" label="목표 금액" inputMode="numeric" value={goal} onChange={(e) => setGoal(e.target.value)} helper={`상품 가격 ${formatPrice(product.price)}`} />
+          <TextField id="funding-goal" label="목표 금액" inputMode="numeric" value={goal} onChange={(e) => editField(setGoal)(e.target.value)} helper={`상품 가격 ${formatPrice(product.price)}`} />
           {isSelf ? (
             <TextField id="funding-minimum" label="최소 달성 금액" value={goalAmount > 0 ? formatPrice(goalAmount) : ''} disabled helper="내가 받는 선물이라 목표를 다 채워야 성사됩니다. 목표 금액과 동일" />
           ) : (
-            <TextField id="funding-minimum" label="최소 달성 금액" inputMode="numeric" value={minimum} onChange={(e) => setMinimum(e.target.value)} helper="이 금액 이상이면 펀딩이 성사되고, 부족한 금액은 주최자가 부담합니다." />
+            <TextField id="funding-minimum" label="최소 달성 금액" inputMode="numeric" value={minimum} onChange={(e) => editField(setMinimum)(e.target.value)} helper="이 금액 이상이면 펀딩이 성사되고, 부족한 금액은 주최자가 부담합니다." />
           )}
-          <TextField id="funding-deadline" label="마감일" type="date" min={tomorrow()} value={deadline} onChange={(e) => setDeadline(e.target.value)} />
+          <TextField id="funding-deadline" label="마감일" type="date" min={tomorrow()} value={deadline} onChange={(e) => editField(setDeadline)(e.target.value)} error={deadlineError} />
           {goalAmount < product.price ? <p className="rounded-xl bg-warning-50 p-3 text-sm text-warning-700">목표 금액이 상품 가격보다 낮아요. 그대로 진행할 수 있어요.</p> : null}
         </section>
       ) : null}

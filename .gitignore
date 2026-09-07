@@ -61,3 +61,7 @@ idation.rtf
 # 상품 사진 원본 (제출 전 변환 소스) — public/products/ 의 webp 만 추적한다.
 # 원본은 6.5MB 이고 변환 결과는 1.6MB 다. 둘 다 넣을 이유가 없다.
 /product-photos/
+
+# PT 촬영 스크립트가 쓰는 중간 산출물 (상태 JSON · 보드 HTML · 디버그 캡처).
+# 재촬영 스크립트는 scripts/pt-shots/ 에, 결과물은 pt-shots/ 에 추적한다.
+/.pt-tmp/

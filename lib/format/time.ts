@@ -30,6 +30,13 @@ export function formatRelativeTime(target: Date, now: Date = new Date()): string
   return `${target.getFullYear()}. ${target.getMonth() + 1}. ${target.getDate()}.`
 }
 
+/** 달력상 며칠 뒤인지 — 시:분을 버리고 날짜끼리 뺀다. DST 로 하루가 23·25시간이어도 안전하다 */
+function calendarDaysBetween(from: Date, to: Date): number {
+  const start = new Date(from.getFullYear(), from.getMonth(), from.getDate())
+  const end = new Date(to.getFullYear(), to.getMonth(), to.getDate())
+  return Math.round((end.getTime() - start.getTime()) / DAY_MS)
+}
+
 /**
  * 남은 기간 표기 (FR-006 · SCR-M2-03의 "5일 후 만료").
  * @returns 이미 지났으면 `null` — 호출부가 "만료됨"으로 갈린다
@@ -39,5 +46,8 @@ export function formatTimeUntil(target: Date, now: Date = new Date()): string | 
   if (remaining <= 0) return null
   // 하루가 채 안 남았으면 시간 단위로 쪼개지 않는다 — "오늘 끝난다"가 필요한 전부다
   if (remaining < DAY_MS) return '오늘'
-  return `${Math.floor(remaining / DAY_MS)}일 후`
+  // ⚠️ 남은 밀리초를 내림하면 **발급 1분 뒤부터** 7일짜리 링크가 "6일 후"가 된다(6.999일).
+  //    같은 링크를 날짜로 적는 발급 화면("9월 14일 만료")과 하루 어긋나 보인다.
+  //    사람은 만료를 달력으로 센다 — 남은 시:분이 아니라 **날짜 차이**로 셈한다.
+  return `${calendarDaysBetween(now, target)}일 후`
 }
