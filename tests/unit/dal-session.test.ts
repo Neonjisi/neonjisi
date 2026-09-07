@@ -125,7 +125,11 @@ describe('verifySession', () => {
     await expect(verifySession()).resolves.toEqual({ userId: USER_ID })
   })
 
-  it('메타데이터에 이름이 없으면 이메일을 표시명으로 쓴다', async () => {
+  it('메타데이터에 이름이 없어도 이메일을 표시명으로 쓰지 않는다 — 상대방 화면에 새어 나간다', async () => {
+    // 이전에는 이메일을 폴백으로 썼다. 그런데 displayName 은 본인만 보는 값이 아니라
+    // receiverDisplayName 등으로 **스냅샷되어 상대방 화면에 그대로 뜬다** — 선물 상세·복구
+    // 화면·알림 문구에서 "d@example.com님" 이 노출됐고, 나중에 이름을 고쳐도 과거 스냅샷에는
+    // 이메일이 남는다. 이름이 없으면 다른 경로들과 같은 '이름 미설정'으로 두고 온보딩에서 받는다.
     h.getClaims.mockResolvedValue({
       data: { claims: { sub: USER_ID, email: 'd@example.com', user_metadata: {} } },
       error: null,
@@ -135,7 +139,9 @@ describe('verifySession', () => {
 
     await verifySession()
 
-    expect(h.userCreate.mock.calls[0][0].data.displayName).toBe('d@example.com')
+    const created = h.userCreate.mock.calls[0][0].data.displayName
+    expect(created).toBe('이름 미설정')
+    expect(created).not.toContain('@')
   })
 })
 

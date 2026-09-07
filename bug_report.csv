@@ -1,0 +1,49 @@
+ID,심각도,영역,경로,제목,재현 절차,기대 동작,실제 동작,원인 위치,증거,담당,상태,조치
+BUG-001,High,결제,/payment-methods,"결제수단이 여러 장일 때 전부 ""사용 중""으로 표시돼 어느 카드가 청구될지 알 수 없다","1. ACTIVE 결제수단을 2장 이상 등록한다 (예: 신한 4821 · 신한 0000)
+2. /payment-methods 를 연다","실제로 청구되는 1장을 ""기본"" 등으로 구분해 표시하고 변경 수단을 제공한다","2장 모두 ""사용 중"" 배지가 붙는다. 실제 청구는 createdAt 이 가장 최근인 1장만 쓴다. 최신 카드가 실패 카드(0000)면 사용자는 이유를 알 수 없이 결제가 계속 실패한다","app/payment-methods/page.tsx:44 (ACTIVE → ""사용 중"" 일괄 표기)
+lib/dal/payment-method.ts:59-68 (getActivePaymentMethod 이 orderBy createdAt desc 로 1장 선택)","화면 캡처: 신한 ****4821 ""사용 중"" · 신한 ****0000 ""사용 중""
+코드 주석: ""여럿이면 가장 최근 것을 쓴다""",D,수정됨,"app/payment-methods/page.tsx — 목록 정렬에 기대지 않고 getActivePaymentMethod() 에 직접 물어 청구 카드를 가른다. 라벨을 ""기본 · 이 카드로 결제됩니다"" / ""등록됨 · 결제에는 쓰이지 않아요"" 로 나누고 하단 안내도 맞췄다.
+검증: 4821=기본 · 0000=등록됨 으로 표시 확인.
+⚠️ 남은 것 — 사용자가 기본 수단을 **고르게** 하려면 스키마 필드가 필요하다 (J 소유, 별건)"
+BUG-002,High,개인정보,"/gifts/[id] · /gifts/[id]/recover · /my/gifts · 알림","이름 없이 가입하면 displayName 이 이메일로 채워져 상대방 화면에 이메일이 그대로 노출된다","1. OAuth 메타데이터에 full_name/name/user_name 이 없는 계정으로 가입한다
+2. 그 계정을 수령자로 선물 요청을 만든다
+3. 요청자 계정으로 /gifts/{id} · /gifts/{id}/recover · /my/gifts · /notifications 를 연다","표시 이름 또는 익명 폴백(FALLBACK_DISPLAY_NAME)이 보인다","4개 화면 모두 ""e2e2@neonjisi.test"" 처럼 이메일 원문이 노출된다. receiverDisplayName 으로 스냅샷되어 나중에 이름을 바꿔도 과거 건에는 이메일이 남는다","lib/dal/session.ts:87-90 (firstNonEmptyString(...) ?? claims.email ?? FALLBACK_DISPLAY_NAME)","선물 상세 ""받는 사람 e2e2@neonjisi.test""
+알림 ""결제가 완료되지 않아 e2e2@neonjisi.test님 선물이 취소되었어요""",J,수정됨(부분),"lib/dal/session.ts — 이메일 폴백을 빼고 '이름 미설정'으로 떨어뜨린다.
+⚠️ **이 동작은 원래 의도적이었다** — tests/unit/dal-session.test.ts 에 ""이름이 없으면 이메일을 표시명으로 쓴다"" 테스트가 있었다. 그 테스트를 새 동작으로 바꿨으니 J 가 의도를 확인하고 유지/되돌림을 정해야 한다.
+⚠️ **기존 데이터는 그대로다** — 이미 이메일이 들어간 User.displayName 과 스냅샷은 백필이 필요하다 (J 소유)"
+BUG-003,Medium,결제,"/gifts/[id]/recover · /gifts/[id]/result","대안 제안이 없는 정상 건에도 ""스냅샷 형태가 계약과 다르다"" 오류 로그가 매 렌더 찍힌다","1. counterProductSnapshot 이 null 인 선물(대안 제안 없이 승인된 건)의 결과·복구 화면을 연다
+2. 브라우저 콘솔과 Next dev 오버레이를 본다","대안 스냅샷이 없는 것은 정상이므로 오류를 찍지 않는다","console.error 가 서버·브라우저 양쪽에 찍히고 Next dev 오버레이에 ""1 Issue"" 가 뜬다. 진짜 계약 위반이 이 잡음에 묻힌다","lib/dal/gift-outcome.ts:111 · :162 — row.counterProductSnapshot 을 null 검사 없이 parseSnapshot 에 넣는다","dev 서버 로그 ""[dal/gift-outcome] 스냅샷 형태가 계약과 다르다 aeafe01b-...""",D,수정됨,"lib/dal/gift-outcome.ts — parseOptionalSnapshot() 을 새로 두어 null/undefined 는 검사에 태우지 않는다. 값이 있는데 형태가 틀린 경우만 기존대로 오류를 찍어 진짜 위반은 계속 잡힌다.
+검증: 수정 후 /recover 요청에서 오류 0건"
+BUG-004,High,결제,"/gifts/[id]/recover","취소가 확정된 뒤에도 복구 화면이 ""…까지 재시도할 수 있어요"" 와 ""지금은 다시 시도할 수 없는 상태예요"" 를 함께 보여준다","1. 결제가 실패하고 재시도 기한이 지난 선물의 복구 화면을 연다 (조회 시점에 CANCELLED 로 확정된다)","기한이 끝났으면 재시도 안내를 내리고 끝난 사정만 말한다","기한 문구가 availability 와 무관하게 렌더돼 차단 문구와 정면으로 어긋난다. 머리말도 ""결제만 마치면 선물이 전달됩니다"" 라고 없는 길을 약속한다","app/gifts/[id]/recover/page.tsx:150-152 (retryUntil 만 보고 렌더) · :126-128 (전달 약속 무조건 렌더)","화면 캡처. 시도 1/3 · 기한 2026-09-01 · 오늘 2026-09-07 · status=CANCELLED",D,수정됨,"app/gifts/[id]/recover/page.tsx — 기한 문구를 availability.canRetry 일 때만 렌더하고, 머리말도 끝난 경우 ""승인했지만 결제가 끝내 완료되지 않았어요"" 로 가른다.
+검증: 모순 문구 사라짐. 남는 문장은 ""지금은 다시 시도할 수 없는 상태예요."" 하나"
+BUG-005,—,알림,/notifications,"(철회) 결제 실패 알림이 ""다시 시도해주세요"" 로 남아 재시도 불가 화면으로 보낸다","—","—","**오탐이었다.** 취소 확정 시 GIFT_CANCELLED_BY_PAYMENT 고지가 양쪽에 정상 발송된다(lib/gift/retry-window.ts:41-49). 처음 목록에 없었던 것은 아직 취소가 확정되기 전이었기 때문이고, 내가 /recover 를 연 순간 지연 평가가 돌면서 생성됐다. 먼저 온 ""다시 시도해주세요"" 는 그 시점의 사실을 적은 이력 항목이라 남는 것이 맞다","—","확인 후 알림 목록: ""결제가 완료되지 않아 …선물이 취소되었어요"" (35분 전) + 기존 항목",D,철회,"조치 없음. FR-032 고지 경로는 설계대로 동작한다"
+BUG-006,Medium,화면,"/my · /friends · /gifts/new 등 FriendAvatar 사용 화면","외부 아바타 이미지가 로드에 실패하면 폴백 없이 깨진 이미지와 alt 텍스트가 그대로 보인다","1. avatarUrl 이 있는 계정으로 로그인한다
+2. 그 이미지 호스트가 응답하지 않는 상태에서 /my 를 연다","avatarUrl 이 null 일 때와 같은 User 아이콘 폴백으로 대체된다","깨진 이미지 아이콘과 ""이도규 프로필"" alt 텍스트가 두 줄로 깨져 노출된다. FriendAvatar 를 쓰는 6개 이상 화면에 동일하게 발생한다","components/friend/avatar.tsx:5-9 — avatarUrl 이 null 인 경우만 폴백하고 로드 실패는 처리하지 않는다","네트워크 lh3.googleusercontent.com → 503 · img.naturalWidth = 0",H,수정됨,"components/friend/avatar.tsx — 폴백 아이콘을 항상 깔고 사진을 alt=\"\" 로 그 위에 덮는다. 실패하면 브라우저가 빈 상자로 접어 아이콘이 드러난다. 접근 이름은 컨테이너의 role=img + aria-label 이 든다.
+'use client' 예산을 쓰지 않았다 (onError 불필요).
+검증: src 를 강제로 깨뜨렸을 때 alt 텍스트 렌더 0 · 아이콘 존재"
+BUG-007,Medium,펀딩,/fundings/new,"펀딩 개설 폼에서 이미 고친 오류 문구가 사라지지 않는다","1. 2단계에서 마감일을 과거로 바꾸고 ""펀딩 시작하기"" 를 눌러 오류를 띄운다
+2. 마감일을 미래 날짜로 고친다","입력이 유효해지면 오류 문구가 사라진다","마감일이 유효해져도 ""마감일은 오늘 이후로 정해주세요"" 가 계속 남는다. 버튼을 다시 눌러야만 사라진다","components/funding/create-form.tsx:60 · :70-82 — 변경 핸들러가 error 를 초기화하지 않는다","DOM: date=2026-09-30 · goal=47800 인 상태에서 오류 문구 잔존",H,수정됨,"components/funding/create-form.tsx — editField() 로 입력이 바뀌면 지난 오류를 지운다.
+검증: 유효 날짜로 고치면 문구·aria-invalid 모두 사라짐"
+BUG-008,Low,펀딩,/fundings/new,"마감일에 과거 날짜를 넣어도 제출 전에는 이유를 알려주지 않는다","1. 2단계에서 마감일을 과거로 바꾼다
+2. 버튼을 누르지 않고 화면을 본다","입력 즉시 사유를 알린다","테두리 색만 옅게 바뀌고 안내 문구가 없다. 누르면 그때 문구가 뜬다(서버 생성은 정상적으로 막힌다)","components/funding/create-form.tsx — 검증이 advance() 시점에만 돈다","화면 캡처 · input[type=date].min=2026-09-08",H,수정됨,"components/funding/create-form.tsx — deadlineError 를 파생값으로 만들어 TextField 의 error prop 에 넘긴다(이미 있던 prop 을 안 쓰고 있었다). 테두리·aria-invalid·문구가 함께 간다.
+검증: 과거 날짜 입력 즉시 문구 노출 + aria-invalid=true"
+BUG-009,Medium,법적고지,/my,"""약관 · 개인정보처리방침"" 링크가 href=""#"" 로 아무 데도 가지 않는다","1. /my 에서 해당 항목을 누른다
+2. /settings 의 같은 항목과 비교한다","문서로 이동하거나 /settings 처럼 ""준비 중"" 임을 밝힌다","/my 에서는 눌리는 링크처럼 보이지만 아무 일도 없다. /settings 는 같은 항목을 ""준비 중"" 으로 표시한다 — 같은 항목을 두 화면이 다르게 다룬다","app/my/page.tsx:26 — href: ""#""","read_page: link href=""#"" · /settings ""약관 · 개인정보처리방침 / 준비 중""",H,수정됨,"app/my/page.tsx — href 를 선택 항목으로 바꾸고, 없으면 링크 대신 ""준비 중"" 행으로 렌더한다 (/settings 표기에 맞춤).
+검증: /my 의 a[href=\"#\"] 0개
+⚠️ 문서 자체는 여전히 없다 — 실제 약관·방침 작성은 별건"
+BUG-010,Low,화면,/products,"친구가 0명이어도 ""받을 친구 선택"" 필터가 빈 채로 활성 상태로 노출된다","1. 친구가 0명인 계정으로 /products 를 연다
+2. 드롭다운을 연다","선택지가 없으면 비활성화하거나 사유를 알린다","플레이스홀더 1개만 있는 드롭다운이 정상처럼 열린다. 같은 상황에서 /fundings/new 는 ""친구가 없습니다"" 로 잘 알린다","app/products/page.tsx 필터 영역","select[name=for].options = [""받을 친구 선택""]",H,수정됨,"app/products/page.tsx — friends.length === 0 이면 select 를 disabled 로 두고 문구를 ""친구가 없습니다"" 로 바꾼다 (/fundings/new 와 같은 표기).
+검증: disabled=true · options=[""친구가 없습니다""]"
+BUG-011,—,선물,/my/gifts,"(철회) 결제 실패로 멈춘 선물이 ""지난 선물"" 로 분류된다","—","—","**오탐이었다.** 해당 선물은 재시도 기한이 지나 CANCELLED 로 확정된 상태다 — 끝난 선물이므로 ""지난 선물"" 이 맞다. 내가 근거로 든 ""알림은 재시도하라고 한다"" 는 BUG-005 와 같은 오해였다","—","status=CANCELLED (app/gifts/[id]/page.tsx:16 라벨 ""취소됨"")",H,철회,"조치 없음"
+BUG-012,Medium,친구,/friends/invite,"화면을 여는 것만으로(GET) 공유 가능한 초대 링크가 생성된다","1. /friends/invite/manage 에서 링크가 0건임을 확인한다
+2. /friends/invite 를 연다 (아무것도 누르지 않는다)
+3. manage 를 다시 연다","사용자가 명시적으로 요청했을 때 생성된다","2단계에서 이미 생성돼 있다. 이 링크는 화면이 밝히듯 ""별도의 승인 단계가 없어"" 받는 즉시 친구가 되는 자격 증명이다. 프로덕션에서 Link 프리페치로도 발급되는지는 별도 확인이 필요하다","app/friends/invite/page.tsx:8 — 서버 컴포넌트 본문에서 getOrCreateActiveInviteLink() 호출 (GET 렌더에 쓰기 부수효과)","방문 전 ""사용 중인 링크가 없어요"" → 방문 후 ""/i/IXO_… · 0명 사용""",H,보류,"고치려면 ""링크 만들기"" 버튼 + Server Action 으로 흐름을 바꿔야 한다 — 화면 기획 변경이라 H·S 확인이 필요해 손대지 않았다. 프리페치 발급 여부는 프로덕션 빌드에서 따로 재현해볼 것"
+BUG-013,Low,친구,"/friends/invite · /friends/invite/manage","같은 초대 링크의 만료 시점이 두 화면에서 다르게 표시된다","1. /friends/invite 에서 만료 문구를 본다
+2. 곧바로 manage 로 이동해 같은 링크의 만료 문구를 본다","두 화면이 같은 만료 시점을 말한다","발급 화면 ""9월 14일 만료""(7일 뒤) 대 관리 화면 ""6일 후 만료"". 남은 밀리초를 내림해서 발급 1분 뒤부터 하루가 깎여 보인다","lib/format/time.ts:42 — Math.floor(remaining / DAY_MS)","같은 링크를 수초 간격으로 확인 (오늘 2026-09-07)",H,수정됨,"lib/format/time.ts — 남은 밀리초 내림 대신 **달력 날짜 차이**로 센다(calendarDaysBetween). 기존 단위 테스트 3건은 그대로 통과하고, ""발급 1분 뒤에도 7일 후"" 회귀 테스트를 추가했다.
+검증: manage 가 ""7일 후 만료"" 로 바뀌어 발급 화면의 ""9월 14일"" 과 일치"
+BUG-014,Medium,화면,전역,"없는 리소스와 권한 없는 리소스가 모두 영문 기본 404 로 떨어진다","1. /fundings/00000000-0000-0000-0000-000000000000 을 연다","앱 껍데기를 유지한 한국어 안내와 돌아갈 경로를 준다","Next.js 기본 ""404 / This page could not be found."" 가 뜬다. 헤더·하단 탭이 없어 되돌아갈 방법이 없다. notFound() 호출이 18곳이고 비친구 접근 거부(FR-024)도 이 경로로 떨어진다","app/ 전체에 not-found.tsx 가 없다 (error.tsx 는 9개)","find app -name not-found.tsx → 0건 · grep notFound() → 18건",H,수정됨,"app/not-found.tsx 신설 — 루트 레이아웃 안에서 한국어 안내 + ""홈으로"". 문구는 존재 여부를 알리지 않는다(권한 거부도 같은 화면으로 오므로 ""권한이 없어요"" 라고 하면 id 실재 힌트가 된다).
+검증: 빌드에 /_not-found 포함 · 화면 한국어 확인"
+BUG-015,Low,설정,/settings,"""알림 설정"" 에 설정할 수 있는 것이 하나도 없다","1. /my 에서 ""알림 설정"" 을 누른다","설정을 바꿀 수 있거나 진입 전에 읽기 전용임을 안다","알림 3종이 나열되지만 토글·버튼이 0개다. 본문 하단에서야 ""푸시 알림 선택 기능은 준비 중입니다"" 로 밝힌다","app/settings/page.tsx — 정적 목록만 렌더","DOM: input/button 0개, a[href] 는 뒤로 가기 1개",H,보류,"메뉴 이름을 바꾸거나(""알림 안내"") 안내를 위로 올리는 문구·기획 결정이라 손대지 않았다 — 문구는 S 소유"
+BUG-016,High,인증,/my,"로그아웃 버튼에 동작이 없다 — 저장소 어디에도 sign-out 구현이 없었다","1. /my 를 연다
+2. ""로그아웃"" 을 누른다","세션이 끊기고 /login 으로 간다","아무 일도 일어나지 않는다. 서버 컴포넌트의 핸들러 없는 <button type=\"button\"> 이고, signOut 구현이 코드베이스에 존재하지 않았다. 공용 기기에서 세션을 끊을 방법이 없고 계정 전환도 불가능하다 (이번 QA 에서 다른 계정으로 못 넘어간 원인이기도 하다)","app/my/page.tsx:93-98 (핸들러 없는 버튼) · signOut 구현 부재","grep -riE ""signOut|로그아웃"" → app/my/page.tsx 의 라벨 1건이 전부",D,수정됨,"app/my/actions.ts 신설 — Server Action 에서 supabase.auth.signOut() 후 /login 으로 redirect. Server Action 이라 쿠키 만료가 실제로 응답에 실린다(서버 컴포넌트 렌더 중에는 막혀 있다). /my 의 버튼을 <form action={signOut}> 으로 감쌌다.
+⚠️ **실제 로그아웃 동작은 미검증** — 누르면 이번 QA 세션이 끊겨 확인하지 못했다. 사람이 한 번 눌러봐야 한다"

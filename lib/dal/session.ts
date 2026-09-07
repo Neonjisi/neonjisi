@@ -84,10 +84,12 @@ async function ensureUserRow(claims: SessionClaims): Promise<void> {
   if (existing) return
 
   const meta = claims.user_metadata ?? {}
+  // ⚠️ 이메일을 폴백으로 쓰지 않는다. displayName 은 본인만 보는 값이 아니라
+  //    receiverDisplayName 등으로 **스냅샷되어 상대방 화면에 그대로 뜬다** — 이름이 없다는
+  //    이유로 이메일을 노출하게 되고, 나중에 이름을 고쳐도 과거 스냅샷에는 이메일이 남는다.
+  //    이름이 없으면 다른 경로들과 같은 '이름 미설정'으로 두고, 온보딩에서 채우게 한다.
   const displayName =
-    firstNonEmptyString(meta.full_name, meta.name, meta.user_name) ??
-    claims.email ??
-    FALLBACK_DISPLAY_NAME
+    firstNonEmptyString(meta.full_name, meta.name, meta.user_name) ?? FALLBACK_DISPLAY_NAME
   const avatarUrl = firstNonEmptyString(meta.avatar_url, meta.picture)
 
   try {
