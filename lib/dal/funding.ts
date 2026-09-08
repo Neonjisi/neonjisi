@@ -2,6 +2,7 @@ import { cache } from 'react'
 import { z } from 'zod'
 import type { ContributionStatus, FundingStatus } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { requireActiveFriendship } from '@/lib/dal/friend'
 import { verifySession } from '@/lib/dal/session'
 import { settleFunding } from '@/lib/funding/settle'
 import { evaluateReservationExpiry, shouldSettle } from '@/lib/funding/state'
@@ -39,7 +40,8 @@ export type FundingDetailView = {
   remaining: number // goal − capTotal (R3)
   reservedInFlight: number // "결제 중 N원" 줄 — capTotal − paidTotal
   contributions: Array<{
-    // ★ 지분 마스킹은 여기서 끝난다 (R6)
+    // ★ 지분 마스킹은 여기서 끝난다 (R6). **참여자당 한 줄**이다 — 같은 사람의 여러 참여
+    //   건(FR-011)은 foldByContributor() 가 합쳐서 내려보낸다.
     displayName: string
     amount: number | null // organizer·receiver: 전부 / contributor: 자기 것만 / friend: 전부 null
   }>
@@ -93,6 +95,18 @@ async function hasActiveFriendship(userA: string, userB: string): Promise<boolea
     select: { id: true },
   })
   return found !== null
+}
+
+/**
+ * 뷰어의 활성 친구 id — 방향 무관. `hasActiveFriendship` 의 목록판이다: 단건 판정은 상세
+ * (canViewFunding)가, 이 목록은 카드 목록의 friend 축이 쓴다. 규모(수십 명)에 충분하다.
+ */
+async function activeFriendIds(userId: string): Promise<string[]> {
+  const rows = await prisma.friendship.findMany({
+    where: { status: 'ACTIVE', OR: [{ requesterId: userId }, { addresseeId: userId }] },
+    select: { requesterId: true, addresseeId: true },
+  })
+  return rows.map((row) => (row.requesterId === userId ? row.addresseeId : row.requesterId))
 }
 
 /** R6 canViewFunding — 접근 가능하면 역할을, 아니면 null 을 돌려준다(역할 판정 = 접근 판정) */
@@ -160,6 +174,53 @@ function resolveMyContribution(
     }
   }
   return null
+}
+
+/**
+ * 같은 참여자의 여러 참여 건(FR-011)을 **한 줄로 접는다**.
+ *
+ * 접지 않으면 화면이 "참여자 N명" 을 행 수로 세게 되고, 1명이 3번 참여하면 3명이 된다 —
+ * 통합테스트 피드백("같은 사용자인데도 금액에 추가가 안되고 참여자가 늘어남")의 정체가
+ * 이것이다. DB 가 건별로 행을 만드는 것 자체는 설계대로다(FR-011 · unique 없음) — 빠져
+ * 있던 것은 **보여줄 때 접는 일**이라, contracts §6(화면 보정 금지) 대로 DAL 에서 끝낸다.
+ *
+ * 금액은 **활성 참여분(RESERVED+PAID) 합**이다 — `capTotal`(R3)과 같은 정의라 organizer
+ * 뷰의 금액 합이 `remaining` 의 근거와 어긋나지 않는다. 환불분은 더하지 않는다(돌아간 돈이다).
+ * 다만 활성분이 하나도 없으면(미달·취소 정산으로 전액 REFUNDED) 환불분 합을 대신 보여준다 —
+ * 아니면 끝난 펀딩의 참여자 목록이 통째로 비어 "누가 참여했었는지" 가 사라진다.
+ *
+ * 순서는 **첫 참여 순**이다 — 입력이 createdAt asc 로 정렬돼 있고(fundingDetailSelect),
+ * Map 이 삽입 순서를 지킨다.
+ */
+function foldByContributor(
+  contributions: ReadonlyArray<ContributionRow & { displayName: string }>,
+): Array<ContributionRow & { displayName: string }> {
+  type Folded = { displayName: string; active: number; refunded: number; statuses: Set<ContributionStatus> }
+  const byContributor = new Map<string, Folded>()
+
+  for (const c of contributions) {
+    const entry: Folded = byContributor.get(c.contributorId) ?? {
+      displayName: c.displayName,
+      active: 0,
+      refunded: 0,
+      statuses: new Set<ContributionStatus>(),
+    }
+    if (c.status === 'REFUNDED') entry.refunded += c.amount
+    else entry.active += c.amount
+    entry.statuses.add(c.status)
+    byContributor.set(c.contributorId, entry)
+  }
+
+  return [...byContributor].map(([contributorId, entry]) => {
+    const hasActive = entry.statuses.has('PAID') || entry.statuses.has('RESERVED')
+    return {
+      contributorId,
+      displayName: entry.displayName,
+      amount: hasActive ? entry.active : entry.refunded,
+      // 대표 상태는 myContribution 과 같은 우선순위를 쓴다 — 같은 데이터에 두 규칙을 두지 않는다
+      status: CONTRIBUTION_STATUS_PRIORITY.find((status) => entry.statuses.has(status)) ?? 'REFUNDED',
+    }
+  })
 }
 
 const fundingDetailSelect = {
@@ -250,12 +311,14 @@ export const getFunding = cache(async (fundingId: string): Promise<FundingDetail
 
   const [paid, cap] = await Promise.all([paidTotal(prisma, fundingId), capTotal(prisma, fundingId)])
 
-  const contributionsWithName = found.contributions.map((c) => ({
-    contributorId: c.contributorId,
-    amount: c.amount,
-    status: c.status,
-    displayName: c.contributor.displayName,
-  }))
+  const contributionsWithName = foldByContributor(
+    found.contributions.map((c) => ({
+      contributorId: c.contributorId,
+      amount: c.amount,
+      status: c.status,
+      displayName: c.contributor.displayName,
+    })),
+  )
   // 정산 차액은 예약 없이 만든 주최자 명의 PAID 행이라 reservedUntil=paidAt 흔적을 갖는다.
   // 일반 참여는 reservedUntil이 결제 시각보다 뒤이므로 이 조건과 겹치지 않는다.
   const topupContribution = found.contributions.find(
@@ -402,7 +465,16 @@ export const getMyFundings = cache(
 )
 
 /**
- * 홈 진행 중 펀딩 (contracts §3, FR-023) — 내가 주최·수령·참여 중인 **OPEN** 만, 마감 임박순.
+ * 홈 진행 중 펀딩 (contracts §3, FR-023) — 내가 주최·수령·참여 중이거나 **수령자가 내 활성
+ * 친구인** OPEN 만, 마감 임박순.
+ *
+ * 네 번째 축(친구)은 통합테스트 피드백으로 뒤늦게 들어왔다: FR-024 가 수령자의 활성 친구에게
+ * 상세 열람을 허용하는데 목록에는 그 축이 없어, 권한은 있어도 URL 을 직접 받지 않으면 도달할
+ * 방법이 없었다("당사자들에게는 노출되는데 다른 친구들에게는 노출이 안 됨"). 목록의 축을
+ * `resolveViewerRole` 의 넷과 같게 맞춘다 — 접근 규칙을 두 벌로 만들지 않는다.
+ *
+ * 비친구는 여전히 제외다 — FR-024 가 "링크 소지가 접근 권한을 만들지 않는다"로 정한 선이다.
+ *
  * DB 의 status='OPEN' 은 정산 트리거 이전 스냅샷이다 — settle 로 상태가 바뀐 행은 트리거
  * 통과 뒤 다시 걸러낸다(R1 이 "OPEN 이 아니게 됐다"를 화면에 그대로 반영해야 한다).
  */
@@ -410,13 +482,44 @@ export const getHomeFundings = cache(async (): Promise<FundingCardView[]> => {
   const { userId } = await verifySession()
   const now = new Date()
 
-  const contributedIds = await myContributedFundingIds(userId)
+  const [contributedIds, friendIds] = await Promise.all([
+    myContributedFundingIds(userId),
+    activeFriendIds(userId),
+  ])
 
   const rows = (await prisma.funding.findMany({
     where: {
       status: 'OPEN',
-      OR: [{ organizerId: userId }, { receiverId: userId }, { id: { in: contributedIds } }],
+      OR: [
+        { organizerId: userId },
+        { receiverId: userId },
+        { id: { in: contributedIds } },
+        { receiverId: { in: friendIds } },
+      ],
     },
+    orderBy: { deadline: 'asc' },
+    select: fundingCardSelect,
+  })) as FundingCardRow[]
+
+  const views = await toCardViews(rows, now)
+  return views.filter((v) => v.status === 'OPEN')
+})
+
+/**
+ * 친구 프로필의 진행 중 펀딩 — 그 친구가 **수령자**인 OPEN 만, 마감 임박순.
+ *
+ * 홈(getHomeFundings)은 "내 관련" 을 모으는 자리라 친구들 것이 섞이면 묻힌다. 그 친구를
+ * 보러 온 화면에도 같은 목록이 있어야 "친구가 연 펀딩" 에 실제로 도달한다.
+ *
+ * 접근은 `requireActiveFriendship`(lib/dal/friend.ts) 한 곳에 맡긴다 — 친구 프로필의 다른
+ * 섹션(취향·일정)과 같은 관문이라, 이 목록만 다른 규칙으로 새지 않는다. 비친구면 notFound.
+ */
+export const getFriendFundings = cache(async (friendUserId: string): Promise<FundingCardView[]> => {
+  await requireActiveFriendship(friendUserId)
+  const now = new Date()
+
+  const rows = (await prisma.funding.findMany({
+    where: { status: 'OPEN', receiverId: friendUserId },
     orderBy: { deadline: 'asc' },
     select: fundingCardSelect,
   })) as FundingCardRow[]
