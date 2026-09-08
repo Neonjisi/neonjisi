@@ -71,7 +71,7 @@ const skipReason = !hasDatabase
     : ''
 if (skipReason) console.warn(`[funding-dal.test] skip — ${skipReason}`)
 
-const { getFunding, getMyFundings, getHomeFundings } = hasFundingSchema
+const { getFunding, getMyFundings, getHomeFundings, getFriendFundings } = hasFundingSchema
   ? await import('@/lib/dal/funding')
   : ({} as Partial<typeof import('@/lib/dal/funding')>)
 
@@ -176,7 +176,9 @@ describe.skipIf(skipReason !== '')('lib/dal/funding — getFunding·getMyFunding
   afterAll(async () => {
     await prisma.fundingContribution.deleteMany({ where: { fundingId: { in: fundingIds } } })
     await prisma.funding.deleteMany({ where: { id: { in: fundingIds } } })
-    await prisma.friendship.deleteMany({ where: { requesterId: friendOfReceiver, addresseeId: receiver } })
+    await prisma.friendship.deleteMany({
+      where: { OR: [{ requesterId: { in: userIds } }, { addresseeId: { in: userIds } }] },
+    })
     await prisma.user.deleteMany({ where: { id: { in: userIds } } })
     await prisma.product.deleteMany({ where: { id: productId } })
     await prisma.category.deleteMany({ where: { id: categoryId } })
@@ -208,7 +210,8 @@ describe.skipIf(skipReason !== '')('lib/dal/funding — getFunding·getMyFunding
       expect(view!.paidTotal).toBe(50_000) // PAID 30000+20000 만 — RESERVED 10000 제외 (R3)
       expect(view!.remaining).toBe(100_000 - 60_000) // goal − capTotal(RESERVED+PAID=60000)
       expect(view!.reservedInFlight).toBe(10_000) // cap(60000) − paid(50000)
-      expect(view!.contributions).toHaveLength(3)
+      // 참여자 **2명** — contributorA 의 2건(FR-011)은 한 줄로 접힌다. 금액 합은 그대로 capTotal
+      expect(view!.contributions).toHaveLength(2)
       for (const c of view!.contributions) expect(c.amount).not.toBeNull()
       const total = view!.contributions.reduce((s, c) => s + (c.amount ?? 0), 0)
       expect(total).toBe(60_000)
@@ -257,10 +260,72 @@ describe.skipIf(skipReason !== '')('lib/dal/funding — getFunding·getMyFunding
       expect(view!.myContribution).toEqual({ amount: 30_000, status: 'PAID' })
     })
 
+    /**
+     * 통합테스트 피드백: "여러 사람이 참여하면 같은 사용자인데도 금액에 추가가 안되고
+     * 참여자가 늘어남". DB 가 참여 건마다 행을 만드는 것은 설계대로다(FR-011 — 추가 참여
+     * 허용, unique 없음). 접어서 보여주는 일이 빠져 있었을 뿐이라, DAL 에서 끝낸다
+     * (contracts §6 — 화면 보정 금지, 마스킹과 같은 자리).
+     */
+    it('같은 참여자의 여러 건(FR-011)은 한 줄로 접히고 금액이 합산된다', async () => {
+      const view = await asUser(organizer, () => getFunding!(fundingId))
+
+      const names = view!.contributions.map((c) => c.displayName)
+      expect(new Set(names).size).toBe(names.length) // 같은 이름이 두 번 나오지 않는다
+
+      const a = view!.contributions.find((c) => c.displayName.startsWith('참여자A'))
+      expect(a!.amount).toBe(40_000) // PAID 30,000 + RESERVED 10,000
+    })
+
+    it('참여 순서를 지킨다 — 먼저 참여한 사람이 앞이다', async () => {
+      const view = await asUser(organizer, () => getFunding!(fundingId))
+      expect(view!.contributions.map((c) => c.displayName.slice(0, 4))).toEqual(['참여자A', '참여자B'])
+    })
+
+    it('contributor 시점에도 접힌다 — 자기 줄 하나에 자기 금액이 합산된다', async () => {
+      const view = await asUser(contributorA, () => getFunding!(fundingId))
+      const visible = view!.contributions.filter((c) => c.amount !== null)
+      expect(visible).toHaveLength(1)
+      expect(visible[0]!.amount).toBe(40_000)
+    })
+
+    it('환불된 건은 활성 참여분(RESERVED+PAID)에 더해지지 않는다', async () => {
+      const mixedFundingId = await createFunding({
+        organizerId: organizer,
+        receiverId: receiver,
+        deadline: future(7 * DAY),
+      })
+      const mixed = await createUser('환불섞인참여자')
+      await createContribution(mixedFundingId, mixed, 10_000, 'PAID', future(10 * MIN))
+      await createContribution(mixedFundingId, mixed, 5_000, 'REFUNDED', future(10 * MIN))
+
+      const view = await asUser(organizer, () => getFunding!(mixedFundingId))
+
+      expect(view!.contributions).toHaveLength(1)
+      expect(view!.contributions[0]!.amount).toBe(10_000) // 환불된 5,000 은 빠진다
+    })
+
+    it('전액 환불된 펀딩에서도 참여자가 목록에 남는다 — 활성분이 없으면 환불분을 보여준다', async () => {
+      const refundedFundingId = await createFunding({
+        organizerId: organizer,
+        receiverId: receiver,
+        deadline: past(1 * DAY),
+        status: 'FAILED',
+      })
+      const refunded = await createUser('전액환불참여자')
+      await createContribution(refundedFundingId, refunded, 15_000, 'REFUNDED', past(1 * MIN))
+      await createContribution(refundedFundingId, refunded, 5_000, 'REFUNDED', past(1 * MIN))
+
+      const view = await asUser(organizer, () => getFunding!(refundedFundingId))
+
+      // 목록이 비면 결과 화면에서 "누가 참여했었는지" 가 사라진다 — 종료된 펀딩에도 남겨야 한다
+      expect(view!.contributions).toHaveLength(1)
+      expect(view!.contributions[0]!.amount).toBe(20_000)
+    })
+
     it('friend(활성 친구): 이름만 — 금액 전부 null, myContribution 도 null', async () => {
       const view = await asUser(friendOfReceiver, () => getFunding!(fundingId))
       expect(view!.role).toBe('friend')
-      expect(view!.contributions).toHaveLength(3)
+      expect(view!.contributions).toHaveLength(2)
       expect(view!.contributions.every((c) => c.amount === null)).toBe(true)
       expect(view!.myContribution).toBeNull()
       expect(view!.topup).toBeNull() // organizer 가 아니다
@@ -585,6 +650,60 @@ describe.skipIf(skipReason !== '')('lib/dal/funding — getFunding·getMyFunding
       expect(relevant).toEqual([iReceive, iContribute, iOrganize])
     })
 
+    /**
+     * 통합테스트 피드백: "펀딩이 열렸을 때 당사자들에게는 노출되는데 다른 친구들에게는 노출이
+     * 안 됨". FR-024 는 **수령자의 활성 친구**에게 상세 열람을 허용하는데, 목록(FR-023)은
+     * 주최·수령·참여 셋만 담고 있었다 — 권한은 있는데 도달할 경로가 없어 URL 을 직접 받지
+     * 않으면 영영 못 보는 상태였다. 목록의 축을 canViewFunding 과 같은 넷으로 맞춘다.
+     *
+     * 비친구는 그대로 제외한다 — FR-024 가 "링크 소지가 접근 권한을 만들지 않는다"로 못박은
+     * 자리다. 여기서 열면 접근 규칙이 두 개가 된다.
+     */
+    it('수령자의 활성 친구에게도 노출된다 — 비친구는 그대로 제외 (FR-024)', async () => {
+      const viewer = await createUser('친구노출뷰어')
+      const target = await createUser('친구노출수령자')
+      const otherOrganizer = await createUser('친구노출주최자')
+      const notMyFriend = await createUser('친구노출남')
+      await prisma.friendship.create({
+        data: { requesterId: viewer, addresseeId: target, status: 'ACTIVE' },
+      })
+
+      const friendsFunding = await createFunding({
+        organizerId: otherOrganizer,
+        receiverId: target,
+        deadline: future(2 * DAY),
+      })
+      const strangersFunding = await createFunding({
+        organizerId: otherOrganizer,
+        receiverId: notMyFriend,
+        deadline: future(1 * DAY),
+      })
+
+      const ids = (await asUser(viewer, () => getHomeFundings!())).map((v) => v.id)
+
+      expect(ids).toContain(friendsFunding)
+      expect(ids).not.toContain(strangersFunding)
+    })
+
+    it('해제된(REMOVED) 관계는 노출되지 않는다 — 활성 친구만이다', async () => {
+      const viewer = await createUser('해제뷰어')
+      const target = await createUser('해제수령자')
+      const otherOrganizer = await createUser('해제주최자')
+      await prisma.friendship.create({
+        data: { requesterId: viewer, addresseeId: target, status: 'REMOVED' },
+      })
+
+      const removedFunding = await createFunding({
+        organizerId: otherOrganizer,
+        receiverId: target,
+        deadline: future(2 * DAY),
+      })
+
+      const ids = (await asUser(viewer, () => getHomeFundings!())).map((v) => v.id)
+
+      expect(ids).not.toContain(removedFunding)
+    })
+
     it('R2 — 만료된 RESERVED 는 홈 목록 조회로도 해제되고 잔여가 풀린다', async () => {
       const me = await createUser('홈R2본인')
 
@@ -604,6 +723,49 @@ describe.skipIf(skipReason !== '')('lib/dal/funding — getFunding·getMyFunding
 
       const remainingRows = await prisma.fundingContribution.count({ where: { fundingId, status: 'RESERVED' } })
       expect(remainingRows).toBe(0) // 행 자체가 삭제됐다 (R2)
+    })
+  })
+  /**
+   * 친구 프로필의 "진행 중인 펀딩" 섹션 (FR-023 확장 · FR-024 와 같은 접근 축).
+   * 홈은 "내 관련" 을 모으는 자리라 친구 것이 섞이면 묻힌다 — 그 친구를 보러 온 화면에도
+   * 같은 목록이 있어야 "친구가 연 펀딩" 에 도달할 수 있다.
+   */
+  describe('getFriendFundings — 친구가 수령자인 OPEN 펀딩 (FR-024)', () => {
+    it('활성 친구의 진행 중 펀딩을 마감 임박순으로 돌려준다', async () => {
+      const viewer = await createUser('프로필뷰어')
+      const target = await createUser('프로필수령자')
+      const otherOrganizer = await createUser('프로필주최자')
+      await prisma.friendship.create({
+        data: { requesterId: target, addresseeId: viewer, status: 'ACTIVE' }, // 방향 무관
+      })
+
+      const later = await createFunding({ organizerId: otherOrganizer, receiverId: target, deadline: future(5 * DAY) })
+      const sooner = await createFunding({ organizerId: otherOrganizer, receiverId: target, deadline: future(1 * DAY) })
+      const closed = await createFunding({
+        organizerId: otherOrganizer,
+        receiverId: target,
+        deadline: future(2 * DAY),
+        status: 'SETTLED',
+      })
+      const someoneElses = await createFunding({
+        organizerId: otherOrganizer,
+        receiverId: receiver,
+        deadline: future(1 * DAY),
+      })
+
+      const ids = (await asUser(viewer, () => getFriendFundings!(target))).map((v) => v.id)
+
+      expect(ids).toEqual([sooner, later]) // 마감 임박순, OPEN 만
+      expect(ids).not.toContain(closed)
+      expect(ids).not.toContain(someoneElses)
+    })
+
+    it('활성 친구가 아니면 거부한다 — 목록으로 남의 펀딩을 훑을 수 없다', async () => {
+      const target = await createUser('프로필비친구수령자')
+      const otherOrganizer = await createUser('프로필비친구주최자')
+      await createFunding({ organizerId: otherOrganizer, receiverId: target, deadline: future(1 * DAY) })
+
+      await expect(asUser(stranger, () => getFriendFundings!(target))).rejects.toThrow()
     })
   })
 })

@@ -95,6 +95,8 @@ Contribution:
 ```
 canViewFunding(viewer, f) := viewer ∈ {organizer, receiver} ∪ contributors(f)
                            ∪ activeFriendsOf(f.receiver)          (R6 · FR-024)
+목록 노출    := 홈(getHomeFundings)·친구 프로필(getFriendFundings)이 canViewFunding 과
+               같은 네 축을 쓴다 — 권한만 있고 도달 경로가 없으면 안 본 것과 같다 (FR-023)
 잔여 금액   := goalAmount − capTotal      (RESERVED+PAID — R3)
 진행바·판정 := paidTotal                  (PAID만 — R3)
 정산 트리거 := 조회 시점 status=OPEN ∧ deadline<now → settleFunding()  (R1)
