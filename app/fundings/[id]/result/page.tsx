@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { formatPrice } from '@/components/product/product-card'
 import { buttonClasses } from '@/components/ui/button'
+import { BottomNav } from '@/components/ui/bottom-nav'
+import { TopBar } from '@/components/ui/top-bar'
 import { getFunding } from '@/lib/dal/funding'
 import { REFUND_NOTICE } from '@/lib/funding/refund-notice'
 
@@ -25,7 +27,9 @@ export default async function FundingResultPage({ params }: { params: Promise<{ 
           : '펀딩을 취소했어요'
 
   return (
-    <main className="flex min-h-dvh flex-col px-5 pb-8 pt-16 text-center">
+    <>
+    <TopBar title="펀딩 결과" backHref={`/fundings/${id}`} />
+    <main className="flex flex-1 flex-col px-5 pb-8 pt-6 text-center">
       <div className={`mx-auto grid size-16 place-items-center rounded-full text-3xl ${success ? 'bg-success-50 text-success-700' : 'bg-error-50 text-error-700'}`}>{success ? '✓' : '!'}</div>
       <h1 className="mt-5 text-2xl font-extrabold">{heading}</h1>
 
@@ -45,7 +49,11 @@ export default async function FundingResultPage({ params }: { params: Promise<{ 
 
       {!success ? <p className="mt-5 rounded-[14px] bg-warning-50 p-4 text-sm leading-6 text-warning-700">참여하신 금액은 전액 환불돼요.<br />{REFUND_NOTICE}.</p> : null}
       {success && funding.role === 'organizer' && funding.topup?.amount ? <p className="mt-5 rounded-[14px] bg-info-50 p-4 text-sm text-info-700">차액 {formatPrice(funding.topup.amount)}이 등록된 카드로 결제됐어요.</p> : null}
-      <Link href="/my/fundings" className={buttonClasses('primary', 'lg', 'mt-auto')}>확인</Link>
+      <Link href={funding.status === 'CANCELLED' ? '/my/fundings' : '/'} className={buttonClasses('primary', 'lg', 'mt-auto')}>
+        {funding.status === 'CANCELLED' ? '펀딩 내역 보기' : '확인'}
+      </Link>
     </main>
+    <BottomNav active="home" />
+    </>
   )
 }

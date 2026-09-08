@@ -25,7 +25,7 @@ export default async function FriendRecommendationsPage({
 
   return (
     <>
-      <TopBar title={`${friend.displayName}님 맞춤 선물`} backHref={backHref} />
+      <TopBar title="맞춤 선물" backHref={backHref} />
       <main className="flex-1 px-5 pb-8">
         {excluded ? (
           <p className="rounded-2xl bg-info-50 px-4 py-3 text-sm text-info-700">

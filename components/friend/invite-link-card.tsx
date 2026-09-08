@@ -34,3 +34,25 @@ export function InviteLinkCard({ inviteUrl }: { inviteUrl: string }) {
     </div>
   )
 }
+
+export function CopyInviteLinkButton({ inviteUrl }: { inviteUrl: string }) {
+  const [status, setStatus] = useState<"idle" | "copied" | "failed">("idle")
+
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(inviteUrl)
+      setStatus("copied")
+      window.setTimeout(() => setStatus("idle"), 1800)
+    } catch {
+      setStatus("failed")
+      window.setTimeout(() => setStatus("idle"), 1800)
+    }
+  }
+
+  return (
+    <Button variant="secondary" onClick={copyLink} aria-live="polite">
+      {status === "copied" ? <Check size={18} aria-hidden /> : <Copy size={18} aria-hidden />}
+      {status === "copied" ? "복사했어요" : status === "failed" ? "복사하지 못했어요" : "링크 복사"}
+    </Button>
+  )
+}

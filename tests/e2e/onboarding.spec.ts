@@ -38,7 +38,7 @@ test.describe('US1-6 앞부분 — 미인증 접근 (FR-019)', () => {
       await expect(page).toHaveURL(URLS.login)
       await expect(heading(page, '넌지시를 시작해요')).toBeVisible()
       // 소셜 로그인 1종(Google)의 진입점이 보인다
-      await expect(page.getByRole('button', { name: 'Google로 계속하기' })).toBeVisible()
+      await expect(page.getByRole('button', { name: 'Google로 시작하기' })).toBeVisible()
     })
   }
 })

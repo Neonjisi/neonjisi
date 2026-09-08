@@ -10,7 +10,7 @@ const TABS: { key: BottomNavTab; label: string; href: string; Icon: typeof Home 
   { key: "my", label: "마이", href: "/my", Icon: User },
 ];
 
-export function BottomNav({ active }: { active: BottomNavTab }) {
+export function BottomNav({ active }: { active?: BottomNavTab }) {
   return (
     <nav
       aria-label="주 메뉴"

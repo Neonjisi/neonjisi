@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, ChevronLeft, Plus } from "lucide-react";
+import { Check, ChevronLeft, Plus } from "lucide-react";
 import { createTasteItem, updateTasteDescription } from "@/app/taste/actions";
 import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/ui/chip";
@@ -143,7 +143,7 @@ export function OnboardingFlow({ categories }: OnboardingFlowProps) {
         <h1 className="text-[28px] font-bold leading-[1.3] text-neutral-900">
           선물이 어긋나는 건 몰라서입니다.
         </h1>
-        <p className="pt-3 text-base text-neutral-600">30초면 됩니다.</p>
+        <p className="pt-3 text-base text-neutral-600">적은 만큼 정확한 선물이 들어옵니다.</p>
         <ol className="flex flex-col gap-4 pt-8">
           {INTRO_STEPS.map((text, index) => (
             <li key={text} className="flex items-center gap-3">
@@ -155,7 +155,6 @@ export function OnboardingFlow({ categories }: OnboardingFlowProps) {
           ))}
         </ol>
         <div className="mt-auto flex flex-col gap-4">
-          <p className="text-sm text-neutral-600">적은 만큼 정확한 선물이 돌아옵니다.</p>
           <Button size="lg" onClick={() => setStep("categories")}>
             시작하기
           </Button>
@@ -305,13 +304,13 @@ export function OnboardingFlow({ categories }: OnboardingFlowProps) {
     <main className="flex flex-1 flex-col px-5 pb-8">
       <div className="flex flex-1 flex-col items-center justify-center gap-4 pb-10 text-center">
         <span className="grid size-[72px] place-items-center rounded-full bg-mint-100">
-          <CheckCircle2 size={32} className="text-mint-700" aria-hidden />
+          <Check size={32} className="text-mint-700" aria-hidden />
         </span>
         <h1 className="text-2xl font-bold text-neutral-900">준비됐어요</h1>
         <p className="text-base text-neutral-600">이제 친구에게 넌지시 알릴 차례예요.</p>
       </div>
       <div className="flex flex-col items-center gap-3">
-        <Button size="lg" onClick={() => router.push("/my")}>
+        <Button size="lg" onClick={() => router.push("/friends/invite")}>
           친구에게 링크 보내기
         </Button>
         <Button variant="tertiary" onClick={() => router.push("/taste")}>

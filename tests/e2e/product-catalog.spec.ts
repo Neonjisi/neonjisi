@@ -40,6 +40,9 @@ test.describe('US1 — 상품 카탈로그', () => {
   }) => {
     const { bId } = await becomeFriends(pageA, pageB)
     await pageA.goto(`/products?for=${bId}`)
+    await expect(pageA.getByRole('heading', { name: /님이 원하는 선물/ })).toBeVisible()
+    await expect(pageA.getByText('스테인리스 텀블러')).toBeVisible()
+    await expect(pageA.getByRole('link', { name: '맞춤 추천' })).toHaveCount(0)
     await expect(pageA.getByText('조 말론 런던 우드 세이지 앤 씨 솔트 코롱 100ml')).toBeHidden()
 
     await pageA.goto(`/products?for=${bId}&q=스타벅스`)

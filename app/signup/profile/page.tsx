@@ -11,8 +11,8 @@ export default async function SignupProfilePage({ searchParams }: PageProps<"/si
   const returnTo = profile.isOnboarded ? safeReturnTo(rawReturnTo, "/my") : "/onboarding";
   return (
     <>
-      <TopBar backHref={profile.isOnboarded ? returnTo : "/login"} />
-      <main className="flex flex-1 flex-col px-5">
+      <TopBar title="기본 프로필" backHref={profile.isOnboarded ? returnTo : "/login"} showNotifications={profile.isOnboarded} />
+      <main className="flex flex-1 flex-col px-5 pt-6">
         <h1 className="text-2xl font-bold text-neutral-900">어떻게 불러드릴까요?</h1>
         <ProfileForm
           initialName={profile.displayName}

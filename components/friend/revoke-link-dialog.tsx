@@ -57,7 +57,7 @@ export function RevokeLinkButton({ linkId }: RevokeLinkButtonProps) {
           setServerError(null);
           setIsConfirming(true);
         }}
-        className="h-9 rounded-full border border-neutral-200 px-4 text-sm font-semibold text-neutral-700 active:bg-neutral-100"
+        className="h-12 rounded-[14px] px-6 text-sm font-semibold text-neutral-600 active:bg-neutral-100"
       >
         중지
       </button>

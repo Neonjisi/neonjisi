@@ -15,15 +15,15 @@ import { User } from 'lucide-react'
  * 접근 이름은 컨테이너가 `role="img"` + `aria-label` 로 들고 있다 — 사진의 성패와 무관하게
  * 스크린 리더에는 항상 같은 이름이 간다.
  */
-export function FriendAvatar({ name, avatarUrl, size = 'md' }: { name: string; avatarUrl: string | null; size?: 'md' | 'lg' }) {
-  const classes = size === 'lg' ? 'size-20' : 'size-12'
+export function FriendAvatar({ name, avatarUrl, size = 'md' }: { name: string; avatarUrl: string | null; size?: 'md' | 'profile' | 'lg' }) {
+  const classes = size === 'lg' ? 'size-20' : size === 'profile' ? 'size-[52px]' : 'size-12'
   return (
     <span
       role="img"
       aria-label={`${name} 프로필`}
       className={`relative grid ${classes} shrink-0 place-items-center overflow-hidden rounded-full bg-apricot-100 text-apricot-700`}
     >
-      <User size={size === 'lg' ? 34 : 22} aria-hidden />
+      <User size={size === 'lg' ? 34 : size === 'profile' ? 24 : 22} aria-hidden />
       {avatarUrl && (
         // 외부 OAuth 공급자의 이미지 호스트가 사용자마다 달라 Next/Image allowlist로 제한할 수 없다.
         // eslint-disable-next-line @next/next/no-img-element

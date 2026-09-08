@@ -7,6 +7,7 @@ import { TopBar } from '@/components/ui/top-bar'
 import { buttonClasses } from '@/components/ui/button'
 import Link from 'next/link'
 import { getGiftRequest } from '@/lib/dal/gift'
+import { safeReturnTo } from '@/lib/navigation/return-to'
 
 const STATUS_LABEL = {
   PENDING: '응답 기다리는 중',
@@ -29,17 +30,18 @@ export default async function GiftDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ error?: string | string[] }>
+  searchParams: Promise<{ error?: string | string[]; returnTo?: string | string[] }>
 }) {
   const { id } = await params
   const query = await searchParams
   const error = typeof query.error === 'string' ? query.error : query.error?.[0]
+  const rawReturnTo = typeof query.returnTo === 'string' ? query.returnTo : query.returnTo?.[0]
   const gift = await getGiftRequest(id)
   if (!gift) notFound()
 
   return (
     <main className="flex min-h-dvh flex-col pb-6">
-      <TopBar title={gift.role === 'giver' ? '보낸 선물' : '받은 선물'} backHref="/" />
+      <TopBar title={gift.role === 'giver' ? '보낸 선물' : '받은 선물'} backHref={safeReturnTo(rawReturnTo, '/')} />
       <div className="flex flex-1 flex-col px-5 pt-4">
         <div className="rounded-[20px] bg-surface p-5">
           <p className="text-sm text-neutral-600">{gift.role === 'giver' ? '받는 사람' : '보낸 사람'}</p>
@@ -80,7 +82,7 @@ export default async function GiftDetailPage({
         {gift.role === 'receiver' && gift.status === 'PENDING' ? (
           <div className="mt-auto pt-8">
             <Link href={`/gifts/${gift.id}/respond/shipping`} className={buttonClasses('primary', 'lg')}>이걸로 받을게요</Link>
-            <Link href={`/gifts/${gift.id}/respond/reselect`} className={buttonClasses('tertiary', 'lg', 'mt-2')}>다른 것도 좋아요</Link>
+            <Link href={`/gifts/${gift.id}/respond/reselect`} className={buttonClasses('tertiary', 'lg', 'mt-2')}>다른 선물이 더 좋아요</Link>
             <p className="mt-3 text-center text-xs text-neutral-600">{formatPrice(gift.requestedAmount)} 이하에서 직접 고를 수 있어요.</p>
           </div>
         ) : null}
