@@ -27,12 +27,26 @@ export function FundingContributeForm({
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<{ amount: number; outcome: ContributeOutcome } | null>(null)
+  const [shareLabel, setShareLabel] = useState('친구에게 알리기')
   const numericAmount = Number(amount)
   const overRemaining = numericAmount > remaining
   const valid = Number.isInteger(numericAmount) && numericAmount > 0 && !overRemaining
   const chips = [20_000, 50_000, remaining].filter((value, index, values) => value <= remaining && values.indexOf(value) === index)
 
   if (result) {
+    const shareFunding = async () => {
+      const url = `${window.location.origin}/fundings/${fundingId}`
+      try {
+        if (navigator.share) await navigator.share({ title: `${receiverDisplayName}님의 선물 펀딩`, text: productName, url })
+        else {
+          await navigator.clipboard.writeText(url)
+          setShareLabel('링크를 복사했어요')
+        }
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') return
+        setShareLabel('공유하지 못했어요')
+      }
+    }
     return (
       <section className="flex flex-1 flex-col items-center justify-center px-5 text-center">
         <div className="grid size-16 place-items-center rounded-full bg-success-50 text-3xl text-success-700">✓</div>
@@ -40,6 +54,7 @@ export function FundingContributeForm({
         <p className="mt-2 text-2xl font-extrabold text-rose-700">{formatPrice(result.amount)}</p>
         <p className="mt-4 text-sm text-neutral-600">{receiverDisplayName}님 선물 · {productName}</p>
         <Link href={`/fundings/${fundingId}`} className={buttonClasses('primary', 'lg', 'mt-8')}>펀딩 보기</Link>
+        <Button variant="tertiary" size="lg" className="mt-2" onClick={shareFunding}>{shareLabel}</Button>
       </section>
     )
   }

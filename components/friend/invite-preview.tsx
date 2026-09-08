@@ -1,11 +1,15 @@
 import { Gift, LockKeyhole } from 'lucide-react'
 import { FriendAvatar } from '@/components/friend/avatar'
 import { LinkButton } from '@/components/ui/button'
+import { BottomNav } from '@/components/ui/bottom-nav'
+import { TopBar } from '@/components/ui/top-bar'
 import type { PreviewView } from '@/lib/dal/invite'
 
 export function InvitePreview({ preview, token }: { preview: PreviewView; token: string }) {
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-[430px] flex-col px-5 pb-10 pt-16 text-center">
+    <>
+    <TopBar title="초대 미리보기" backHref="/" showNotifications={false} />
+    <main className="mx-auto flex w-full max-w-[430px] flex-1 flex-col px-5 pb-10 pt-6 text-center">
       <div className="flex flex-col items-center">
         <FriendAvatar name={preview.displayName} avatarUrl={preview.avatarUrl} size="lg" />
         <h1 className="pt-4 text-2xl font-bold">{preview.displayName}</h1>
@@ -22,5 +26,7 @@ export function InvitePreview({ preview, token }: { preview: PreviewView; token:
       </section>
       <div className="mt-auto pt-8"><LinkButton href={`/login?next=${encodeURIComponent(`/i/${token}`)}`} size="lg">넌지시 시작하기</LinkButton></div>
     </main>
+    <BottomNav active="friends" />
+    </>
   )
 }

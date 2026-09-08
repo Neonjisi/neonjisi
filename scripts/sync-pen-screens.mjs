@@ -140,9 +140,6 @@ const additions = [
   screen({ name: "CURRENT · M2 · 일정 관리", title: "일정", x: 5290, y: 16880, children: [
     button("일정 추가"), card("민지 생일", "2026-09-18 · 매년", "생일"), card("부모님 결혼기념일", "2026-10-03 · 매년", "기념일"),
   ] }),
-  screen({ name: "CURRENT · M2 · 초대 링크 관리", title: "초대 링크", x: 5728, y: 16880, children: [
-    text("사용 중", "$font-size-14", "$font-weight-semibold"), card("neonjisi.app/i/abc123", "만료 2026-09-11 · 사용 0/1"), button("새 링크 만들기"), text("지난 링크", "$font-size-14", "$font-weight-semibold"), card("만료된 링크", "2026-08-28 만료"),
-  ] }),
   screen({ name: "CURRENT · M3 · 알림 목록", title: "알림", x: 6166, y: 16880, children: [
     text("모두 읽음", "$font-size-14", "$font-weight-semibold", "$color-text-brand"), card("민지님이 선물 요청을 확인했어요", "방금 전", "읽지 않음"), card("함께 준비한 펀딩이 성사됐어요", "10분 전"), card("서연님과 친구가 되었어요", "어제"),
   ] }),

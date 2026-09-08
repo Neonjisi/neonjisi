@@ -8,6 +8,7 @@ import { BottomSheet } from '@/components/ui/bottom-sheet'
 import { Button } from '@/components/ui/button'
 import { RadioOption } from '@/components/ui/radio-option'
 import { TextField } from '@/components/ui/text-field'
+import { TopBar } from '@/components/ui/top-bar'
 import type { EventView } from '@/lib/dal/event'
 
 const TYPE_LABEL = { BIRTHDAY: '생일', ANNIVERSARY: '기념일', CUSTOM: '기타' } as const
@@ -57,12 +58,12 @@ export function EventManager({ events }: { events: EventView[] }) {
 
   return (
     <>
-      <div className="flex justify-end px-5 pt-3"><Button onClick={() => open()}><Plus size={18} aria-hidden />일정 추가</Button></div>
+      <TopBar title="일정" action={<button type="button" onClick={() => open()} aria-label="일정 추가" className="grid size-10 place-items-center rounded-full text-rose-600 active:bg-rose-50"><Plus size={22} aria-hidden /></button>} />
       {events.length ? (
-        <ul className="space-y-3 px-5 pt-5">
+        <ul className="space-y-3 px-5 pt-3">
           {events.map((event) => <li key={event.id}><button type="button" onClick={() => open(event)} className="w-full rounded-[20px] bg-surface p-4 text-left"><span className="text-xs font-semibold text-rose-700">{TYPE_LABEL[event.type]}</span><strong className="mt-1 block">{event.title}</strong><span className="mt-1 block text-sm text-neutral-600">{dateValue(event.nextDate)}{event.isRecurring ? ' · 매년' : ''}</span></button></li>)}
         </ul>
-      ) : <p className="mx-5 mt-5 rounded-[20px] bg-surface p-5 text-sm text-neutral-600">등록한 일정이 없어요.</p>}
+      ) : <p className="mx-5 mt-3 rounded-[20px] bg-surface p-5 text-sm text-neutral-600">등록한 일정이 없어요.</p>}
       <BottomSheet isOpen={editing !== null} onClose={() => !isPending && setEditing(null)} labelledBy="event-form-title">
         <h2 id="event-form-title" className="text-lg font-bold">{selected ? '일정 편집' : '일정 추가'}</h2>
         <fieldset className="mt-5"><legend className="text-xs font-semibold text-neutral-600">종류</legend><div className="mt-2 flex gap-4">{Object.entries(TYPE_LABEL).map(([value, label]) => <RadioOption key={value} name="event-type" label={label} checked={type === value} onChange={() => setType(value as keyof typeof TYPE_LABEL)} />)}</div></fieldset>

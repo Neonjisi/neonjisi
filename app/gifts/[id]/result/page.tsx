@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { CircleAlert, CircleCheck } from "lucide-react";
 import { buttonClasses } from "@/components/ui/button";
+import { BottomNav } from "@/components/ui/bottom-nav";
+import { TopBar } from "@/components/ui/top-bar";
 import { getGiftResultView, type GiftResultView } from "@/lib/dal/gift-outcome";
 
 /**
@@ -144,7 +146,9 @@ export default async function GiftResultPage({ params }: { params: Promise<{ id:
   if (view.variant === "IN_PROGRESS") redirect(`/gifts/${id}`);
 
   return (
-    <main className="flex min-h-dvh flex-col items-center px-5 pb-8 pt-16 text-center">
+    <>
+    <TopBar title="선물 결과" backHref={`/gifts/${id}`} />
+    <main className="flex flex-1 flex-col items-center px-5 pb-8 pt-6 text-center">
       {view.variant === "PAID" && <PaidView view={view} />}
       {view.variant === "EXPIRED" && <ExpiredView view={view} />}
       {view.variant === "CANCELLED" && <CancelledView view={view} />}
@@ -164,5 +168,7 @@ export default async function GiftResultPage({ params }: { params: Promise<{ id:
         </Link>
       </div>
     </main>
+    <BottomNav active="gifts" />
+    </>
   );
 }

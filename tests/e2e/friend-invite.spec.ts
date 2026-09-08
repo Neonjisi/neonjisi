@@ -126,7 +126,7 @@ test.describe('US1-3·4 — 비가입자 미리보기 (SCR-M2-04)', () => {
       await anonPage.goto(invitePath)
       await anonPage.locator('a, button').filter({ hasText: /시작/ }).first().click()
       await expect(anonPage).toHaveURL(URLS.login)
-      await expect(anonPage.getByRole('button', { name: 'Google로 계속하기' })).toBeVisible()
+      await expect(anonPage.getByRole('button', { name: 'Google로 시작하기' })).toBeVisible()
     } finally {
       await anonContext.close()
     }

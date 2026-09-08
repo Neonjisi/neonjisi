@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { CheckCircle2, Info, ShieldX } from 'lucide-react'
 import { formatPrice } from '@/components/product/product-card'
@@ -44,10 +45,10 @@ export default async function ProductDetailPage({
     ? await Promise.all([getFriendTaste(friendUserId), getMatchBanner(id, friendUserId)])
     : [null, null]
   const banner = match ? BANNERS[match] : null
+  const detailHref = `/products/${product.id}${friend ? `?for=${encodeURIComponent(friend.userId)}&returnTo=${encodeURIComponent(backHref)}` : `?returnTo=${encodeURIComponent(backHref)}`}`
   const giftHref = friend
-    ? `/gifts/new?productId=${encodeURIComponent(product.id)}&receiverId=${encodeURIComponent(friend.userId)}`
+    ? `/gifts/new?productId=${encodeURIComponent(product.id)}&receiverId=${encodeURIComponent(friend.userId)}&returnTo=${encodeURIComponent(detailHref)}`
     : `/products/${product.id}/receiver?returnTo=${encodeURIComponent(backHref)}`
-  const detailHref = `/products/${product.id}${friend ? `?for=${encodeURIComponent(friend.userId)}` : ''}`
   const fundingHref = `/fundings/new?productId=${encodeURIComponent(product.id)}&returnTo=${encodeURIComponent(detailHref)}${
     friend ? `&receiverId=${encodeURIComponent(friend.userId)}` : ''
   }`
@@ -80,14 +81,14 @@ export default async function ProductDetailPage({
           {match === 'unwanted' ? (
             <button disabled className={buttonClasses('primary', 'lg')}>선물하기</button>
           ) : (
-            <a href={giftHref} className={buttonClasses('primary', 'lg')}>
+            <Link href={giftHref} className={buttonClasses('primary', 'lg')}>
               {friend ? '선물하기' : '받을 친구 선택하기'}
-            </a>
+            </Link>
           )}
           {match !== 'unwanted' ? (
-            <a href={fundingHref} className={buttonClasses('secondary', 'lg')}>
+            <Link href={fundingHref} className={buttonClasses('secondary', 'lg')}>
               여럿이 모아서 선물하기
-            </a>
+            </Link>
           ) : null}
         </div>
       </main>

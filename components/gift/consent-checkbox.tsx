@@ -49,7 +49,7 @@ export function ConsentCheckbox({ productId, receiverId }: Props) {
       </label>
       {error ? <p role="alert" className="mt-4 text-sm font-semibold text-error-700">{error}</p> : null}
       <Button size="lg" className="mt-auto" disabled={!consent || isPending} onClick={submit}>
-        {isPending ? '보내는 중...' : '선물 요청 보내기'}
+        {isPending ? '보내는 중...' : '선물하기'}
       </Button>
     </div>
   )

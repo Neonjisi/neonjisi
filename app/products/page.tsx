@@ -3,7 +3,7 @@ import { Search } from 'lucide-react'
 import { ProductGrid } from '@/components/product/product-card'
 import { BottomNav } from '@/components/ui/bottom-nav'
 import { TopBar } from '@/components/ui/top-bar'
-import { getFriends } from '@/lib/dal/friend'
+import { getFriends, getFriendTaste } from '@/lib/dal/friend'
 import { getProductCategories, getProducts } from '@/lib/dal/product'
 
 type SearchParams = Promise<{
@@ -27,6 +27,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
     getProducts({ query, categoryName, friendUserId: friendUserId || undefined }),
   ])
   const selectedFriend = friends.find(({ userId }) => userId === friendUserId)
+  const selectedFriendTaste = selectedFriend ? await getFriendTaste(selectedFriend.userId) : null
   const productListReturnTo = `/products?${new URLSearchParams({ q: query, category: categoryName, for: friendUserId }).toString()}`
 
   return (
@@ -65,11 +66,24 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
           <button className="h-10 w-full rounded-xl bg-neutral-900 text-sm font-semibold text-white">검색·필터 적용</button>
         </form>
 
-        {selectedFriend ? (
-          <div className="mt-4 flex items-center justify-between rounded-2xl bg-rose-50 px-4 py-3 text-sm">
-            <span><strong>{selectedFriend.displayName}</strong>님에게 맞지 않는 종류는 뺐어요.</span>
-            <Link href={`/products/for/${selectedFriend.userId}?returnTo=${encodeURIComponent(productListReturnTo)}`} className="shrink-0 font-semibold text-rose-700">맞춤 추천</Link>
-          </div>
+        {selectedFriend && selectedFriendTaste ? (
+          <section className="mt-4 rounded-2xl bg-rose-50 px-4 py-4" aria-labelledby="friend-wants">
+            <h2 id="friend-wants" className="text-sm font-bold text-neutral-900">
+              {selectedFriend.displayName}님이 원하는 선물
+            </h2>
+            {selectedFriendTaste.itemsByKind.WANT.length ? (
+              <ul className="mt-3 flex flex-wrap gap-2">
+                {selectedFriendTaste.itemsByKind.WANT.map((item) => (
+                  <li key={item.id} className="rounded-full bg-surface px-3 py-1.5 text-sm text-rose-700 shadow-sm">
+                    {item.detail?.trim() || item.categoryName}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-2 text-sm text-neutral-600">아직 원하는 선물을 적지 않았어요.</p>
+            )}
+            <p className="mt-3 text-xs text-neutral-600">관심 없다고 한 종류는 상품 목록에서 제외했어요.</p>
+          </section>
         ) : null}
 
         <div className="mt-5">

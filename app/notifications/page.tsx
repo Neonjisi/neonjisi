@@ -3,6 +3,7 @@ import { NotificationList } from "@/components/notification/notification-list";
 import { TopBar } from "@/components/ui/top-bar";
 import { getMyNotifications } from "@/lib/dal/notification";
 import { toNotificationItem } from "@/lib/notification/display";
+import { safeReturnTo } from "@/lib/navigation/return-to";
 
 /**
  * 알림 목록 (SCR-M3-02 · T046) — 게이트: `getMyNotifications()` 안의 verifySession()
@@ -34,7 +35,8 @@ function EmptyState() {
 }
 
 export default async function NotificationsPage({ searchParams }: PageProps<"/notifications">) {
-  const { from } = await searchParams;
+  const { from, returnTo: rawReturnTo } = await searchParams;
+  const returnTo = typeof rawReturnTo === "string" ? rawReturnTo : rawReturnTo?.[0];
   const notifications = await getMyNotifications();
   // 한 화면 안의 기준 시각을 하나로 고정한다 — 줄마다 now 가 달라 순서와 표기가 엇갈리지 않게
   const now = new Date();
@@ -44,7 +46,7 @@ export default async function NotificationsPage({ searchParams }: PageProps<"/no
 
   return (
     <>
-      <TopBar title="알림" backHref={from === "home" ? "/" : "/my"} />
+      <TopBar title="알림" backHref={safeReturnTo(returnTo, from === "home" ? "/" : "/my")} showNotifications={false} />
       <main className="flex flex-1 flex-col">
         {items.length === 0 ? <EmptyState /> : <NotificationList notifications={items} />}
       </main>

@@ -46,7 +46,15 @@ export function LoginErrorNotice({ code }: { code?: string }) {
   );
 }
 
-export function GoogleLoginButton({ nextPath = "/taste" }: { nextPath?: string }) {
+export function GoogleLoginButton({
+  nextPath = "/taste",
+  label = "Google로 시작하기",
+  variant = "primary",
+}: {
+  nextPath?: string;
+  label?: string;
+  variant?: "primary" | "tertiary";
+}) {
   const [isPending, setIsPending] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -69,8 +77,8 @@ export function GoogleLoginButton({ nextPath = "/taste" }: { nextPath?: string }
 
   return (
     <div className="flex w-full flex-col items-center gap-3">
-      <Button size="lg" disabled={isPending} onClick={handleLogin}>
-        {isPending ? "Google로 이동 중…" : "Google로 계속하기"}
+      <Button size="lg" variant={variant} disabled={isPending} onClick={handleLogin}>
+        {isPending ? "Google로 이동 중…" : label}
       </Button>
       {errorMessage && <p className="text-sm text-error-700">{errorMessage}</p>}
     </div>

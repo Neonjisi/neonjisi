@@ -12,6 +12,7 @@ export type EventView = {
   date: Date
   isRecurring: boolean
   nextDate: Date
+  daysUntil: number
   isMine: boolean
 }
 
@@ -35,7 +36,10 @@ async function eventsForUserIds(viewerId: string, userIds: string[]): Promise<Ev
   })
   return rows.flatMap((row) => {
     const nextDate = nextOccurrence(row.date, row.isRecurring, today)
-    return nextDate ? [{ ...row, ownerDisplayName: row.user.displayName, nextDate, isMine: row.userId === viewerId }] : []
+    const daysUntil = nextDate
+      ? Math.max(0, Math.round((nextDate.getTime() - today.getTime()) / 86_400_000))
+      : 0
+    return nextDate ? [{ ...row, ownerDisplayName: row.user.displayName, nextDate, daysUntil, isMine: row.userId === viewerId }] : []
   }).sort((a, b) => a.nextDate.getTime() - b.nextDate.getTime())
 }
 

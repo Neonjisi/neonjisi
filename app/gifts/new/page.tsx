@@ -8,15 +8,17 @@ import { TopBar } from '@/components/ui/top-bar'
 import { getFriendTaste } from '@/lib/dal/friend'
 import { getActivePaymentMethod } from '@/lib/dal/payment-method'
 import { getMatchBanner, getProduct } from '@/lib/dal/product'
+import { safeReturnTo } from '@/lib/navigation/return-to'
 
 export default async function NewGiftPage({
   searchParams,
 }: {
-  searchParams: Promise<{ productId?: string | string[]; receiverId?: string | string[] }>
+  searchParams: Promise<{ productId?: string | string[]; receiverId?: string | string[]; returnTo?: string | string[] }>
 }) {
   const query = await searchParams
   const productId = typeof query.productId === 'string' ? query.productId : query.productId?.[0]
   const receiverId = typeof query.receiverId === 'string' ? query.receiverId : query.receiverId?.[0]
+  const rawReturnTo = typeof query.returnTo === 'string' ? query.returnTo : query.returnTo?.[0]
   if (!productId || !receiverId) notFound()
 
   const [product, receiver, paymentMethod, match] = await Promise.all([
@@ -27,7 +29,9 @@ export default async function NewGiftPage({
   ])
   if (!product || match === 'unwanted') notFound()
 
-  const currentPath = `/gifts/new?productId=${encodeURIComponent(product.id)}&receiverId=${encodeURIComponent(receiver.userId)}`
+  const fallback = `/products/${product.id}?for=${encodeURIComponent(receiver.userId)}`
+  const returnTo = safeReturnTo(rawReturnTo, fallback)
+  const currentPath = `/gifts/new?productId=${encodeURIComponent(product.id)}&receiverId=${encodeURIComponent(receiver.userId)}&returnTo=${encodeURIComponent(returnTo)}`
   if (!paymentMethod) {
     redirect(`/payment-methods/new?returnTo=${encodeURIComponent(currentPath)}`)
   }
@@ -36,7 +40,7 @@ export default async function NewGiftPage({
     <main className="flex min-h-dvh flex-col pb-6">
       <TopBar
         title="선물 보내기"
-        backHref={`/products/${product.id}?for=${encodeURIComponent(receiver.userId)}`}
+        backHref={returnTo}
       />
       <div className="flex flex-1 flex-col px-5">
         <p className="text-right text-xs font-semibold text-neutral-500">1 / 2</p>
@@ -61,7 +65,7 @@ export default async function NewGiftPage({
           <p className="mt-4 text-sm text-neutral-600">{receiver.displayName}님이 5분 안에 확인하면 결제됩니다.</p>
         </section>
         <Link
-          href={`/gifts/new/consent?productId=${encodeURIComponent(product.id)}&receiverId=${encodeURIComponent(receiver.userId)}`}
+          href={`/gifts/new/consent?productId=${encodeURIComponent(product.id)}&receiverId=${encodeURIComponent(receiver.userId)}&returnTo=${encodeURIComponent(returnTo)}`}
           className={buttonClasses('primary', 'lg', 'mt-auto')}
         >
           다음

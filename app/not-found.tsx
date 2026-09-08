@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Compass } from "lucide-react";
 import { buttonClasses } from "@/components/ui/button";
+import { BottomNav } from "@/components/ui/bottom-nav";
+import { TopBar } from "@/components/ui/top-bar";
 
 /**
  * 전역 404 (SCR-C-02 계열) — `notFound()` 가 닿는 모든 자리의 화면.
@@ -14,7 +16,8 @@ import { buttonClasses } from "@/components/ui/button";
  *    설계된 이유와 같다 — "권한이 없어요"라고 말하면 그 id 가 실재한다는 힌트가 된다.
  */
 export default function NotFound() {
-  return (
+  return (<>
+    <TopBar backHref="/" />
     <main className="flex flex-1 flex-col items-center justify-center gap-4 px-5 pb-16 text-center">
       <span className="grid size-[72px] place-items-center rounded-full bg-neutral-100">
         <Compass size={32} className="text-neutral-400" aria-hidden />
@@ -29,5 +32,6 @@ export default function NotFound() {
         홈으로
       </Link>
     </main>
-  );
+    <BottomNav />
+  </>);
 }

@@ -2,7 +2,7 @@ import type { AnchorHTMLAttributes, ButtonHTMLAttributes } from "react";
 import Link from "next/link";
 
 export type ButtonVariant = "primary" | "secondary" | "tertiary" | "destructive";
-export type ButtonSize = "md" | "lg";
+export type ButtonSize = "sm" | "md" | "lg";
 
 const BASE_CLASSES =
   "inline-flex items-center justify-center gap-2 rounded-[14px] font-semibold transition-colors " +
@@ -23,8 +23,9 @@ const VARIANT_CLASSES: Record<ButtonVariant, string> = {
 };
 
 const SIZE_CLASSES: Record<ButtonSize, string> = {
-  md: "h-12 px-5 text-sm",
-  lg: "h-12 w-full px-5 text-base",
+  sm: "h-8 rounded-[10px] px-3 text-xs",
+  md: "h-10 rounded-xl px-[18px] text-sm",
+  lg: "h-12 w-full rounded-2xl px-6 text-base",
 };
 
 export function buttonClasses(

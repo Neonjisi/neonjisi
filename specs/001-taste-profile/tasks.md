@@ -126,7 +126,7 @@ Next.js 단일 앱. 라우트는 `app/`, 도메인 로직은 `lib/`, 컴포넌�
 - [X] T027 [US1] `app/taste/actions.ts`에 `createTasteItem` Server Action — contracts/server-actions.md의 검사 순서(세션 → 스키마 → 대분류 존재 → 모순 → 중복 → 저장)를 따른다. 유니크 위반 예외를 `DUPLICATE_ITEM`으로 변환해 경합을 닫는다. `verifySession()`은 통과하되 `requireOnboarded()`는 부르지 않는다 — 온보딩 화면에서 쓰이는 유일한 Action이다
 - [X] T028 [P] [US1] `components/taste/category-picker.tsx` (`'use client'`) — 대분류 선택과 검색 필터
 - [X] T029 [US1] `components/taste/taste-item-form.tsx` (`'use client'`) — `useTransition` + 결과 값 기반으로 폼 상태 관리(useActionState 대신, 시트형 UI라 제어 입력 유지). 저장 실패 시 **입력 내용을 보존한다** (FR-016)
-- [X] T030 [US1] `app/onboarding/page.tsx` (Server Component) — 최소 1건 안내와 저장 후 완료 화면(SCR-M1-05) → `친구에게 링크 보내기`는 `/my`, `둘러볼게요`는 `/taste` (원래 문구 "저장 후 `/taste` 이동"은 화면 명세서와 어긋나 실제 구현에 맞춰 정정)
+- [X] T030 [US1] `app/onboarding/page.tsx` (Server Component) — 최소 1건 안내와 저장 후 완료 화면(SCR-M1-05) → `친구에게 링크 보내기`는 실제 링크 생성 화면 `/friends/invite`, `둘러볼게요`는 `/taste`
 - [X] T031 [US1] `lib/dal/taste.ts`에 `getTasteItemsByKind()`와 `getTasteProfile()` — 전자는 종류별로 묶인 형태로 반환해 화면이 그룹핑 로직을 갖지 않게 하고(FR-012), 후자는 프로필과 취향 서술을 반환한다. 두 함수 모두 인가를 통과한 결과만 내보내므로 호출부에 소유자 검사가 없다. `getTasteProfile()`은 US3의 T045(취향 서술 표시)가 사용한다
 - [X] T032 [US1] `components/taste/taste-item-list.tsx` (**Server Component**) — `이미 있는 것`과 `필요 없는 것`을 다른 묶음으로 렌더 (US1-3)
 - [X] T033 [US1] `app/taste/page.tsx` — 진입 시 `requireOnboarded()` 호출 (FR-018)

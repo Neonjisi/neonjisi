@@ -167,6 +167,25 @@ export const getUnreadCount = cache(async (): Promise<number> => {
   return prisma.notification.count({ where: { userId, readAt: null } })
 })
 
+export type NotificationIndicator = {
+  unreadCount: number
+  latestNotificationId: string | null
+}
+
+/** 홈 자동 갱신용 최소 정보 — 개수뿐 아니라 최신 id도 비교해 같은 개수의 새 알림을 놓치지 않는다. */
+export const getNotificationIndicator = cache(async (): Promise<NotificationIndicator> => {
+  const { userId } = await verifySession()
+  const [unreadCount, latest] = await Promise.all([
+    prisma.notification.count({ where: { userId, readAt: null } }),
+    prisma.notification.findFirst({
+      where: { userId },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      select: { id: true },
+    }),
+  ])
+  return { unreadCount, latestNotificationId: latest?.id ?? null }
+})
+
 /** 읽음 처리의 결과 — 호출부(Action)가 오류 코드로 옮긴다 */
 export type MarkReadOutcome = 'MARKED' | 'ALREADY_READ' | 'NOT_OWNER'
 

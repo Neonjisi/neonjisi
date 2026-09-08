@@ -82,10 +82,6 @@ function activeLinks(page: Page) {
   return page.getByRole('list', { name: '사용 중 링크' }).getByRole('listitem')
 }
 
-function pastLinks(page: Page) {
-  return page.getByRole('list', { name: '지난 링크' }).getByRole('listitem')
-}
-
 function notificationRows(page: Page) {
   return page.getByRole('list', { name: '알림 목록' }).getByRole('listitem')
 }
@@ -103,7 +99,7 @@ async function revokeActiveLink(page: Page): Promise<void> {
   await clickAndSee(activeLinks(page).getByRole('button', { name: '링크 중지' }).first(), dialog)
   await dialog.getByRole('button', { name: '중지', exact: true }).click()
   await expect(dialog).toBeHidden()
-  // 중지한 링크는 "사용 중"에서 빠지고 "지난 링크"로 내려간다
+  // 중지한 링크는 현재 링크만 보여주는 "사용 중" 목록에서 빠진다
   await expect(activeLinks(page)).toHaveCount(0)
 }
 
@@ -150,8 +146,9 @@ test.describe('US3-1·2·3·4 — 링크 통제', () => {
     await openManage(pageA)
     const active = activeLinks(pageA).first()
     await expect(active).toBeVisible()
-    // 성사 한 건이 그대로 숫자로 보인다 — 관계는 생겼는데 숫자가 거짓이면 통제가 무너진다
-    await expect(active.getByText(/1명 사용/)).toBeVisible()
+    // 누적 수락 인원이 숫자로 보인다 — 재사용 계정은 이전 실행의 usedCount가 남을 수 있다
+    await expect(active.getByText(/\d+명이 수락함/)).toBeVisible()
+    await expect(active.getByRole('button', { name: '링크 복사' })).toBeVisible()
     // 만료까지 남은 기간 — 발급 + 7일 (FR-003)
     await expect(active.getByText(/후 만료|오늘 만료/)).toBeVisible()
   })
@@ -225,10 +222,9 @@ test.describe('US3-1·2·3·4 — 링크 통제', () => {
     const after = await readInvitePath(pageA)
     expect(after).not.toBe(before)
 
-    // 중지한 링크는 사라지지 않고 지난 링크로 남는다 — 어느 링크로 누가 왔는지 추적이 된다
+    // 관리 화면은 현재 사용할 수 있는 링크에만 집중한다
     await openManage(pageA)
     await expect(activeLinks(pageA)).toHaveCount(1)
-    await expect(pastLinks(pageA).getByText('중지함').first()).toBeVisible()
   })
 })
 
