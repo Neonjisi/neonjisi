@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { createFunding } from '@/app/fundings/actions/create'
+import { suggestMinAmount } from '@/lib/config/funding'
 import { formatPrice } from '@/components/product/product-card'
 import { Button, buttonClasses } from '@/components/ui/button'
 import { RadioOption } from '@/components/ui/radio-option'
@@ -19,6 +20,8 @@ type Props = {
   friends: FriendOption[]
   initialReceiverId?: string
   hasPaymentMethod: boolean
+  /** 최소 달성 금액 = 목표 x 이 비율 (FR-002). 서버가 `getMinAmountRatio()` 로 읽어 내려준다 */
+  minAmountRatio: number
   initialStep: 1 | 2 | 3
   initialGoal?: string
   initialMinimum?: string
@@ -42,6 +45,7 @@ export function FundingCreateForm({
   friends,
   initialReceiverId,
   hasPaymentMethod,
+  minAmountRatio,
   initialStep,
   initialGoal,
   initialMinimum,
@@ -54,7 +58,9 @@ export function FundingCreateForm({
   const [target, setTarget] = useState<'self' | 'friend'>(initialReceiverId ? 'friend' : 'self')
   const [receiverId, setReceiverId] = useState(initialReceiverId ?? friends[0]?.userId ?? '')
   const [goal, setGoal] = useState(initialGoal ?? String(product.price))
-  const [minimum, setMinimum] = useState(initialMinimum ?? String(Math.max(1, Math.floor(product.price * 0.7))))
+  const [minimumInput, setMinimumInput] = useState(initialMinimum ?? '')
+  // 이어하기(resume)로 돌아온 초안의 최소 금액은 사용자가 이미 정한 값이다 — 비율로 덮지 않는다
+  const [minimumEdited, setMinimumEdited] = useState(initialMinimum !== undefined)
   const [deadline, setDeadline] = useState(initialDeadline ?? tomorrow())
   const [consent, setConsent] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -63,6 +69,13 @@ export function FundingCreateForm({
   const selectedFriend = friends.find((friend) => friend.userId === receiverId)
   const receiverName = isSelf ? '나' : (selectedFriend?.displayName ?? '친구')
   const goalAmount = numberValue(goal)
+  /**
+   * 최소 달성 금액은 **목표 금액**을 따라간다 (FR-002) — 비율은 서버가 정한다.
+   * 기준을 `product.price` 로 두면 목표를 올려도 최소가 상품가에 묶인 채 남는다(피드백 지적).
+   * 사용자가 한 번이라도 직접 고치면 그 값이 이긴다 — 자동값은 기본값이지 강제가 아니다.
+   */
+  const suggestedMinimum = goalAmount > 0 ? String(suggestMinAmount(goalAmount, minAmountRatio)) : ''
+  const minimum = minimumEdited ? minimumInput : suggestedMinimum
   const minAmount = isSelf ? goalAmount : numberValue(minimum)
   const maxBurden = Math.max(0, goalAmount - minAmount)
   const totalSteps = isSelf ? 2 : 3
@@ -204,7 +217,7 @@ export function FundingCreateForm({
           {isSelf ? (
             <TextField id="funding-minimum" label="최소 달성 금액" value={goalAmount > 0 ? formatPrice(goalAmount) : ''} disabled helper="내가 받는 선물이라 목표를 다 채워야 성사됩니다. 목표 금액과 동일" />
           ) : (
-            <TextField id="funding-minimum" label="최소 달성 금액" inputMode="numeric" value={minimum} onChange={(e) => editField(setMinimum)(e.target.value)} helper="이 금액 이상이면 펀딩이 성사되고, 부족한 금액은 주최자가 부담합니다." />
+            <TextField id="funding-minimum" label="최소 달성 금액" inputMode="numeric" value={minimum} onChange={(e) => { setMinimumEdited(true); editField(setMinimumInput)(e.target.value) }} helper="이 금액 이상이면 펀딩이 성사되고, 부족한 금액은 주최자가 부담합니다." />
           )}
           <TextField id="funding-deadline" label="마감일" type="date" min={tomorrow()} value={deadline} onChange={(e) => editField(setDeadline)(e.target.value)} error={deadlineError} />
           {goalAmount < product.price ? <p className="rounded-xl bg-warning-50 p-3 text-sm text-warning-700">목표 금액이 상품 가격보다 낮아요. 그대로 진행할 수 있어요.</p> : null}

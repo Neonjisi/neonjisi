@@ -74,6 +74,7 @@ try {
 }
 
 const { FUNDING_CONSENT_VERSION } = await import('@/lib/funding/consent')
+const { getMinAmountRatio, suggestMinAmount } = await import('@/lib/config/funding')
 
 const skipReason = !hasDatabase
   ? 'DATABASE_URL 미설정 — .env.local 을 확인할 것'
@@ -232,6 +233,71 @@ describe.skipIf(skipReason !== '')('createFunding (T019)', () => {
     expect(row.organizerConsentAgreedAt).toBeInstanceOf(Date)
     expect(row.organizerConsentAgreedAt!.getTime()).toBeGreaterThanOrEqual(before)
     expect(row.deadline.getTime()).toBe(deadline.getTime())
+  })
+
+  /**
+   * 최소 달성 금액 비율 (FR-002) — 통합테스트 피드백 "비율 자동 적용 … 백엔드에서 로직 짜고
+   * 프런트로 넘김". 화면이 값을 안 보내도 서버가 같은 규칙으로 채워야, 개설 경로가 화면
+   * 하나(create-form)에만 의존하지 않는다 — Server Action 은 임의 페이로드로 불릴 수 있다.
+   */
+  it('minAmount 를 생략하면 목표 금액 x 비율로 채운다 (FR-002)', async () => {
+    const { organizer, receiver, product } = await readyPair()
+
+    const result = await as(organizer.id, () =>
+      actions!.createFunding({
+        receiverId: receiver.id,
+        productId: product.id,
+        goalAmount: 300_000,
+        deadline: futureDeadline(),
+        consent: true,
+      }),
+    )
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    const row = await prisma.funding.findUniqueOrThrow({ where: { id: result.data.fundingId } })
+    expect(row.minAmount).toBe(suggestMinAmount(300_000, getMinAmountRatio()))
+    expect(row.minAmount).toBe(210_000) // 기본 비율 0.7
+  })
+
+  it('minAmount 를 명시하면 비율보다 사용자 입력이 이긴다 — 비율은 기본값이지 강제가 아니다', async () => {
+    const { organizer, receiver, product } = await readyPair()
+
+    const result = await as(organizer.id, () =>
+      actions!.createFunding({
+        receiverId: receiver.id,
+        productId: product.id,
+        goalAmount: 300_000,
+        minAmount: 100_000, // 비율(210,000)과 다른 값
+        deadline: futureDeadline(),
+        consent: true,
+      }),
+    )
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    const row = await prisma.funding.findUniqueOrThrow({ where: { id: result.data.fundingId } })
+    expect(row.minAmount).toBe(100_000)
+  })
+
+  it('개설자=수령자면 minAmount 생략도 goalAmount 로 채운다 — 비율이 C10 을 이기지 않는다 (FR-003)', async () => {
+    const organizer = await createUser('T019 SELF RATIO')
+    const categoryId = await createCategory()
+    const product = await createProduct(categoryId, { price: 150_000 })
+
+    const result = await as(organizer.id, () =>
+      actions!.createFunding({
+        receiverId: organizer.id,
+        productId: product.id,
+        goalAmount: 150_000,
+        deadline: futureDeadline(),
+      }),
+    )
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    const row = await prisma.funding.findUniqueOrThrow({ where: { id: result.data.fundingId } })
+    expect(row.minAmount).toBe(150_000) // 105,000(비율)이 아니라 목표 그대로
   })
 
   it('개설자=수령자면 minAmount 입력이 달라도 goalAmount 로 강제되고, 동의·결제수단 없이 성공한다 (FR-003)', async () => {

@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { FundingCreateForm } from '@/components/funding/create-form'
 import { TopBar } from '@/components/ui/top-bar'
+import { getMinAmountRatio } from '@/lib/config/funding'
 import { getFriends } from '@/lib/dal/friend'
 import { getActivePaymentMethod } from '@/lib/dal/payment-method'
 import { getProduct } from '@/lib/dal/product'
@@ -62,6 +63,7 @@ export default async function NewFundingPage({
         friends={friends}
         initialReceiverId={initialReceiverId}
         hasPaymentMethod={paymentMethod !== null}
+        minAmountRatio={getMinAmountRatio()}
         initialStep={initialStep}
         initialGoal={initialStep === 3 ? goal : undefined}
         initialMinimum={initialStep === 3 ? minimum : undefined}

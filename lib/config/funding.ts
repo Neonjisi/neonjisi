@@ -14,6 +14,8 @@
 /** .env.example 과 같은 값 — env 가 비어도 개발·테스트가 그대로 돈다 */
 export const FUNDING_CONFIG_DEFAULTS = {
   reservationTtl: '5m',
+  /** 이전에 create-form.tsx 가 하드코딩하던 값과 같다 — 옮기는 것이지 정책을 바꾸는 게 아니다 */
+  minAmountRatio: '0.7',
 } as const
 
 const DURATION_UNIT_MS: Record<string, number> = {
@@ -54,6 +56,41 @@ export function getReservationTtlMs(): number {
   } catch (e) {
     throw new Error(`FUNDING_RESERVATION_TTL 값이 잘못됐다 — ${(e as Error).message}`)
   }
+}
+
+/** 0 < ratio ≤ 1 인 소수만 — '70%' 같은 표기는 거부한다(단위 없는 숫자를 거부하는 것과 같은 이유) */
+function parseRatio(value: string): number {
+  const ratio = Number(value.trim())
+  if (!Number.isFinite(ratio) || ratio <= 0 || ratio > 1) {
+    throw new Error(`비율은 0 초과 1 이하의 소수여야 한다: "${value}" (예: 0.7)`)
+  }
+  return ratio
+}
+
+/**
+ * 최소 달성 금액 비율 (FR-002) — 기본 0.7. 개설 화면의 초기값과 `createFunding` 의
+ * minAmount 생략 시 기본값이 **같은 값**을 쓰도록 여기 한 곳에 둔다.
+ */
+export function getMinAmountRatio(): number {
+  const raw = readEnv('FUNDING_MIN_AMOUNT_RATIO') ?? FUNDING_CONFIG_DEFAULTS.minAmountRatio
+  try {
+    return parseRatio(raw)
+  } catch (e) {
+    throw new Error(`FUNDING_MIN_AMOUNT_RATIO 값이 잘못됐다 — ${(e as Error).message}`)
+  }
+}
+
+/**
+ * 목표 금액에서 최소 달성선을 산출한다 — **순수 함수**다(env 를 읽지 않는다).
+ * 클라이언트 컴포넌트(개설 폼)도 목표 금액이 바뀔 때마다 이 함수로 다시 계산하므로,
+ * 비율은 인자로 받는다 — 서버에서 `getMinAmountRatio()` 로 읽어 넘긴다.
+ *
+ * 결과는 항상 `0 < 반환값 ≤ goalAmount` 를 만족한다(C9·검사 3과 이중 방어) — 비율이 1 이어도
+ * 목표를 넘지 않고, 목표가 1 원이어도 0 으로 내려가지 않는다. 목표가 0 이하면 산출하지 않는다.
+ */
+export function suggestMinAmount(goalAmount: number, ratio: number): number {
+  if (!Number.isFinite(goalAmount) || goalAmount <= 0) return 0
+  return Math.min(goalAmount, Math.max(1, Math.round(goalAmount * ratio)))
 }
 
 /**

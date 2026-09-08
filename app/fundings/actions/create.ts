@@ -1,6 +1,7 @@
 'use server'
 
 import { z } from 'zod'
+import { getMinAmountRatio, suggestMinAmount } from '@/lib/config/funding'
 import {
   createFundingRow,
   findActivePaymentMethodId,
@@ -23,7 +24,8 @@ import { guarded, type ActionResult } from '@/app/fundings/actions/shared'
  * `createFunding` 의 검사 순서가 정해져 있다 — 바꾸면 오답이 난다:
  *   1. 세션            없으면 verifySession 이 /login 으로 보낸다
  *   2. 수령자           본인이거나 활성 친구 — 아니면 NOT_FRIENDS (FR-001)
- *   3. 금액             개설자=수령자면 minAmount := goalAmount 강제(C10 과 이중 방어) 후
+ *   3. 금액             개설자=수령자면 minAmount := goalAmount 강제(C10 과 이중 방어),
+ *                       아니고 minAmount 가 생략됐으면 목표 × 비율로 채운다(FR-002) — 그 뒤
  *                       0 < minAmount ≤ goalAmount 검증(C9 와 이중) — 아니면 INVALID_AMOUNTS
  *   4. 마감             deadline > now — 아니면 INVALID_DEADLINE
  *   5. 개설자≠수령자만   차액 동의 + 활성 결제수단 — 없으면 CONSENT_REQUIRED / NO_PAYMENT_METHOD
@@ -61,7 +63,8 @@ const createInputSchema = z.object({
   receiverId: z.string().uuid(),
   productId: z.string().uuid(),
   goalAmount: z.number().int(),
-  minAmount: z.number().int(),
+  // 생략 가능 — 화면이 값을 안 보내면 서버가 비율로 채운다 (검사 3, FR-002)
+  minAmount: z.number().int().optional(),
   deadline: z.coerce.date(),
   // "나에게" 분기(개설자=수령자)는 동의 스텝 자체가 없어 생략될 수 있다 (FR-003)
   consent: z.boolean().optional(),
@@ -75,7 +78,7 @@ export async function createFunding(input: {
   receiverId: string
   productId: string
   goalAmount: number
-  minAmount: number
+  minAmount?: number
   deadline: Date | string
   consent?: boolean
 }): Promise<ActionResult<{ fundingId: string }>> {
@@ -105,8 +108,12 @@ export async function createFunding(input: {
       return fail('NOT_FRIENDS', NOT_FRIENDS_MESSAGE)
     }
 
-    // 3. 금액 — 개설자=수령자면 강제(C10 과 이중 방어)한 뒤 범위 검증(C9 와 이중 방어)
-    const minAmount = isSelf ? goalAmount : parsed.data.minAmount
+    // 3. 금액 — 개설자=수령자면 강제(C10 과 이중 방어), 아니면 생략 시 비율로 채운(FR-002) 뒤
+    //    범위 검증(C9 와 이중 방어). 비율은 **기본값이지 강제가 아니다** — 값이 오면 그게 이긴다.
+    //    C10(자기 자신) 이 비율보다 먼저다 — 자기 펀딩에 차액이 생기면 안 된다(FR-003).
+    const minAmount = isSelf
+      ? goalAmount
+      : (parsed.data.minAmount ?? suggestMinAmount(goalAmount, getMinAmountRatio()))
     if (!(minAmount > 0 && minAmount <= goalAmount)) {
       return fail('INVALID_AMOUNTS', INVALID_AMOUNTS_MESSAGE)
     }
