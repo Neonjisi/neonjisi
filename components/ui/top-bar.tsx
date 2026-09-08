@@ -1,6 +1,6 @@
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
+import { Bell, ChevronLeft } from "lucide-react";
 import { BrandLogo } from "@/components/ui/brand-logo";
 import { HeaderNotificationLink } from "@/components/notification/header-notification-link";
 
@@ -30,7 +30,22 @@ export function TopBar({ title, backHref, action, showNotifications = true }: To
       </h1>
       <span className="ml-auto flex items-center">
         {action ? <span className="grid size-10 shrink-0 place-items-center">{action}</span> : null}
-        {showNotifications ? <HeaderNotificationLink /> : <span className="size-10" />}
+        {showNotifications ? (
+          <Suspense
+            fallback={
+              <span
+                aria-hidden
+                className="grid size-10 shrink-0 place-items-center rounded-full text-neutral-900"
+              >
+                <Bell size={22} />
+              </span>
+            }
+          >
+            <HeaderNotificationLink />
+          </Suspense>
+        ) : (
+          <span className="size-10" />
+        )}
       </span>
     </header>
   );
